@@ -3,6 +3,6 @@ from dotenv import load_dotenv
 
 load_dotenv('.env')
 
-API_KEY=os.environ['nobitexToken']
+API_KEY=os.getenv('nobitexToken', default=None)
 
 print(API_KEY)
