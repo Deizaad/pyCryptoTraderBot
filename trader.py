@@ -26,4 +26,4 @@ response2 = requests.get(base_url + '/users/profile', headers=headers, data=payl
 # response = requests.request("GET", url, headers=headers, data=payload)
 
 print(response2)
-print(response2.text)
+print(response2.json())
