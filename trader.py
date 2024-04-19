@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import requests
-from collections import deque
+
 
 # Load api token
 load_dotenv('.env')
@@ -34,23 +34,7 @@ SYMBOL = 'USDTIRT'
 # Function to fetch trades data
 def fetch_trades_data():
     response = requests.get(BASE_URL + f'/v2/trades/{SYMBOL}')
+    response.raise_for_status()  # Raise an exception for non-2xx status codes
     return response.json()
 
 print(fetch_trades_data())
-
-## First approch to Process trades data using deque: ##
-# Maximum number of trades to keep in memory
-MAX_TRADES = 1000
-
-# Initialize the deque to store trades
-trades_deque = deque(maxlen=MAX_TRADES)
-
-# Function to process the trades data
-def process_trades_data(trades_data):
-    if trades_data['status'] == 'ok':
-        for trade in trades_data['trades']:
-            # Append the trade to the deque
-            trades_deque.append(trade)
-            print(f"Trade added: {trade}")
-
-process_trades_data(fetch_trades_data())
