@@ -4,9 +4,11 @@ import requests
 import pandas as pd
 from persiantools.jdatetime import JalaliDateTime
 
+
 # Load api token
 load_dotenv('.env')
-API_KEY: str | None = os.getenv('MAIN_TOKEN', default=None)  # TODO NO-001
+noneTOKEN_str = "Token is not configured"
+API_KEY= os.getenv('MAIN_TOKEN', noneTOKEN_str)  # DONE NO-001
 print(API_KEY)
 
 # Get connection to exchange
@@ -24,7 +26,6 @@ headers: dict[str, str]= {
 }
 
 response2 = requests.get(BASE_URL + '/users/profile', headers=headers, data=payload)
-# response = requests.request("GET", url, headers=headers, data=payload)
 
 print(response2)
 print(response2.json())
