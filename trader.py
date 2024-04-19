@@ -17,9 +17,9 @@ response = requests.get(BASE_URL + '/v2/depth/USDTIRT')
 print(response)
 print(response.json())
 
-payload = {}
+payload: dict[str, str] = {}
 
-headers = {
+headers: dict[str, str]= {
   'Authorization': 'Token ' + API_KEY
 }
 
