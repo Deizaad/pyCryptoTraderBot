@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import requests
 import pandas as pd
-from datetime import datetime
+from persiantools.jdatetime import JalaliDateTime
 
 # Load api token
 load_dotenv('.env')
@@ -47,8 +47,8 @@ def process_trades_data(trades_data):
     trades_list = trades_data.get("trades", [])
     trades_df = pd.DataFrame(trades_list)
 
-    # Convert Unix timestamp to datetime
-    trades_df["time"] = trades_df["time"].apply(lambda x: datetime.fromtimestamp(x / 1000))
+    # Convert Unix timestamp to JalaliDateTime
+    trades_df["time"] = trades_df["time"].apply(lambda t: JalaliDateTime.fromtimestamp(t / 1000))
 
     # Convert price and volume to numeric types
     trades_df["price"] = trades_df["price"].astype(float)
