@@ -58,9 +58,3 @@ def process_trades_data(trades_data):
 
 
 print(process_trades_data(fetch_trades_data()))
-
-
-"""
-TODO NO-001 configure 'os.getenv' to return "Token is not configured" in case of None.
-
-"""
