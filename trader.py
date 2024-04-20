@@ -49,6 +49,9 @@ def process_trades_data(trades_data):
 
     return trades_df
 
+# Clear console function
+def clear_console():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 # Continuously fetch and process real-time trades data
 while True:
@@ -56,11 +59,12 @@ while True:
         trades_data = fetch_trades_data()
         fetched_trades_df = process_trades_data(trades_data)
         trades_df = pd.concat([fetched_trades_df, trades_df], ignore_index=True)
-        print(f"New trades data added to DataFrame. DataFrame size: {len(trades_df)}")
-        with pd.option_context('display.max_rows', None):
-            print(trades_df)
+        clear_console()
+        print(f"DataFrame size: {len(trades_df)}")
+        print(trades_df)
     except Exception as e:
         print(f"Error fetching or processing trades data: {e}")
+        break
 
     # Wait for a certain amount of time before fetching new data
-    time.sleep(6)
+    time.sleep(5)
