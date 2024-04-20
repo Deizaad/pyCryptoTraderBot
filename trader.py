@@ -4,6 +4,7 @@ import requests
 import pandas as pd
 from persiantools.jdatetime import JalaliDateTime
 import time
+from tqdm import tqdm
 
 # Load API token
 load_dotenv('.env')
@@ -55,6 +56,7 @@ def clear_console():
 
 # Continuously fetch and process real-time trades data
 max_iterations = 100
+pbar = tqdm(total=max_iterations, desc="Fetching trades data", unit="batch", colour='#660066')
 iteration = 0
 while iteration < max_iterations:
     try:
@@ -64,9 +66,11 @@ while iteration < max_iterations:
         clear_console()
         print(f"DataFrame size: {len(trades_df)}")
         print(trades_df)
+        pbar.update(1)
         iteration += 1
     except Exception as e:
         print(f"Error fetching or processing trades data: {e}")
+        pbar.close()
         break
 
     # Wait for a certain amount of time before fetching new data
