@@ -9,26 +9,16 @@ import time
 load_dotenv('.env')
 noneTOKEN_str = "Token is not configured"
 API_KEY = os.getenv('MAIN_TOKEN', noneTOKEN_str)    # DONE NO-001
-print(API_KEY)
 
 # Get connection to exchange
 BASE_URL = 'https://api.nobitex.ir/'
 TESTNET = 'https://testnetapi.nobitex.ir/'
-
-response = requests.get(BASE_URL + '/v2/depth/USDTIRT')
-print(response)
-print(response.json())
 
 payload: dict[str, str] = {}
 
 headers: dict[str, str] = {
     'Authorization': 'Token ' + API_KEY
 }
-
-response2 = requests.get(BASE_URL + '/users/profile', headers=headers, data=payload)
-
-print(response2)
-print(response2.json())
 
 SYMBOL = 'USDTIRT'
 
@@ -41,9 +31,6 @@ def fetch_trades_data():
     response = requests.get(BASE_URL + f'/v2/trades/{SYMBOL}')
     response.raise_for_status()  # Raise an exception for non-2xx status codes
     return response.json()
-
-
-print(fetch_trades_data())
 
 
 # Function to process the trades data from the API and return a Pandas DataFrame
@@ -75,4 +62,4 @@ while True:
         print(f"Error fetching or processing trades data: {e}")
 
     # Wait for a certain amount of time before fetching new data
-    time.sleep(6)  # Wait for 1 minute
+    time.sleep(6)
