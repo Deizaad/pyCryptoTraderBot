@@ -54,7 +54,9 @@ def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 # Continuously fetch and process real-time trades data
-while True:
+max_iterations = 100
+iteration = 0
+while iteration < max_iterations:
     try:
         trades_data = fetch_trades_data()
         fetched_trades_df = process_trades_data(trades_data)
@@ -62,9 +64,12 @@ while True:
         clear_console()
         print(f"DataFrame size: {len(trades_df)}")
         print(trades_df)
+        iteration += 1
     except Exception as e:
         print(f"Error fetching or processing trades data: {e}")
         break
 
     # Wait for a certain amount of time before fetching new data
-    time.sleep(5)
+    time.sleep(6)
+
+print("Completed fetching trades data.")
