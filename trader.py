@@ -39,8 +39,9 @@ def process_trades_data(trades_data):
     trades_df = pd.DataFrame(trades_list)
 
     # Convert Unix timestamp to JalaliDateTime
-    trades_df["time"] = trades_df["time"].apply(lambda t: JalaliDateTime.fromtimestamp(t / 1000))
-                                                                                     # FIXME NO-001
+    trades_df["time"] = trades_df["time"].apply(
+        lambda t: JalaliDateTime.fromtimestamp(t / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+    )    # FIXED NO-001
 
     # Convert price and volume to numeric types
     trades_df["price"] = trades_df["price"].astype(float)
