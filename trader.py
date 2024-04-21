@@ -75,7 +75,7 @@ def get_ohlc_data():
     return pd.DataFrame()  # Return an empty DataFrame in case of an error
 
 
-print("       __OHLC_dataframe__", "             size: \n")
+print("       __OHLC_dataframe__", "             size: \n")    # TODO NO-002
 print(get_ohlc_data())
 time.sleep(4)
 

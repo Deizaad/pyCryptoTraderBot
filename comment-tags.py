@@ -6,6 +6,10 @@ DONE NO-001 configure 'os.getenv' to return "Token is not configured" in case of
                   on: 2024-04-17
             perform by: me
                     on: 2024-04-19
+TODO NO-002configure Printing size of OHLC dataframe.
+            issue by: Deizaad -> 166605426+Deizaad@users.noreply.github.com
+                  to: me
+                  on: 2024-04-21
 """
 ##################################################################################################
 
