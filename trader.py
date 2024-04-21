@@ -1,37 +1,29 @@
 import os
-from dotenv import load_dotenv
 import requests
 import pandas as pd
 from persiantools.jdatetime import JalaliDateTime
 import time
 from tqdm import tqdm
-
-# Load API token
-load_dotenv('.env')
-noneTOKEN_str = "Token is not configured"
-API_KEY = os.getenv('MAIN_TOKEN', noneTOKEN_str)    # DONE NO-001
-
-# Get connection to exchange
-BASE_URL = 'https://api.nobitex.ir/'
-TESTNET = 'https://testnetapi.nobitex.ir/'
+import nobitex_data
 
 payload: dict[str, str] = {}
 
 headers: dict[str, str] = {
-    'Authorization': 'Token ' + API_KEY
+    'Authorization': 'Token ' + nobitex_data.API_KEY
 }
 
-SYMBOL = 'USDTIRT'
-
-# Initialize an empty DataFrame to store trades data
-trades_df = pd.DataFrame()
+SYMBOL = nobitex_data.USDTIRT
 
 
 # Function to fetch trades data
 def fetch_trades_data():
-    response = requests.get(BASE_URL + f'/v2/trades/{SYMBOL}')
+    response = requests.get(nobitex_data.BASE_URL + f'v2/trades/{SYMBOL}')
     response.raise_for_status()  # Raise an exception for non-2xx status codes
     return response.json()
+
+
+# Initialize an empty DataFrame to store trades data
+trades_df = pd.DataFrame()
 
 
 # Function to process the trades data from the API and return a Pandas DataFrame
