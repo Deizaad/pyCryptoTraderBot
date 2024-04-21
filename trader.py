@@ -5,6 +5,10 @@ from persiantools.jdatetime import JalaliDateTime
 import time
 from tqdm import tqdm
 import nobitex_data
+import logging
+
+# Configure logging
+logging.basicConfig(filename='nobitex_data.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 payload: dict[str, str] = {}
 
@@ -38,13 +42,15 @@ def get_trades_data():
         return trades_df
 
     except requests.exceptions.HTTPError as http_err:
-        print(f'HTTP error occurred: {http_err}')
-        print(f'Response status code: {http_err.response.status_code}')
-        print(f'Response reason: {http_err.response.reason}')
-        print(f'Response text: {http_err.response.text}')
+        logging.error(f'HTTP error occurred while fetching trades data: {http_err}')
+        logging.error(f'Response status code: {http_err.response.status_code}')
+        logging.error(f'Response reason: {http_err.response.reason}')
+        logging.error(f'Response text: {http_err.response.text}')
 
     except Exception as err:
-        print(f'Other error occurred: {err}')
+        logging.error(f'Other error occurred while fetching trades data: {err}')
+
+    return pd.DataFrame()  # Return an empty DataFrame in case of an error
 
 
 # Clear console function
@@ -69,7 +75,7 @@ while iteration < max_iterations:
             pbar.update(1)
             iteration += 1
     except Exception as e:
-        print(f"Error fetching or processing trades data: {e}")
+        logging.error(f"Error fetching or processing trades data: {e}")
         pbar.close()
         break
 
@@ -78,3 +84,4 @@ while iteration < max_iterations:
 
 
 print(" Completed fetching trades data.")
+logging.info("Completed fetching trades data.")
