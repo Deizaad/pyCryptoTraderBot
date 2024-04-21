@@ -17,25 +17,34 @@ SYMBOL = nobitex_data.USDTIRT
 
 # Function to fetch and process trades data
 def get_trades_data():
+    try:
+        endpoint = 'v2/trades/'
+        response = requests.get(nobitex_data.BASE_URL + endpoint + SYMBOL)
+        response.raise_for_status()  # Raise an exception for non-2xx status codes
+        trades_data = response.json()
 
-    endpoint = 'v2/trades/'
-    response = requests.get(nobitex_data.BASE_URL + endpoint + SYMBOL)
-    response.raise_for_status()  # Raise an exception for non-2xx status codes
-    trades_data = response.json()
+        trades_list = trades_data.get("trades", [])
+        trades_df = pd.DataFrame(trades_list)
 
-    trades_list = trades_data.get("trades", [])
-    trades_df = pd.DataFrame(trades_list)
+        # Convert Unix timestamp to JalaliDateTime
+        trades_df["time"] = trades_df["time"].apply(
+            lambda t: JalaliDateTime.fromtimestamp(t / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        )    # FIXED NO-001
 
-    # Convert Unix timestamp to JalaliDateTime
-    trades_df["time"] = trades_df["time"].apply(
-        lambda t: JalaliDateTime.fromtimestamp(t / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-    )    # FIXED NO-001
+        # Convert price and volume to numeric types
+        trades_df["price"] = trades_df["price"].astype(float)
+        trades_df["volume"] = trades_df["volume"].astype(float)
 
-    # Convert price and volume to numeric types
-    trades_df["price"] = trades_df["price"].astype(float)
-    trades_df["volume"] = trades_df["volume"].astype(float)
+        return trades_df
 
-    return trades_df
+    except requests.exceptions.HTTPError as http_err:
+        print(f'HTTP error occurred: {http_err}')
+        print(f'Response status code: {http_err.response.status_code}')
+        print(f'Response reason: {http_err.response.reason}')
+        print(f'Response text: {http_err.response.text}')
+
+    except Exception as err:
+        print(f'Other error occurred: {err}')
 
 
 # Clear console function
@@ -52,12 +61,13 @@ trades_df = pd.DataFrame()  # Initialize an empty DataFrame to store trades data
 while iteration < max_iterations:
     try:
         fetched_trades_df = get_trades_data()
-        trades_df = pd.concat([fetched_trades_df, trades_df], ignore_index=True)
-        clear_console()
-        print("       __Trades_dataframe__", f"             size: {len(trades_df)}\n")
-        print(trades_df)
-        pbar.update(1)
-        iteration += 1
+        if fetched_trades_df is not None:
+            trades_df = pd.concat([fetched_trades_df, trades_df], ignore_index=True)
+            clear_console()
+            print("       __Trades_dataframe__", f"             size: {len(trades_df)}\n")
+            print(trades_df)
+            pbar.update(1)
+            iteration += 1
     except Exception as e:
         print(f"Error fetching or processing trades data: {e}")
         pbar.close()
