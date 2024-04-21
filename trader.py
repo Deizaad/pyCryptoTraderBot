@@ -133,7 +133,7 @@ while iteration < max_iterations:
             clear_console()
             print("       __Trades_dataframe__", f"             size: {len(trades_df)}\n")
             print(trades_df)
-            pbar.update(1)
+            pbar.update(1)    # FIXME NO-002
             iteration += 1
     except Exception as e:
         logging.error(f"Error fetching or processing trades data: {e}")
