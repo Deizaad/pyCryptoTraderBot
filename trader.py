@@ -15,19 +15,14 @@ headers: dict[str, str] = {
 SYMBOL = nobitex_data.USDTIRT
 
 
-# Function to fetch trades data
-def fetch_trades_data():
-    response = requests.get(nobitex_data.BASE_URL + f'v2/trades/{SYMBOL}')
+# Function to fetch and process trades data
+def get_trades_data():
+
+    endpoint = 'v2/trades/'
+    response = requests.get(nobitex_data.BASE_URL + endpoint + SYMBOL)
     response.raise_for_status()  # Raise an exception for non-2xx status codes
-    return response.json()
+    trades_data = response.json()
 
-
-# Initialize an empty DataFrame to store trades data
-trades_df = pd.DataFrame()
-
-
-# Function to process the trades data from the API and return a Pandas DataFrame
-def process_trades_data(trades_data):
     trades_list = trades_data.get("trades", [])
     trades_df = pd.DataFrame(trades_list)
 
@@ -42,21 +37,24 @@ def process_trades_data(trades_data):
 
     return trades_df
 
+
 # Clear console function
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
 
+
 # Continuously fetch and process real-time trades data
-max_iterations = 100
+max_iterations = 5
 pbar = tqdm(total=max_iterations, desc="Fetching trades data", unit="batch", colour='#660066')
 iteration = 0
+trades_df = pd.DataFrame()  # Initialize an empty DataFrame to store trades data
+
 while iteration < max_iterations:
     try:
-        trades_data = fetch_trades_data()
-        fetched_trades_df = process_trades_data(trades_data)
+        fetched_trades_df = get_trades_data()
         trades_df = pd.concat([fetched_trades_df, trades_df], ignore_index=True)
         clear_console()
-        print(f"DataFrame size: {len(trades_df)}")
+        print("       __Trades_dataframe__", f"             size: {len(trades_df)}\n")
         print(trades_df)
         pbar.update(1)
         iteration += 1
@@ -66,6 +64,7 @@ while iteration < max_iterations:
         break
 
     # Wait for a certain amount of time before fetching new data
-    time.sleep(6)
+    time.sleep(4)
 
-print("Completed fetching trades data.")
+
+print(" Completed fetching trades data.")
