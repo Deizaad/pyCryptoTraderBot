@@ -4,10 +4,9 @@ import pandas as pd
 from persiantools.jdatetime import JalaliDateTime
 import time
 from tqdm import tqdm
-import nobitex_data
+import nobitex_data as nb
 import logging
-from config import Nobitex, OHLC, TRADES
-
+from config import OHLC, TRADES
 
 # Configure logging
 logging.basicConfig(
@@ -17,30 +16,36 @@ logging.basicConfig(
 )
 
 # Function to fetch and process OHLC data
-def get_ohlc(symbol, res, to, countback, start=1):
-    url = nobitex_data.BASE_URL
+def get_ohlc(symbol, res, end, start=0):
     endpoint = 'market/udf/history'
 
-    headers: dict[str, str] = {}
-    params: dict[str, str]= {
-        'symbol': symbol,
-        'resolution': res,
-        'to': to,
-        'countback': countback
-    }
+    if start == 0:
+        params = {
+            'symbol': symbol,
+            'resolution': res,
+            'to': end,
+            'countback': OHLC.COUNTBACK,
+        }
+    else:
+        params = {
+            'symbol': symbol,
+            'resolution': res,
+            'to': end,
+            'from': start
+        }
 
     try:
-        response = requests.request("GET", url + endpoint, params=params, headers=headers)
+        response = requests.request("GET", nb.BASE_URL + endpoint, params=params)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
-        ohlc_data = response.json()
+        data = response.json()
 
         # Extract the necessary data from the API response
-        timestamps = ohlc_data['t']
-        open_prices = ohlc_data['o']
-        high_prices = ohlc_data['h']
-        low_prices = ohlc_data['l']
-        close_prices = ohlc_data['c']
-        volumes = ohlc_data['v']
+        timestamps = data['t']
+        open_prices = data['o']
+        high_prices = data['h']
+        low_prices = data['l']
+        close_prices = data['c']
+        volumes = data['v']
 
         # Convert Unix timestamps to datetime objects
         dates = [JalaliDateTime.fromtimestamp(ts) for ts in timestamps]
@@ -72,22 +77,59 @@ def get_ohlc(symbol, res, to, countback, start=1):
     return pd.DataFrame()  # Return an empty DataFrame in case of an error
 
 
-print("       __OHLC_dataframe__", "             size: \n")    # TODO NO-002
-print(get_ohlc(
+kline_df = get_ohlc(
     OHLC.SYMBOL,
     OHLC.RESOLUTION,
     OHLC.TO,
-    OHLC.COUNTBACK,
-))
+)
 
-time.sleep(4)
+print("       __OHLC_dataframe__", "             size: \n")    # TODO NO-002
+print(kline_df)
+time.sleep(2)
+
+# Function to Update OHLC data
+def update_OHLC():
+    # Get the timestamp of the most recent entry in the DataFrame
+    last_timestamp = JalaliDateTime.to_gregorian(kline_df.index.max())
+    last_timestamp = int(last_timestamp.timestamp())
+
+    # Fetch new data starting from the last timestamp
+    new_data = get_ohlc(OHLC.SYMBOL, OHLC.RESOLUTION, OHLC.TO, last_timestamp)
+    
+    # Check if the new data contains any new timestamps
+    new_timestamps = new_data.index.unique()
+    existing_timestamps = kline_df.index.unique()
+    new_timestamps = new_timestamps[~new_timestamps.isin(existing_timestamps)]
+
+    # Update the existing rows with the latest data if the timestamps match
+    kline_df.update(new_data)
+
+    # If there are new timestamps, 
+    # concatenate the new data (excluding the updated rows) and drop the oldest rows
+    if not new_timestamps.empty:
+        new_data_to_concat = new_data.loc[~new_data.index.isin(kline_df.index)]
+        updated_df = pd.concat([kline_df, new_data_to_concat])
+        updated_df = updated_df.sort_index(ascending=False).head(500).sort_index()
+
+    # If there are no new timestamps, return the updated DataFrame
+    else:
+        updated_df = kline_df
+
+    return last_timestamp, new_data, updated_df
+
+
+print('Last timestamp is: ', update_OHLC()[0], '\n\n', 
+      update_OHLC()[1], '\n\n',
+      update_OHLC()[2], '\n\n',
+)
+time.sleep(30)
 
 
 # Function to fetch and process trades data
 def get_trades_data():
     try:
         endpoint = 'v2/trades/'
-        response = requests.get(nobitex_data.BASE_URL + endpoint + TRADES.SYMBOL)
+        response = requests.get(nb.BASE_URL + endpoint + TRADES.SYMBOL)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         trades_data = response.json()
 
