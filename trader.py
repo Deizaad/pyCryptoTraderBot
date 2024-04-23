@@ -6,6 +6,8 @@ import time
 from tqdm import tqdm
 import nobitex_data
 import logging
+from config import Nobitex, OHLC, TRADES
+
 
 # Configure logging
 logging.basicConfig(
@@ -14,26 +16,17 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
 )
 
-payload: dict[str, str] = {}
-
-headers: dict[str, str] = {
-    'Authorization': 'Token ' + nobitex_data.API_KEY
-}
-
-SYMBOL = nobitex_data.USDTIRT
-
-
 # Function to fetch and process OHLC data
-def get_ohlc_data():
+def get_ohlc(symbol, res, to, countback, start=1):
     url = nobitex_data.BASE_URL
     endpoint = 'market/udf/history'
 
-    params = {
-        'symbol': SYMBOL,
-        'resolution': '5',
-        'from': '1562058167',
-        'to': int(nobitex_data.CURRENT_TIME),
-        'countback': '500'
+    headers: dict[str, str] = {}
+    params: dict[str, str]= {
+        'symbol': symbol,
+        'resolution': res,
+        'to': to,
+        'countback': countback
     }
 
     try:
@@ -80,7 +73,13 @@ def get_ohlc_data():
 
 
 print("       __OHLC_dataframe__", "             size: \n")    # TODO NO-002
-print(get_ohlc_data())
+print(get_ohlc(
+    OHLC.SYMBOL,
+    OHLC.RESOLUTION,
+    OHLC.TO,
+    OHLC.COUNTBACK,
+))
+
 time.sleep(4)
 
 
@@ -88,7 +87,7 @@ time.sleep(4)
 def get_trades_data():
     try:
         endpoint = 'v2/trades/'
-        response = requests.get(nobitex_data.BASE_URL + endpoint + SYMBOL)
+        response = requests.get(nobitex_data.BASE_URL + endpoint + TRADES.SYMBOL)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         trades_data = response.json()
 
