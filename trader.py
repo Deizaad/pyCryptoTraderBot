@@ -8,7 +8,11 @@ import nobitex_data
 import logging
 
 # Configure logging
-logging.basicConfig(filename='nobitex_data.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    filename='nobitex_data.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+)
 
 payload: dict[str, str] = {}
 
