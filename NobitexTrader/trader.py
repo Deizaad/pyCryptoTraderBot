@@ -10,13 +10,13 @@ kline_df = get_OHLC(
 )
 
 
-print("       Initial OHLC data", "             size: \n")    # TODO NO-002
+print("       Initial OHLC data", f"             size: {len(kline_df)}\n")    # DONE NO-002
 print(kline_df)
 time.sleep(2)
 
 
 # # Print OHLC live update
-# print_OHLC(kline_df)
+print_OHLC(kline_df)
 
 
 update_trades(10, get_trades)

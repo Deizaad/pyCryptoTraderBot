@@ -1,24 +1,3 @@
-# def add_parent():
-#     '''
-#     Appends parent directory to sys.path module
-#     '''
-#     # getting the name of the directory
-#     # where this file is present.
-#     current = os.path.dirname(os.path.realpath(__file__))
-
-#     # Getting the parent directory name
-#     # where the current directory is present.
-#     parent = os.path.dirname(current)
-
-#     # adding the parent directory to 
-#     # the sys.path.
-#     sys.path.append(parent)
-# import os, sys
-# import sys
-# import os
-# sys.path.append("../NobitexTrader")
-# sys.path.insert(1, "/".join(os.path.realpath(__file__).split("/")[0:-2]))
-
 import logging
 import time
 
@@ -29,7 +8,6 @@ from tqdm import tqdm
 
 import NobitexTrader.config as config
 import NobitexTrader.nobitex_data as nb
-
 from NobitexTrader.nb_api.utils import clear_console
 
 
@@ -152,7 +130,7 @@ def print_OHLC(df, update_interval=10):
             print('last Index: \n', update_OHLC(df)[3], '\n')
             print('new data: \n', update_OHLC(df)[0], '\n')
             print('new data to concat: \n', update_OHLC(df)[2], '\n')
-            print("       __OHLC_dataframe__", "             size: \n")
+            print("       Live OHLC data", f"             size: {len(df)}\n")
             print(df)
             print(f"DataFrame updated at {JalaliDateTime.to_jalali(time.time())} \n\n")
         except Exception as e:
