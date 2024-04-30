@@ -2,6 +2,11 @@ import os
 from dotenv import load_dotenv
 import time
 
+
+__all__ = ["API_KEY", "CURRENT_TIME", "BASE_URL", "TESTNET"]
+# __endpoints__ = [""]
+# __symbols__ = [""]
+
 # API tokens:
 load_dotenv('.env')
 noneTOKEN_str = "Token is not configured"
