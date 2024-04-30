@@ -29,5 +29,10 @@ FIXME NO-002 fix the progress bar prints again after each print in console.
              issue by: Deizaad -> 166605426+Deizaad@users.noreply.github.com
                    to: me
                    on: 2024-04-21
+
+FIXME NO-003 fix update_trades() function that collects duplicate trades data.
+             issue by: Deizaad -> 166605426+Deizaad@users.noreply.github.com
+                   to: me
+                   on: 2024-04-30
 """ 
 ##################################################################################################

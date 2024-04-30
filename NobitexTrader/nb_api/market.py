@@ -216,4 +216,4 @@ def update_trades(max_iterations, get_trades_func):
     print(" Completed fetching trades data.")
     logging.info("Completed fetching trades data.")
 
-    return trades_df
+    return trades_df    # FIXME NO-003
