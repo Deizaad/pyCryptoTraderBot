@@ -1,6 +1,7 @@
 import time
-from NobitexTrader.config import OHLC
-from NobitexTrader.nb_api.market import *
+
+from .config import OHLC
+from .nb_api.market import get_OHLC, get_trades, print_OHLC, update_trades
 
 # Initiate a dataframe to store OHLC data
 kline_df = get_OHLC(
@@ -10,7 +11,9 @@ kline_df = get_OHLC(
 )
 
 
-print("       Initial OHLC data", f"             size: {len(kline_df)}\n")    # DONE NO-002
+print(
+    "       Initial OHLC data", f"             size: {len(kline_df)}\n"
+)  # DONE NO-002
 print(kline_df)
 time.sleep(2)
 
