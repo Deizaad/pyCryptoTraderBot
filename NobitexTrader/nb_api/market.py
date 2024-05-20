@@ -76,16 +76,16 @@ class OHLCData:
 
             # Create a DataFrame with the OHLC data
             ohlc_df = pd.DataFrame({
-                'Date': dates,
-                'Open': open_prices,
-                'High': high_prices,
-                'Low': low_prices,
-                'Close': close_prices,
-                'Volume': volumes
+                'date': dates,
+                'open': open_prices,
+                'high': high_prices,
+                'low': low_prices,
+                'close': close_prices,
+                'volume': volumes
             })
 
             # Set the 'Date' column as the index
-            ohlc_df.set_index('Date', inplace=True)
+            ohlc_df.set_index('date', inplace=True)
 
             return ohlc_df, end
 
