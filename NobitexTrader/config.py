@@ -12,3 +12,7 @@ class OHLC:
 
 class TRADES:
     SYMBOL: str = 'USDTIRT'
+
+class supertrend:
+    WINDOW=14
+    FACTOR=3
