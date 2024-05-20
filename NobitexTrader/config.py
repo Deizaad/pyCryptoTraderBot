@@ -8,6 +8,7 @@ class OHLC:
     FROM= 0
     COUNTBACK= 500
     PAGE= 1
+    SIZE: int = 1000
 
 class TRADES:
     SYMBOL: str = 'USDTIRT'

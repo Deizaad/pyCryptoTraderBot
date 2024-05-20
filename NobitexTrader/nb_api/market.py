@@ -129,7 +129,7 @@ class OHLCData:
             # Concatenate the new data (excluding the updated rows) and drop the oldest rows
             new_data_to_concat = new_data.loc[new_data.index.isin(new_timestamps)]
             updated_df = pd.concat([self.df, new_data_to_concat])
-            updated_df = updated_df.sort_index(ascending=False).head(500).sort_index()
+            updated_df = updated_df.sort_index(ascending=False).head(config.OHLC.SIZE).sort_index()
             self.df = updated_df
 
             return updated_df, new_data, new_data_to_concat, last_index, update_time
