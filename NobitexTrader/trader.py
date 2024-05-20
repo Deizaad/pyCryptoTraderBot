@@ -2,7 +2,7 @@ import pandas as pd
 import time
 from NobitexTrader.config import OHLC
 from NobitexTrader.nb_api.market import *
-from  NobitexTrader.analysis.supertrend import calculate_supertrend
+from  NobitexTrader.analysis.supertrend import pandas_supertrend
 
 
 kline_df = pd.DataFrame()
@@ -22,11 +22,11 @@ time.sleep(2)
 while True:
     
     kline_df = OHLC_Engine.live()[0]
-    secound_df = calculate_supertrend(kline_df)
+    secound_df = pandas_supertrend(kline_df)
 
     with pd.option_context('display.max_rows', None,):   
         print("Live dataframe \n", kline_df)
-        print("supertrend df \n", secound_df)
+        print("pandas generated supertrend \n", secound_df)
 
     time.sleep(5)
 
