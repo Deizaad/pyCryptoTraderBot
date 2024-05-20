@@ -34,5 +34,10 @@ FIXME NO-003 fix update_trades() function that collects duplicate trades data.
              issue by: Deizaad -> 166605426+Deizaad@users.noreply.github.com
                    to: me
                    on: 2024-04-30
+
+FIXME NO-004 fix supertrend function not reaturning values for bearish direction.
+             issue by: Deizaad -> 166605426+Deizaad@users.noreply.github.com
+                   to: me
+                   on: 2024-05-20                   
 """ 
 ##################################################################################################

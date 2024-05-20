@@ -31,7 +31,7 @@ def calculate_supertrend(df, window=supertrend.WINDOW, multiplier=supertrend.FAC
         (_df['bottom_band'] > _df['prev_bottom_band']) | (_df['prev_close'] < _df['prev_bottom_band']),
         _df['bottom_band'],
         _df['prev_bottom_band']
-    )
+    )    # FIXME NO-004
 
 
     _df['side'] = np.nan
