@@ -1,13 +1,12 @@
-import logging
 import time
-
-import pandas as pd
+import logging
 import requests
-from persiantools.jdatetime import JalaliDateTime
+import pandas as pd
 from tqdm import tqdm
+from persiantools.jdatetime import JalaliDateTime
 
 from NobitexTrader import config
-import NobitexTrader.nobitex_data as nb
+from NobitexTrader.exchange import Nobitex as nb
 from NobitexTrader.nb_api.utils import clear_console
 
 
@@ -41,7 +40,6 @@ class OHLCData:
 
     # Fetch inetial data
     def get(self, end):
-        endpoint = 'market/udf/history'
 
         if self.start == 0:
             params = {
@@ -59,7 +57,7 @@ class OHLCData:
             }
 
         try:
-            response = requests.request("GET", nb.BASE_URL + endpoint, params=params)
+            response = requests.request("GET", nb.URL.MAIN + nb.Endpoint.OHLC, params=params)
             response.raise_for_status()  # Raise an exception for non-2xx status codes
             data = response.json()
 
@@ -198,8 +196,7 @@ class OHLCData:
 # Function to fetch and process trades data
 def get_trades():
     try:
-        endpoint = 'v2/trades/'
-        response = requests.get(nb.BASE_URL + endpoint + config.TRADES.SYMBOL)
+        response = requests.get(nb.URL.MAIN + nb.Endpoint.TRADES + config.TRADES.SYMBOL)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         trades_data = response.json()
 
