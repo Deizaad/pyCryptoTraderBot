@@ -1,0 +1,5 @@
+1. Single SuperTrend Entry Setup:
+    Long Entry: Open buy position when price closes above the supertrend line and And the 
+                supertrend has been bearish on previous candle.
+    Short Entry: Open sell position when price closes below the supertrend line and the supertrend
+                 has been bullish on previous candle.
