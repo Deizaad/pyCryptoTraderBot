@@ -1,10 +1,9 @@
-from NobitexTrader.nobitex_data import *
-
+from time import time
 
 class OHLC:
     SYMBOL: str = 'USDTIRT'
     RESOLUTION: str = '1'
-    TO= int(CURRENT_TIME)
+    TO= int(time())
     FROM= 0
     COUNTBACK= 500
     PAGE= 1
@@ -13,6 +12,9 @@ class OHLC:
 class TRADES:
     SYMBOL: str = 'USDTIRT'
 
-class supertrend:
+class Supertrend:
     WINDOW=14
     FACTOR=3
+
+class Order:
+    CATEGORY = 'futures'
