@@ -1,0 +1,79 @@
+_____________DONE: _____________
+
+. create 'Further_Commits.txt' to store 'DONE's and 'TODO's. or append it to .ignore file.
+
+. refactor nobitex_data.py into 'class and constants method'. (apply to nobitex_data.py and market.py)
+
+. rename nobitex_data.py to exchange.py
+
+. Add Order class to config.py
+
+. Extract supertrend value and direction from dataframe in analysis/supertrend.py.
+
+* Announce issue of indicator dataframe populates late.
+
+. Initiate docs/setup directory.
+
+. Initiate Entry_Setup.txt file
+
+. write first entry setup in docs/setup/entry_setup.txt file
+
+. Initiate setups package. (apply to directory and the __init__.py file)
+
+. Initiate supertrend.py module
+
+. write signal function in supertrend.py module.
+
+. Initiate 'data_manager.py' module to handle data across project.
+
+. Write DataManager class. (apply to data_manager.py and trader.py)
+
+. Initiate accout.py module in nb_api/ directory to write related functions.
+
+. Initiate order.py module in nb_api directory.
+
+. write Order class in order.py module.
+
+_____________TODO: _____________
+* store all endpoints in a module
+
+* modify all modules to be compatible with exchange.py new architect
+
+* Implement dependencies handling using Poetry
+
+* fix update_trades() function that prints duplicate trades data
+
+* define specific lists like (__endpoints__) in nobitex_data to modules and packages
+
+* change 'BASE_URL' and 'TESTNET' to 'URL.MAIN' and 'URL.TEST'.
+
+
+* remove unnecessary returns from OHLCData class
+
+
+* change assigning the previous top and bottom band to replace NaNs with zero.
+
+* Refactor 'OHLCData' class
+	Refactor the class using AsyncIO, HTTPX, and it's client module to make sessions like requests library to receive data faster. Also using AsyncIO, make this class and it's methods capable to be called concurrently with any other method or function when using in main code.
+
+* Use Ternary if operation for OHLCData.get.param
+
+* check given arguments in order.place.params for mandatory parameters of each order kind: (oco, futures, spot)
+
+* turn aplicable functions to AsyncIO and Threading.
+
+* Integrate config.RATE_LIMIT to functions
+
+* turn supertrend.entry into a class
+
+* make a function for supertrend.entry to make analysis just on last candle row.
+
+* make class or function in trader.py to watch the signal dataframe for signals and call the corresponding method from order.place
+
+* Rename the Repositori to ...
+
+* Rename the nobitex.py to exchange.py
+
+* send string values in requests.
+
+* inside setups/supertrend.py refactor signal function to a class and modify project to be compatible with it.
