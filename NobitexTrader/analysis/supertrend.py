@@ -1,10 +1,12 @@
 # import talib
 # import numpy as np
-from NobitexTrader.config import supertrend
+# import pandas as pd
+from NobitexTrader.config import Supertrend as st
 import pandas_ta as ta
 
-def pandas_supertrend(df, window=supertrend.WINDOW, multiplier=supertrend.FACTOR):
-    _df = ta.supertrend(df['high'], df['low'], df['close'], window, multiplier)
+def pandas_supertrend(df, window=st.WINDOW, multiplier=st.FACTOR):
+    _df = ta.supertrend(df['high'], df['low'], df['close'], window, multiplier).iloc[:, 0:2]
+    _df.columns = ['supertrend', 'supertrend_side']
     return _df
 
 
