@@ -4,7 +4,7 @@
 from NobitexTrader.config import Supertrend as st
 import pandas_ta as ta
 
-def pandas_supertrend(df, window=st.WINDOW, multiplier=st.FACTOR):
+def pandas_supertrend(df, window=st.WINDOW, multiplier=st.FACTOR):    # FIXME NO-005
     _df = ta.supertrend(df['high'], df['low'], df['close'], window, multiplier).iloc[:, 0:2]
     _df.columns = ['supertrend', 'supertrend_side']
     return _df
