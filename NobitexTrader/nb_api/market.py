@@ -1,4 +1,6 @@
 import time
+import httpx
+import asyncio
 import logging
 import requests
 import pandas as pd
@@ -34,11 +36,12 @@ class OHLCData:
         self.res = res
         self.start = start
         self.last_fetch_time = 0
+        self.client = httpx.AsyncClient()
     # ____________________________________________________________________________ . . .
 
 
     # Fetch inetial data
-    def get(self, end):
+    async def get(self, end):
 
         
         payload = {
@@ -57,7 +60,7 @@ class OHLCData:
         try:
             if wait_time > 0:
                 time.sleep(wait_time)
-            response = requests.request("GET", nb.URL.MAIN + nb.Endpoint.OHLC, params=payload)
+            response = await self.client.get(nb.URL.MAIN + nb.Endpoint.OHLC, params=payload)
 
             self.last_fetch_time = time.time()
 
@@ -92,10 +95,9 @@ class OHLCData:
 
             return ohlc_df, end
 
-        except requests.exceptions.HTTPError as http_err:
+        except httpx.HTTPStatusError as http_err:
             logging.error(f'HTTP error occurred while fetching OHLC data: {http_err}')
             logging.error(f'Response status code: {http_err.response.status_code}')
-            logging.error(f'Response reason: {http_err.response.reason}')
             logging.error(f'Response text: {http_err.response.text}')
 
         except Exception as err:
@@ -107,7 +109,7 @@ class OHLCData:
 
 
     # Fetch new data
-    def new(self):
+    async def new(self):
         try:
             # Get the timestamp of the most recent entry in the DataFrame
             last_index = self.df.index.max()
@@ -118,7 +120,7 @@ class OHLCData:
             
             end = int(time.time())
             
-            new_data, update_time = self.get(end)
+            new_data, update_time = await self.get(end)
             update_time = JalaliDateTime.fromtimestamp(update_time)
 
             # Check if the new data contains any new timestamps
@@ -145,11 +147,11 @@ class OHLCData:
 
 
     # Update dataframe constantly
-    def live(self):
+    async def live(self):
         while True:
             try:
-                _df, _new_data, _new_data_to_concat, _last_index, _update_time = self.new()
-                time.sleep(nb.Endpoint.OHLC_RL)
+                _df, _new_data, _new_data_to_concat, _last_index, _update_time = await self.new()
+                await asyncio.sleep(nb.Endpoint.OHLC_RL)
                 return _df, _new_data, _new_data_to_concat, _last_index, _update_time
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
@@ -159,10 +161,10 @@ class OHLCData:
 
 
     # Print updated dataframe constantly
-    def print(self):
+    async def print(self):
         while True:
             try:
-                _df, _new_data, _new_data_to_concat, _last_index, _update_time = self.live()
+                _df, _new_data, _new_data_to_concat, _last_index, _update_time = await self.live()
                 print('last Index: \n', _last_index, '\n')
                 print('new data: \n', _new_data, '\n')
                 print('new data to concat: \n', _new_data_to_concat, '\n')
@@ -172,15 +174,15 @@ class OHLCData:
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
                 print(f"Error in print() method: {e}")
-            time.sleep(nb.Endpoint.OHLC_RL)
+            await asyncio.sleep(nb.Endpoint.OHLC_RL)
     # ____________________________________________________________________________ . . .
 
 
     # Show new data constantly without updating dataframe
-    def show_new(self):
+    async def show_new(self):
         while True:
             try:
-                _df, _new_data, _new_data_to_concat, _last_index, _update_time = self.new()
+                _df, _new_data, _new_data_to_concat, _last_index, _update_time = await self.new()
                 print('last Index: \n', _last_index, '\n')
                 print('new data: \n', _new_data, '\n')
                 print('new data to concat: \n', _new_data_to_concat, '\n')
@@ -190,7 +192,13 @@ class OHLCData:
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
                 print(f"Error in show_new() method: {e}")
-            time.sleep(nb.Endpoint.OHLC_RL)
+            await asyncio.sleep(nb.Endpoint.OHLC_RL)
+    # ____________________________________________________________________________ . . .
+
+
+    async def close(self):
+        """Close the HTTPX client."""
+        await self.client.aclose()
 # =================================================================================================
 
 
