@@ -28,13 +28,13 @@ logging.basicConfig(
 # OHLC data:
 # =================================================================================================
 class OHLCData:
-    # Configuring __init__ method
     def __init__(self, df, symbol, res, start=0, update_interval=3):
         self.df = df
         self.update_interval = update_interval
         self.symbol = symbol
         self.res = res
         self.start = start
+        self.last_fetch_time = 0
     # ____________________________________________________________________________ . . .
 
 
@@ -47,12 +47,21 @@ class OHLCData:
             'resolution': self.res,
             'to': end,
             'countback': config.OHLC.COUNTBACK if self.start == 0 else None,
-            'from' : None if self.start == 0 else self.start
+            'from': None if self.start == 0 else self.start
         }
         payload = {key: value for key, value in payload.items() if value is not None}
 
+        current_time = time.time()
+        rate_limit = nb.Endpoint.OHLC_RL
+        wait_time = max(0, rate_limit - (current_time - self.last_fetch_time))
+
         try:
+            if wait_time > 0:
+                time.sleep(wait_time)
             response = requests.request("GET", nb.URL.MAIN + nb.Endpoint.OHLC, params=payload)
+
+            self.last_fetch_time = time.time()
+
             response.raise_for_status()  # Raise an exception for non-2xx status codes
             data = response.json()
 
@@ -79,6 +88,8 @@ class OHLCData:
 
             # Set the 'Date' column as the index
             ohlc_df.set_index('date', inplace=True)
+
+            time.sleep(rate_limit)
 
             return ohlc_df, end
 
@@ -108,7 +119,7 @@ class OHLCData:
             
             end = int(time.time())
             
-            new_data , update_time = self.get(end)
+            new_data, update_time = self.get(end)
             update_time = JalaliDateTime.fromtimestamp(update_time)
 
             # Check if the new data contains any new timestamps
@@ -126,6 +137,7 @@ class OHLCData:
             self.df = updated_df
 
             return updated_df, new_data, new_data_to_concat, last_index, update_time
+
         except Exception as e:
             logging.error(f"An error occurred: {e}")
             print(f"Error in new() method: {e}")
