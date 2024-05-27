@@ -41,23 +41,18 @@ class OHLCData:
     # Fetch inetial data
     def get(self, end):
 
-        if self.start == 0:
-            params = {
-                'symbol': self.symbol,
-                'resolution': self.res,
-                'to': end,
-                'countback': config.OHLC.COUNTBACK,
-            }
-        else:
-            params = {
-                'symbol': self.symbol,
-                'resolution': self.res,
-                'to': end,
-                'from': self.start
-            }
+        
+        payload = {
+            'symbol': self.symbol,
+            'resolution': self.res,
+            'to': end,
+            'countback': config.OHLC.COUNTBACK if self.start == 0 else None,
+            'from' : None if self.start == 0 else self.start
+        }
+        payload = {key: value for key, value in payload.items() if value is not None}
 
         try:
-            response = requests.request("GET", nb.URL.MAIN + nb.Endpoint.OHLC, params=params)
+            response = requests.request("GET", nb.URL.MAIN + nb.Endpoint.OHLC, params=payload)
             response.raise_for_status()  # Raise an exception for non-2xx status codes
             data = response.json()
 
@@ -266,9 +261,3 @@ def update_trades(max_iterations, get_trades_func):
 
     return trades_df    # FIXME NO-003
 # =================================================================================================
-
-
-
-
-
-
