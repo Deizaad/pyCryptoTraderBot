@@ -28,9 +28,8 @@ logging.basicConfig(
 # OHLC data:
 # =================================================================================================
 class OHLCData:
-    def __init__(self, df, symbol, res, start=0, update_interval=3):
+    def __init__(self, df, symbol, res, start=0):
         self.df = df
-        self.update_interval = update_interval
         self.symbol = symbol
         self.res = res
         self.start = start
@@ -150,12 +149,11 @@ class OHLCData:
         while True:
             try:
                 _df, _new_data, _new_data_to_concat, _last_index, _update_time = self.new()
-                time.sleep(self.update_interval)
+                time.sleep(nb.Endpoint.OHLC_RL)
                 return _df, _new_data, _new_data_to_concat, _last_index, _update_time
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
                 print(f"Error in live() method: {e}")
-                time.sleep(self.update_interval)
                 return self.df, None, None, None, None
     # ____________________________________________________________________________ . . .
 
@@ -174,7 +172,7 @@ class OHLCData:
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
                 print(f"Error in print() method: {e}")
-            time.sleep(self.update_interval)
+            time.sleep(nb.Endpoint.OHLC_RL)
     # ____________________________________________________________________________ . . .
 
 
@@ -192,7 +190,7 @@ class OHLCData:
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
                 print(f"Error in show_new() method: {e}")
-            time.sleep(self.update_interval)
+            time.sleep(nb.Endpoint.OHLC_RL)
 # =================================================================================================
 
 
