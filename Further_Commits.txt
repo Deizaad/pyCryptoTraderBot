@@ -1,40 +1,5 @@
 _____________DONE: _____________
 
-1. create 'Further_Commits.txt' to store 'DONE's and 'TODO's. or append it to .ignore file.
-
-2. refactor nobitex_data.py into 'class and constants method'. (apply to nobitex_data.py and market.py)
-
-3. rename nobitex_data.py to exchange.py
-
-4. Add Order class to config.py
-
-5. Extract supertrend value and direction from dataframe in analysis/supertrend.py.
-
-6. Announce issue of indicator dataframe populates late.
-
-. Initiate docs/setup directory.
-
-. Initiate Entry_Setup.txt file
-
-7. write first entry setup in docs/setup/entry_setup.txt file
-
-8. Initiate setups package. (apply to directory and the __init__.py file)
-
-9. Initiate supertrend.py module
-
-10. write signal function in supertrend.py module.
-
-11. Initiate 'data_manager.py' module to handle data across project.
-
-12. Write DataManager class. (apply to data_manager.py and trader.py)
-
-13. Initiate accout.py module in nb_api/ directory to write related functions.
-
-14. Initiate order.py module in nb_api directory.
-
-15. write Order class in order.py module.
-
-. stage Further_Commits.txt.
 
 . commit stable tag.
 
@@ -53,8 +18,10 @@ _____________TODO: _____________
 
 * change assigning the previous top and bottom band to replace NaNs with zero.
 
-* Refactor 'OHLCData' class
+1* Refactor 'OHLCData' class
 	Refactor the class using AsyncIO, HTTPX, and it's client module to make sessions like requests library to receive data faster. Also using AsyncIO, make this class and it's methods capable to be called concurrently with any other method or function when using in main code.
+
+* Using AsyncIO await the API functions for sleep time.
 
 * Use Ternary if operation for OHLCData.get.param
 
@@ -77,3 +44,24 @@ _____________TODO: _____________
 * send string values in requests.
 
 * inside setups/supertrend.py refactor signal function to a class and modify project to be compatible with it.
+
+* handle error in OHLCData.get method when response.text == {"s":"no_data"} and it raises error 't'.
+
+* handle error in OHLCData.new method when the get method returns epty dataframe and None for update time.
+
+* Configure OHLCData class to get symbol and res parameters from config file.
+
+* configure indicator and signal dataframes to continuously check kline_df for new data then update themself if there are new data.
+
+* configure DataManager to run live updates for dataframes without a sleep time.
+
+* how can i configure my OHLCData code in order that when requesting for data untill new data arrives doesn't wait longer than rate_limit time and make another request concurrently.
+
+* I wrote the DataManager class and i think i have some mistakes for how i made the initiate_kline_df asyncronously or how i run it on line :
+```
+asyncio.run(data_manager.initiate_kline_df())
+```
+
+* rename the update_supertrend() function to IndicatorSupervisor class and move it to a new corresponding module. Inside it call the monitoring task asyncronusly and call each indicator function including pandas_supertrend asyncronusly too. then only bring this supervisor to the DataManager class.
+
+* instead of seperate method for each dataframe in DataManager class maybe it's better to central methods for initiating, populating, gettign, ...
