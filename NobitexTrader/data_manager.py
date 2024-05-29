@@ -13,7 +13,8 @@ from NobitexTrader.study.supertrend import pandas_supertrend
 # =================================================================================================
 class DataManager:
     """
-    Singleton Design Pattern
+    DataManager is a Singleton design class that manages data frames for kline, indicators, and 
+    signals.
     """
     # Handle class instance
     _instance = None
@@ -23,21 +24,32 @@ class DataManager:
         with cls._lock:
             if not cls._instance:
                 cls._instance = super(DataManager, cls).__new__(cls, *args, **kwargs)
-                cls._instance.kline_df = pd.DataFrame()
-                cls._instance.indicator_df = pd.DataFrame()
-                cls._instance.signal_df = pd.DataFrame()
+                cls._instance._initialize_dataframes()
+
         return cls._instance
     # ____________________________________________________________________________ . . .
 
 
-    # Handle kline dataframe
-    async def initiate_kline_df(self):
-        kline_df = pd.DataFrame()
-        ohlc = OHLCData(kline_df, md.OHLC.SYMBOL, md.OHLC.RESOLUTION)
-        current_time = int(time.time())
-        self.kline_df, _ = await ohlc.get(current_time)
+    def _initialize_dataframes(self):
+        self.kline_df = pd.DataFrame()
+        self.indicator_df = pd.DataFrame()
+        self.signal_df = pd.DataFrame()
+    # ____________________________________________________________________________ . . .
 
-    async def populate_kline_df(self):
+
+    def initiate(self):
+        asyncio.run(self._initiate_kline_df())
+    # ____________________________________________________________________________ . . .
+
+
+    # Handle kline dataframe
+    async def _initiate_kline_df(self):
+        kline_df = pd.DataFrame()
+        _ohlc = OHLCData(kline_df, md.OHLC.SYMBOL, md.OHLC.RESOLUTION)
+        _current_time = int(time.time())
+        self.kline_df, _ = await _ohlc.get(_current_time)
+
+    async def _populate_kline_df(self):
         ohlc = OHLCData(self.kline_df, md.OHLC.SYMBOL, md.OHLC.RESOLUTION)
         self.kline_df, _, _, _, _ = await ohlc.live()
 
@@ -47,7 +59,7 @@ class DataManager:
 
 
     # Handle indicator dataframe
-    def populate_indicator_df(self):
+    async def _populate_indicator_df(self):
         self.indicator_df = pandas_supertrend(self.kline_df)
 
     def get_indicator_df(self):
@@ -56,7 +68,7 @@ class DataManager:
 
 
     # Handle signal dataframe
-    def populate_signal_df(self):
+    async def _populate_signal_df(self):
         self.signal_df = signal(self.kline_df, self.indicator_df)
 
     def get_signal_df(self):
@@ -64,7 +76,7 @@ class DataManager:
     # ____________________________________________________________________________ . . .
 
 
-    def trigger_live_update(self):
+    def live_update(self):
         def update_loop():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -75,9 +87,9 @@ class DataManager:
     async def _live_update(self):
         while True:
             try:
-                await self.populate_kline_df()
-                self.populate_indicator_df()
-                self.populate_signal_df()
+                await asyncio.gather(self._populate_kline_df(),
+                                     self._populate_indicator_df(),
+                                     self._populate_signal_df())
             except Exception as e:
                 logging.error(f'An error occurred during live update: {e}')
                 await asyncio.sleep(4)
@@ -98,9 +110,8 @@ class DataManager:
 
 # Initiate Dataframes
 data_manager = DataManager()
-asyncio.run(data_manager.initiate_kline_df())
-# data_manager.initiate_kline_df()
-data_manager.trigger_live_update()
+data_manager.initiate()
+data_manager.live_update()
 
 
 if __name__ == '__main__':
