@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 from persiantools.jdatetime import JalaliDateTime
 
-from NobitexTrader import config
+from NobitexTrader.config import MarketData as md
 from NobitexTrader.exchange import Nobitex as nb
 from NobitexTrader.nb_api.utils import clear_console
 
@@ -48,7 +48,7 @@ class OHLCData:
             'symbol': self.symbol,
             'resolution': self.res,
             'to': end,
-            'countback': config.OHLC.COUNTBACK if self.start == 0 else None,
+            'countback': md.OHLC.COUNTBACK if self.start == 0 else None,
             'from': None if self.start == 0 else self.start
         }
         payload = {key: value for key, value in payload.items() if value is not None}
@@ -134,7 +134,7 @@ class OHLCData:
             # Concatenate the new data (excluding the updated rows) and drop the oldest rows
             new_data_to_concat = new_data.loc[new_data.index.isin(new_timestamps)]
             updated_df = pd.concat([self.df, new_data_to_concat])
-            updated_df = updated_df.sort_index(ascending=False).head(config.OHLC.SIZE).sort_index()
+            updated_df = updated_df.sort_index(ascending=False).head(md.OHLC.SIZE).sort_index()
             self.df = updated_df
 
             return updated_df, new_data, new_data_to_concat, last_index, update_time
@@ -209,7 +209,7 @@ class OHLCData:
 # Function to fetch and process trades data
 def get_trades():
     try:
-        response = requests.get(nb.URL.MAIN + nb.Endpoint.TRADES + config.TRADES.SYMBOL)
+        response = requests.get(nb.URL.MAIN + nb.Endpoint.TRADES + md.TRADES.SYMBOL)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         trades_data = response.json()
 

@@ -1,8 +1,10 @@
 import pandas as pd
-from NobitexTrader.config import Supertrend as st
+from NobitexTrader.config import Study
 import pandas_ta as ta
 
-def pandas_supertrend(kline_df: pd.DataFrame, window=st.WINDOW, multiplier=st.FACTOR) -> pd.DataFrame:    # FIXME NO-005
+def pandas_supertrend(kline_df: pd.DataFrame,
+                      window=Study.Supertrend.WINDOW,
+                      multiplier=Study.Supertrend.FACTOR) -> pd.DataFrame:    # FIXME NO-005
     """
     Supertrend indicator function.
 

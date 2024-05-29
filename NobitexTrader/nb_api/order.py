@@ -97,7 +97,6 @@ class Order():
             if value == 'null':
                 return False
             return True
-            # return value is not None and not (isinstance(value, float) and np.isnan(value)) and (key != 'execution' or not mode)
 
         payload = {key: value for key, value in payload.items() if is_valid_key_value(key, value)}
 

@@ -4,7 +4,7 @@ import logging
 import threading
 import pandas as pd
 
-from NobitexTrader.config import OHLC
+from NobitexTrader.config import MarketData as md
 from NobitexTrader.nb_api.market import *
 from NobitexTrader.setups.supertrend import signal
 from NobitexTrader.study.supertrend import pandas_supertrend
@@ -33,12 +33,12 @@ class DataManager:
     # Handle kline dataframe
     async def initiate_kline_df(self):
         kline_df = pd.DataFrame()
-        ohlc = OHLCData(kline_df, OHLC.SYMBOL, OHLC.RESOLUTION)
+        ohlc = OHLCData(kline_df, md.OHLC.SYMBOL, md.OHLC.RESOLUTION)
         current_time = int(time.time())
         self.kline_df, _ = await ohlc.get(current_time)
 
     async def populate_kline_df(self):
-        ohlc = OHLCData(self.kline_df, OHLC.SYMBOL, OHLC.RESOLUTION)
+        ohlc = OHLCData(self.kline_df, md.OHLC.SYMBOL, md.OHLC.RESOLUTION)
         self.kline_df, _, _, _, _ = await ohlc.live()
 
     def get_kline_df(self):
