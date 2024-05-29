@@ -1,13 +1,27 @@
-# import talib
-# import numpy as np
-# import pandas as pd
+import pandas as pd
 from NobitexTrader.config import Supertrend as st
 import pandas_ta as ta
 
-def pandas_supertrend(df, window=st.WINDOW, multiplier=st.FACTOR):    # FIXME NO-005
-    _df = ta.supertrend(df['high'], df['low'], df['close'], window, multiplier).iloc[:, 0:2]
+def pandas_supertrend(kline_df: pd.DataFrame, window=st.WINDOW, multiplier=st.FACTOR) -> pd.DataFrame:    # FIXME NO-005
+    """
+    Supertrend indicator function.
+
+    Parameters:
+        kline_df (DataFrame): The OHLC DataFrame.
+
+        window (float): The ATR length for calculating SuperTrend. Can be set in config file.
+            
+        multiplier (float): The ATR multiplier. Can be set in config file.
+
+    Returns (DataFrame): A DataFrame with two columns 'supertrend' and 'supertrend_side'.
+    """
+    _df = ta.supertrend(kline_df['high'], kline_df['low'], kline_df['close'], window, multiplier).iloc[:, 0:2]
     _df.columns = ['supertrend', 'supertrend_side']
     return _df
+
+
+# import talib
+# import numpy as np
 
 
 # def calculate_supertrend(df, window=supertrend.WINDOW, multiplier=supertrend.FACTOR):
