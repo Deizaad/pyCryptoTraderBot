@@ -7,7 +7,7 @@ import pandas as pd
 from NobitexTrader.config import OHLC
 from NobitexTrader.nb_api.market import *
 from NobitexTrader.setups.supertrend import signal
-from  NobitexTrader.analysis.supertrend import pandas_supertrend
+from NobitexTrader.study.supertrend import pandas_supertrend
 
 
 # =================================================================================================
@@ -69,8 +69,8 @@ class DataManager:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.run_until_complete(self._live_update())
-
         threading.Thread(target=update_loop, daemon=True).start()
+
 
     async def _live_update(self):
         while True:
