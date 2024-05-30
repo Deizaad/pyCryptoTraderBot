@@ -1,25 +1,56 @@
-import time
+import pandas as pd
+import numpy as np
 
-from NobitexTrader.nb_api.market import *
-from NobitexTrader.data_manager import DataManager
-
-
-data_manager = DataManager()
-# kline_df = data_manager.get_kline_df()
-
-# print("       Initial OHLC data", f"             size: {len(kline_df)}\n")    # DONE NO-002
-# print(kline_df)
-# time.sleep(2)
+from NobitexTrader.nb_api.order import Order
 
 
-while True:
-    data_manager.show()
-
-    # with pd.option_context('display.max_rows', 20):   
-        # print("Live dataframe \n", kline_df)
-        # print("pandas generated supertrend \n", indicator_df)
-
-    time.sleep(5)
+class TradeSupervisor:
+    def __init__(self, signal_df: pd.DataFrame, interval: float = 1.0):
+        self.signal_df = signal_df
+        self.interval = interval
+    # ____________________________________________________________________________ . . .
 
 
-update_trades(10, get_trades)
+    def _monitor(self) -> tuple[bool, dict[str, list[str]]]:
+        """
+        This function checks the last row of Signal DataFrame for the presence of the strings 
+            'bull' or 'bear'. It returns a boolean indicating if any matches were found, andv a 
+            dictionary with the strings as keys and lists of column labels as values.
+
+        Returns: Tuple with a boolean and a dictionary. The boolean is True if any matches were 
+            found, otherwise False.. The dictionary has 'bull' and 'bear' as keys and lists of 
+            column labels as values.
+        """
+        if self.signal_df.empty:
+            return False, {}
+        
+        last_row = self.signal_df.iloc[-1].to_numpy()
+        
+        columns = self.signal_df.columns.to_numpy()
+
+        result: dict[str, list[str]] = {'bull': [], 'bear': []}
+
+        bull_indices = np.where(last_row == 'bull')[0]
+        bear_indices = np.where(last_row == 'bear')[0]
+
+        result['bull'] = columns[bull_indices].tolist()
+        result['bear'] = columns[bear_indices].tolist()
+
+        has_match = bool(result['bull']) or bool(result['bear'])
+
+        return has_match, result
+    # ____________________________________________________________________________ . . .
+
+    
+    
+
+
+data = {
+    'A': [1, 2, 3, 'bull'],
+    'B': [4, 5, 6, 'bear'],
+    'C': [8, 'bear', 10, 'bull']
+}
+df = pd.DataFrame(data)
+# print(df)
+trade = TradeSupervisor(df)
+trade._monitor()
