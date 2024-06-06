@@ -1,5 +1,5 @@
 import pandas as pd
-from NobitexTrader.config import Study
+from NobitexTrader.configs.config import Study
 import pandas_ta as ta
 
 def pandas_supertrend(kline_df: pd.DataFrame,
