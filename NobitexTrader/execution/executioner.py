@@ -1,7 +1,7 @@
 import asyncio
 
 
-from NobitexTrader.config.config import Executioner as exe
+from NobitexTrader.configs.config import Executioner as exe
 from NobitexTrader.data.data_manager import DataManager
 
 
