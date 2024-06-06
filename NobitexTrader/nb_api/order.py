@@ -52,16 +52,7 @@ class Order():
 
         Returns:
         """
-
-        endpoint_conditions = [
-            ord.CATEGORY == 'futures',
-            ord.CATEGORY == 'spot'
-        ]
-        endpoint_choice = [
-            nb.Endpoint.Order.Place.FUTURES,
-            nb.Endpoint.Order.Place.SPOT
-        ]
-        endpoint = np.select(endpoint_conditions, endpoint_choice)
+        endpoint = nb.Endpoint.Order.Place.endpoint
 
         payload = {
             'execution': execution,
