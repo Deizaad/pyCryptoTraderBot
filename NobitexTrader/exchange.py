@@ -20,10 +20,12 @@ class Nobitex:
 
     class Endpoint:
         TRADES = '/v2/trades/'
-        TRADES_RL = 4    # Rate Limit: 15p/m = 4s
+        TRADES_MI = 4    # Maximum Interval = 4s
+
 
         OHLC = '/market/udf/history'
-        OHLC_RL = 1    # Rate Limt: 60p/m = 1s
+        OHLC_MI = 1    # Maximum Interval = 1s
+
 
         class Order:
             class Place:
