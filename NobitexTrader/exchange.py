@@ -21,11 +21,11 @@ class Nobitex:
     class Endpoint:
         TRADES = '/v2/trades/'
         TRADES_MI = 4    # Maximum Interval = 4s
-
+        TRADES_RL: str = '15'    # Rate Limit: 15p/m
 
         OHLC = '/market/udf/history'
         OHLC_MI = 1    # Maximum Interval = 1s
-
+        OHLC_RL: str = '60'    # Rate Limit = 60p/m
 
         class Order:
             class Place:
