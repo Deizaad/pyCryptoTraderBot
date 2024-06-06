@@ -1,0 +1,149 @@
+_____________DONE: _____________
+
+
+#01. noun: stage executioner.py
+
+#02. Create execution/ directory.
+
+#03. Move executioner.py to execution/ directory.
+
+#04. create tasks/ directory.
+
+#05. Write System_Architecture_Thoughts.txt in tasks/ directory.
+
+#06. Move comment_tags.py from NobitexTrader/ to tasks/ directory.
+
+8. Move Further_Commits.txt from repository root to tasks/ directory.
+
+9. Transfer endpoint selecting statements from order.py (Ignore exchange import change here, gonna be commited later) to exchange.py
+
+10. Write 'Returns:' docstring for place method of Order class in order.py
+
+11. Change OHLC_RL to OHLC_MI and TRADES_RL to TRADES_MI in exchange.py. applies to: exchange.py, nb_api/market.py (ignore imports changes here, gonna be committed later), ...
+
+12. Turn nomerous value to string values before sending to api in exchange.py and market.py. applies to: exchange.py, market.py, ...
+
+13. Create api/ directory.
+
+14. Move nb_api/ directory to api/ directory. applies to: __init__.py, account.py, market.py, order.py, utils.py.
+
+15. Add Setup.ENTRY constant in config.py.
+
+16. Create config/ directory.
+
+17. Move config.py to config/ directory. also applies to supertrend.py, data_manager.py, market.py, supertrend.py, ...
+
+18. Write signal_config.json in config/ directory.
+
+19. Improve exception handling in data_manager.
+
+20. modify data_manager to generate signals using SignalSupervisor.
+
+21. Write supertrend setup-function in supertrend.py.
+
+22. Write docstring for TradeSupervisor in trader.py
+
+23. Add 'job', 'involve', and 'perform' methods for TradeSupervisor in trader.py
+
+24. Add _monitor method to IndicatorSupervisor class in indicator_supervisor.py.
+
+25. create trading/ directory.
+
+26. rename study/ directory to analysis/.
+
+27. Move analysis/ directory to trading/.
+
+28. Move trader.py to trading/ directory.
+
+29. Move setups/ directory to trading/signals/. applies to: __init.py, supertrend.py, ...
+
+30. Create data/ directory.
+
+31. Move data_manager.py from NobitexTrader/ to data/ directory.
+
+32. Move exchange.py to data/ directory. also applies to: market.py, order.py.
+
+33. commit stable tag.
+
+34. noun: stage Further_Commits.txt.
+
+_____________TODO: _____________
+* Implement dependencies handling using Poetry
+
+* fix update_trades() function that prints duplicate trades data
+
+* define specific lists like (__endpoints__) in nobitex_data to modules and packages
+
+* change 'BASE_URL' and 'TESTNET' to 'URL.MAIN' and 'URL.TEST'.
+
+
+* remove unnecessary returns from OHLCData class
+
+
+* change assigning the previous top and bottom band to replace NaNs with zero.
+
+1* Refactor 'OHLCData' class
+	Refactor the class using AsyncIO, HTTPX, and it's client module to make sessions like requests library to receive data faster. Also using AsyncIO, make this class and it's methods capable to be called concurrently with any other method or function when using in main code.
+
+* Using AsyncIO await the API functions for sleep time.
+
+* Use Ternary if operation for OHLCData.get.param
+
+* check given arguments in order.place.params for mandatory parameters of each order kind: (oco, futures, spot)
+
+* turn aplicable functions to AsyncIO and Threading.
+
+* Integrate config.RATE_LIMIT to functions
+
+* turn supertrend.entry into a class
+
+* make a function for supertrend.entry to make analysis just on last candle row.
+
+* make class or function in trader.py to watch the signal dataframe for signals and call the corresponding method from order.place
+
+* Rename the Repositori to ...
+
+* send string values in requests.
+
+* inside setups/supertrend.py refactor signal function to a class and modify project to be compatible with it.
+
+* handle error in OHLCData.get method when response.text == {"s":"no_data"} and it raises error 't'.
+
+* handle error in OHLCData.new method when the get method returns empty dataframe and None for update time.
+
+* Configure OHLCData class to get symbol and res parameters from config file.
+
+* configure indicator and signal dataframes to continuously check kline_df for new data then update themself if there are new data.
+
+* configure DataManager to run live updates for dataframes without a sleep time.
+
+* how can i configure my OHLCData code in order that when requesting for data untill new data arrives doesn't wait longer than rate_limit time and make another request concurrently.
+
+* I wrote the DataManager class and i think i have some mistakes for how i made the initiate_kline_df asyncronously or how i run it on line :
+```
+asyncio.run(data_manager.initiate_kline_df())
+```
+
+* bring this supervisor to the DataManager class.
+
+* instead of seperate method for each dataframe in DataManager class maybe it's better to central methods for initiating, populating, gettign, ...
+
+* Improve the design pattern of three Supervisors.
+
+* Make sure how to handle httpx.AsyncClient when interacting with api.
+
+* remove retries from _request method.
+
+* what would be the disaster action in case of api max retries?
+
+* make kline data fetching interval down to 0.7 a second, then bring it back to 0.9 if it reachees 60 calls per minute
+
+* maybe i should remove retry parts from main function in api_service.
+
+* somehow keep track of wether bot has started normally or after system restart or bot crash.
+
+* In the NobitexMarket, implement the wait-time inside the _request itself and move it from fetch loop.
+
+* try bringing the limiting context manager out of kline function and write it in the kline_loop.
+
+* rename APIServeice to CallService.
