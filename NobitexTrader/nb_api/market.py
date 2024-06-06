@@ -54,7 +54,7 @@ class OHLCData:
         payload = {key: value for key, value in payload.items() if value is not None}
 
         current_time = time.time()
-        rate_limit = nb.Endpoint.OHLC_MI
+        rate_limit = int(nb.Endpoint.OHLC_MI)
         wait_time = max(0, rate_limit - (current_time - self.last_fetch_time))
 
         try:
@@ -151,7 +151,7 @@ class OHLCData:
         while True:
             try:
                 _df, _new_data, _new_data_to_concat, _last_index, _update_time = await self.new()
-                await asyncio.sleep(nb.Endpoint.OHLC_MI)
+                await asyncio.sleep(int(nb.Endpoint.OHLC_MI))
                 return _df, _new_data, _new_data_to_concat, _last_index, _update_time
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
@@ -174,7 +174,7 @@ class OHLCData:
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
                 print(f"Error in print() method: {e}")
-            await asyncio.sleep(nb.Endpoint.OHLC_MI)
+            await asyncio.sleep(int(nb.Endpoint.OHLC_MI))
     # ____________________________________________________________________________ . . .
 
 
@@ -192,7 +192,7 @@ class OHLCData:
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
                 print(f"Error in show_new() method: {e}")
-            await asyncio.sleep(nb.Endpoint.OHLC_MI)
+            await asyncio.sleep(int(nb.Endpoint.OHLC_MI))
     # ____________________________________________________________________________ . . .
 
 
