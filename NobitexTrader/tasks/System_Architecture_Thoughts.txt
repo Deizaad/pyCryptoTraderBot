@@ -1,0 +1,76 @@
+Hi. I am developing a python project which is a trading bot. Let's create the most professional approach for it's system architecture and structure. Here is a list of modules and functions or parts of the system that this project have:
+* "API_CALLS": for interaction with exchange api this project should contain at least 3 modules which one of them continuously gets the latest market data, another to place orders through api, and the other one continuously gets trading orders status, and there will be some other modules that interact with exchange api for getting account stats, withdrawal or deposits, or more.
+
+* "MARKET_DATA_FETCHER": this module contains codes that gets new market data from exchange. it will be going to be called by the data manager module to regularly get new market data. also this module is a publisher for some other observer modules in project and is going to notify others whenever new data received from exchange.
+
+* "OREDR": this module contains classes and methods to place orderthrogh API, get current orders stats, cancell orders, and other methods related to API trading oredrs.
+
+* "API_LAYER": There will be a module that act like a final layer that all api calls make through it, so it manages the api interactions for handling rate-limiting per endpoints, and some other considerations.
+
+* "EXECUTIONER": there is an executioner module that declares bot behavior base on a config variable named 'execution_mode'. the project will have several behavior types including: live, backtest, forwardtest, signalstrategiestest, and some more. this module gonna use the 'strategy design pattern' architecture. 
+
+* "INDICATOR_CALCULATOR": this module calls the indicator functions (base of indicator that we need and declared in config file) inside itself using strategy design pattern to calculete indicator values. also as a publisher it notifies other observers whenever there is new data for indicators.
+
+* "INDICATOR_FUNCTIONS": this module contains pre written in advance classes and methods that calculate corresponding indicators. these methods study the market data to claculate indicator values. these methods will be going to be called by indicator calculator module, to calculate some of the indicators that we need base on config file.
+
+* "SIGNAL_GENERATOR": this module generates trading signals by studying the indicator values and market candles OHLCV data and some other things. also this module is an obsever for indicator calculator module and the module that fetches new market data from exchange, so it gets notified whenever there is new data so it can generate signals. so it gonna use the observer design pattern internaly. also since this module generates signal for various strategiy functions by calling them inside it, so this module also uses the strategy design pattern.
+
+* "TRADING_STRATEGY_SETUPS": this module contains pre written in advance classes and methods that generates signal for corresponding trading strategies. these methods study the market data and indicator values data to generate trading signals. also these methods will be going to be called by signal generator module to generate signals fpr some of the strategy setups that wee need.
+
+* "DATA_MANAGER": this module processes data by calling api modules to receive data like candles data from exchange or by calling the signal generator or indicator modules to generate corresponding data and store them and continuously updating them with new data. this module gonna use the singleton design pattern so it returns only one first instance wherevere it being called. 
+
+* "TRADER": this module declares the trading behavior of bot and will going to be called by Executioner module to declare only the trading behavior of the bot base on config variables and some other things. this module is an observer for the signal generator module and is going to be notified by signal generator module whenever a new signal generated to declare the trading jobs. so it is going to use the observer pattern internaly. also since this module is gonna declare and choose the trading jobs base on execution mode and other things from some functions that are pre written in advance, so this module will be also going to use the strategy design pattern. 
+
+* "FILTERS": this module contains classes and methods or functions for trading signal filters. these filters purifies trading signals from noises. some of these are going to be called by signal generator module base on choice.
+
+* "BOT": This module runs the bot by calling executioner module inside it. also this module contains functions for sceduling bot work time and some other functions that right now i can't remember.
+
+* "EXCHANGE" (data_package): This file is included in the data package. it contains classes constants including some data like exchange urls, endpoints, limit-rates, and some more data from exchange. also the package contains other files that similar to this that provides usefull data.
+
+* "USER" (config_packages): This file is included in config package. It provides user related config data that will be written by user to connect to exchange and also it loads API keys from .env file.
+
+* "TRADING_CONFIG" (config_packages): This file is included in config package. It provides trading configuration data that will be written by user to declare the bot behavior. 
+
+
+
+These are my toughts about modules in this project but fo sure there will be more modules and other things that haven't crossed my mind yet. Althogh these modules gonna have variuos design patterns, but as long as it is not necessary there is no need to write them using the classic object oriented approach, because with python we can simply pass functions as arguments to other functions and simplicity is also a matter in this project so.
+Consider that this project should work in a way that we can instanciate many instances of bot with various user and on various exchanges and markets in each exchange and different timeframes and with different trading configurations to work together on the same server.
+
+What other modules and files you think maybe going to be needed in this project?
+What are most professional approaches to structure and architect the system of this project?
+
+
+	WHAT TO DO FURTHER:
+* "LOGGING": This module include functions to handle logging of all activities, errors, important events, and performance metrics.
+
+* "MONITORING": This module includes functions to monitor system health, runtime, latency, error rates, etc.
+
+* "DISASTER_ACTIONS": This module takes actions on disaster events. by getting notified from monitoring module.
+
+* "LIVE": The standalone module that declares bot behavior for LIVE Execution mode.
+
+* "BACKTESTER": The standalone module that declares bot behavior for backtesting Execution mode.
+
+* "FORWARDTESTER": The standalone module that declares bot behavior for forward testing Execution mode.
+
+* "STRETEGY_SETUP_PERFORMANCE_TESTER": The standalone module that declares bot behavior for setup testing Execution mode.
+
+* "RISK_MANAGER": This module includes risk management strategies and provides risk calculations like max drawdown, etc.
+
+* "POSITION_SIZING": It contains functions that provide calculations related to position sizing.
+
+* "EVENT_HANDLER": It is the central event-handling module to manage asynchronous events and notifications. Manages event loop, queue handling, and event dispatching.
+
+* "SCHEDULER": This module includes functions to schedule bot run time, trading operations, maintenance tasks and more.
+
+* "SERVER_RESTART_ACTIONS":
+
+
+	WHAT TO DO FUTURE:
+* "ALERT_&_NOTIFICATION_SYSTEM":
+
+* "ERROR_HANDLER":
+
+* "TESTING_FRAMEWORK":
+
+* "CASHING":
