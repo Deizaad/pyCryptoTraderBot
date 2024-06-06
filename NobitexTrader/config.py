@@ -2,13 +2,17 @@ from time import time
 
 
 class Executioner:
-    MOD = 'live'    # 'setup_test' | 'live' | 'backtest'
+    MODE = 'live'    # 'live' | 'backtest' | 'forwardtest' | 'setuptest'
 
 
 class Order:
     CATEGORY = 'futures'
 
-    
+
+class Setup:
+    ENTRY = 'single_supertrend'
+
+
 class MarketData:
     class OHLC:
         SYMBOL: str = 'USDTIRT'
