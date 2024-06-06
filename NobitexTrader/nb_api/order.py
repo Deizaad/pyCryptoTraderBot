@@ -50,7 +50,7 @@ class Order():
             clientOrderId (str): The order id that can be set.
                 Default: 'null'
 
-        Returns:
+        Returns: (dict): State of order whether it filled or not.
         """
         endpoint = nb.Endpoint.Order.Place.endpoint
 
