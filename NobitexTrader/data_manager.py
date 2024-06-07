@@ -31,27 +31,39 @@ class DataManager:
 
 
     def _initialize_dataframes(self):
-        self.kline_df = pd.DataFrame()
-        self.indicator_df = pd.DataFrame()
-        self.signal_df = pd.DataFrame()
+        try:
+            self.kline_df = pd.DataFrame()
+            self.indicator_df = pd.DataFrame()
+            self.signal_df = pd.DataFrame()
+        except Exception as err:
+            logging.error(f"Error initializing dataframes: {err}")
     # ____________________________________________________________________________ . . .
 
 
     def initiate(self):
-        asyncio.run(self._initiate_kline_df())
+        try:
+            asyncio.run(self._initiate_kline_df())
+        except Exception as err:
+            logging.error(f"Error initiating data manager: {err}")
     # ____________________________________________________________________________ . . .
 
 
     # Handle kline dataframe
     async def _initiate_kline_df(self):
-        kline_df = pd.DataFrame()
-        _ohlc = OHLCData(kline_df, md.OHLC.SYMBOL, md.OHLC.RESOLUTION)
-        _current_time = int(time.time())
-        self.kline_df, _ = await _ohlc.get(_current_time)
+        try:
+            kline_df = pd.DataFrame()
+            _ohlc = OHLCData(kline_df, md.OHLC.SYMBOL, md.OHLC.RESOLUTION)
+            _current_time = int(time.time())
+            self.kline_df, _ = await _ohlc.get(_current_time)
+        except Exception as err:
+            logging.error(f"Error initiating kline dataframe: {err}")
 
     async def _populate_kline_df(self):
-        ohlc = OHLCData(self.kline_df, md.OHLC.SYMBOL, md.OHLC.RESOLUTION)
-        self.kline_df, _, _, _, _ = await ohlc.live()
+        try:
+            ohlc = OHLCData(self.kline_df, md.OHLC.SYMBOL, md.OHLC.RESOLUTION)
+            self.kline_df, _, _, _, _ = await ohlc.live()
+        except Exception as err:
+            logging.error(f"Error populating kline dataframe: {err}")
 
     def get_kline_df(self):
         return self.kline_df
@@ -60,7 +72,10 @@ class DataManager:
 
     # Handle indicator dataframe
     async def _populate_indicator_df(self):
-        self.indicator_df = pandas_supertrend(self.kline_df)
+        try:
+            self.indicator_df = pandas_supertrend(self.kline_df)
+        except Exception as err:
+            logging.error(f"Error populating indicator dataframe: {err}")
 
     def get_indicator_df(self):
         return self.indicator_df
@@ -69,7 +84,11 @@ class DataManager:
 
     # Handle signal dataframe
     async def _populate_signal_df(self):
-        self.signal_df = signal(self.kline_df, self.indicator_df)
+        try:
+            self.signal_df = signal(self.kline_df, self.indicator_df)
+
+        except Exception as err:
+            logging.error(f"Error populating signal dataframe: {err}")
 
     def get_signal_df(self):
         return self.signal_df
@@ -90,8 +109,8 @@ class DataManager:
                 await asyncio.gather(self._populate_kline_df(),
                                      self._populate_indicator_df(),
                                      self._populate_signal_df())
-            except Exception as e:
-                logging.error(f'An error occurred during live update: {e}')
+            except Exception as err:
+                logging.error(f'An error occurred during live update: {err}')
                 await asyncio.sleep(4)
         
     # ____________________________________________________________________________ . . .
@@ -99,12 +118,16 @@ class DataManager:
 
     def show(self):
         while True:
-            print(self.kline_df)
-            print(self.indicator_df)
-            # with pd.option_context('display.max_rows', None):
-            #     print(self.signal_df)
-            print(self.signal_df)
-            time.sleep(4)
+            try:
+                print('Kline dataframe:', '\n', self.kline_df.tail(15), '\n\n')
+                print('Indicator dataframe:', '\n', self.indicator_df.tail(15), '\n\n')
+                # with pd.option_context('display.max_rows', None):
+                #     print(self.signal_df)
+                print('Signal dataframe:', '\n', self.signal_df.tail(15), '\n\n')
+                time.sleep(4)
+            except Exception as err:
+                logging.error(f"Error displaying dataframes: {err}")
+                time.sleep(4)
 # =================================================================================================
 
 
@@ -115,6 +138,7 @@ data_manager.live_update()
 
 
 if __name__ == '__main__':
-
-    data_manager.show()
-    time.sleep(4)
+    try:
+        data_manager.show()
+    except Exception as err:
+        logging.error(f"Error in main block: {err}")
