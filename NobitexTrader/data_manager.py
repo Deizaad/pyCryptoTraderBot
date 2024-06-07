@@ -1,3 +1,4 @@
+import os
 import time
 import asyncio
 import logging
@@ -8,6 +9,11 @@ from NobitexTrader.configs.config import MarketData as md
 from NobitexTrader.api.nb_api.market import OHLCData
 from NobitexTrader.setups.supertrend import signal
 from NobitexTrader.study.supertrend import pandas_supertrend
+from NobitexTrader.trading.signals.signal_supervisor import SignalSupervisor
+
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 
 # =================================================================================================
@@ -43,6 +49,11 @@ class DataManager:
     def initiate(self):
         try:
             asyncio.run(self._initiate_kline_df())
+            # try:
+            #     self.signal_supervisor = SignalSupervisor(self.kline_df, self.indicator_df)
+            # except Exception as err:
+            #     logging.error(f"Error initiating signal dataframe: {err}")
+            # asyncio.run(self._initiate_signal_df())
         except Exception as err:
             logging.error(f"Error initiating data manager: {err}")
     # ____________________________________________________________________________ . . .
@@ -83,10 +94,17 @@ class DataManager:
 
 
     # Handle signal dataframe
+    # async def _initiate_signal_df(self):
+    #     try:
+    #         self.signal_supervisor = SignalSupervisor(self.kline_df, self.indicator_df)
+    #     except Exception as err:
+    #         logging.error(f"Error initiating signal dataframe: {err}")
+
     async def _populate_signal_df(self):
         try:
             self.signal_df = signal(self.kline_df, self.indicator_df)
-
+            # await self.signal_supervisor.perform()
+            # self.signal_df = self.signal_supervisor.deliver()
         except Exception as err:
             logging.error(f"Error populating signal dataframe: {err}")
 
@@ -129,6 +147,7 @@ class DataManager:
                 logging.error(f"Error displaying dataframes: {err}")
                 time.sleep(4)
 # =================================================================================================
+
 
 
 # Initiate Dataframes
