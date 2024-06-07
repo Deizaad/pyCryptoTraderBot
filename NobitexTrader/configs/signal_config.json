@@ -1,0 +1,8 @@
+{
+    "signals_config": [
+        {
+            "type": "single_supertrend",
+            "parameters": {}
+        }
+    ]
+}
