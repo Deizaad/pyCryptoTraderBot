@@ -39,6 +39,19 @@ def signal(kline_df: pd.DataFrame, indicator_df: pd.DataFrame) -> pd.DataFrame:
     return signal_df
 
 
+def supertrend(indicator_df) -> pd.DataFrame:
+    _df = pd.DataFrame(index = indicator_df.index)
+
+    _supertrend = indicator_df['supertrend_side']
+    _prev_supertrend = indicator_df['supertrend_side'].shift(1)
+    
+    _df.loc[(_supertrend == 1) & (_prev_supertrend == -1), 'supertrend'] = 1
+    _df.loc[(_supertrend == -1) & (_prev_supertrend == 1), 'supertrend'] = -1
+    
+    return _df
+
+
+
 
 # =================================================================================================
 # class Signal:
