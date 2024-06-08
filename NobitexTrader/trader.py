@@ -12,6 +12,24 @@ class TradeSupervisor:
     def __init__(self, signal_df: pd.DataFrame, interval: float = 1.0):
         self.signal_df = signal_df
         self.interval = interval
+        self.setups = []
+        self.filters = []
+    # ____________________________________________________________________________ . . .
+
+
+    def job(self):
+        """
+        Sets trading jobs to call the order class.
+        """
+        pass
+    # ____________________________________________________________________________ . . .
+
+
+    def involve(self):
+        """
+        Involves setups and filters from config base on mode to the job method.
+        """
+        pass
     # ____________________________________________________________________________ . . .
 
 
@@ -46,7 +64,12 @@ class TradeSupervisor:
     # ____________________________________________________________________________ . . .
 
     
-    
+    async def perform(self):
+        """
+        Performs monitor and jobs asynchronously.
+        """
+        pass
+# =================================================================================================
 
 
 data = {
