@@ -7,9 +7,9 @@ import pandas as pd
 
 from NobitexTrader.configs.config import MarketData as md
 from NobitexTrader.api.nb_api.market import OHLCData
-from NobitexTrader.setups.supertrend import signal
-from NobitexTrader.study.supertrend import pandas_supertrend
-from NobitexTrader.trading.signals.signal_supervisor import SignalSupervisor
+from NobitexTrader.trading.signals.setups.supertrend import signal
+from NobitexTrader.trading.analysis.supertrend import pandas_supertrend
+# from NobitexTrader.trading.signals.signal_supervisor import SignalSupervisor
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
