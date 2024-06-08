@@ -1,6 +1,7 @@
 import time
 import httpx
 import asyncio
+import numpy as np
 from aiolimiter import AsyncLimiter
 
 from NobitexTrader.api.api_service import APIService
@@ -127,7 +128,125 @@ class Market:
 # =================================================================================================
 
 
+
+# =================================================================================================
+class Order:
+    def __init__(self, api_service: APIService):
+        self.service = api_service
+    # ____________________________________________________________________________ . . .
+
+
+    async def place(self,
+                    client: httpx.AsyncClient,
+                    type : str,
+                    execution : str,
+                    price : float,
+                    srcCurrency : str,
+                    dstCurrency : str,
+                    amount : float,
+                    timeout: float,
+                    token: str = nb.USER.API_KEY,
+                    url: str = nb.URL.MAIN,
+                    mode : str | None = None,
+                    stopPrice : float = np.nan,
+                    stopLimitPrice : float = np.nan,
+                    leverage : float = np.nan,
+                    clientOrderId : str = 'null'):
+        """
+        Args:
+            type (str): Trade direction.
+                Value: 'buy' | 'sell'
+
+            execution (str): Method of trade execution.
+                Value: 'limit' | 'market' | 'stop_limit' | 'stop_market'
+
+            price (float): Order price.
+
+            srcCurrency (str): Source currency.
+                Value: Refer to possible currencies.
+
+            dstCurrency (str): Detination currency.
+                Value: 'usdt' | 'rls'
+
+            amount (float): Position size.
+
+            mode (str): Only defined for oco orders.
+                Value: 'oco' | None
+
+            stopPrice (float): Only defined if 'execution' is 'stop_limit' or 'stop_market',
+                or for oco orders to set 'stop_market'.
+
+            stopLimitPrice (float): Only defined for oco orders to set 'stop_limit'.
+
+            leverage (float): The leverage value.
+                Default: 1
+
+            clientOrderId (str): The order id that can be set.
+                Default: 'null'
+
+        Returns (dict): State of order whether it filled or not.
+        """
+        endpoint = nb.Endpoint.Order.Place.endpoint
+
+        payload = {
+            'execution': execution,
+            'mode': mode,
+            'srcCurrency': srcCurrency,
+            'dstCurrency': dstCurrency,
+            'type': type,
+            'leverage': leverage,
+            'amount': amount,
+            'price': price,
+            'stopPrice': stopPrice,
+            'stopLimitPrice': stopLimitPrice,
+            'clientOrderId': clientOrderId
+        }
+
+        def is_valid_key_value(key, value):
+            """
+            Check if the key-value pair should be included in the payload.
+
+            Args:
+                key (str): The key to check.
+                value (any): The value to check.
+
+            Returns:
+                bool: True if the key-value pair is valid, False otherwise.            
+            """
+            if value is None:
+                return False
+            if isinstance(value, float) and np.isnan(value):
+                return False
+            if value == 'null':
+                return False
+            if key == 'execution' and mode:    # Ignores 'execution' if 'mode' provided (oco oredr)
+                return False
+            
+            return True
+
+        payload = {key: value for key, value in payload.items() if is_valid_key_value(key, value)}
+
+        headers = {'Authorization': 'Token ' + token}
+        
+        response = await self.service.post(client, url, endpoint, timeout, data=payload, headers=headers, tries=1)
+
+        return response
+# =================================================================================================
+
+
+
+async def oredr_test():
+    service = APIService()
+    order = Order(service)
+    async with httpx.AsyncClient() as client:
+        response = await order.place(client, 'sell', 'limit', 38800, 'btc', 'usdt', 0.0016, timeout=3)
+        print(response)
+
+
+
 if __name__ == '__main__':
+    # asyncio.run(oredr_test())
+
     market = Market(APIService())
     asyncio.run(market.live_kline(httpx.AsyncClient(),
                                   md.OHLC.SYMBOL,
