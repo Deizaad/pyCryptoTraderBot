@@ -8,7 +8,7 @@ from tqdm import tqdm
 from persiantools.jdatetime import JalaliDateTime
 
 from NobitexTrader.configs.config import MarketData as md
-from NobitexTrader.exchange import Nobitex as nb
+from NobitexTrader.data.exchange import Nobitex as nb
 from NobitexTrader.api.nb_api.utils import clear_console
 
 
