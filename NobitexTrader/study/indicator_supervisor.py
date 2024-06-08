@@ -52,6 +52,27 @@ class IndicatorSupervisor:
     # ____________________________________________________________________________ . . .
 
 
+    def _monitor(self, last_index, last_volume) -> Tuple[bool, Any, float]:
+        """
+        Monitor the Kline DataFrame for updates.
+        
+        Args:
+            last_index: The last recorded index in the DataFrame.
+            last_volume: The last recorded volume in the DataFrame.
+        
+        Returns:
+            tuple: A tuple containing a boolean indicating if an update is needed,
+                   the current index, and the current volume.
+        """
+        current_index = self.kline_df.index[-1]
+        current_volume = self.kline_df.iloc[-1].get('volume', 0)
+        
+        has_news = (current_volume != last_volume) or (current_index != last_index)
+        
+        return has_news, current_index, current_volume
+    # ____________________________________________________________________________ . . .
+
+
     async def perform(self):
         """
         Continuously monitor the Kline DataFrame for updates and apply registered indicator 
@@ -64,10 +85,9 @@ class IndicatorSupervisor:
         last_volume = self.kline_df.iloc[-1].get('volume', 0)
 
         while True:
-            current_index = self.kline_df.index[-1]
-            current_volume = self.kline_df.iloc[-1].get('volume', 0)
+            has_news, current_index, current_volume = self._monitor(last_index, last_volume)
             
-            if (current_volume != last_volume) or (current_index != last_index):
+            if has_news:
                 await self._update()
                 last_index = current_index
                 last_volume = current_volume
