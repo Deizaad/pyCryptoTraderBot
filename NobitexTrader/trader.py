@@ -4,7 +4,11 @@ import numpy as np
 from NobitexTrader.nb_api.order import Order
 
 
+# =================================================================================================
 class TradeSupervisor:
+    """
+    TradeSupervisor class monitors for signals and performs trading jobs.
+    """
     def __init__(self, signal_df: pd.DataFrame, interval: float = 1.0):
         self.signal_df = signal_df
         self.interval = interval
@@ -51,6 +55,5 @@ data = {
     'C': [8, 'bear', 10, 'bull']
 }
 df = pd.DataFrame(data)
-# print(df)
 trade = TradeSupervisor(df)
 trade._monitor()
