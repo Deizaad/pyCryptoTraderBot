@@ -244,6 +244,35 @@ class Market:
                         print(f"Request failed: {err}.")
 
                     last_fetch_time = time.time()
+    # ____________________________________________________________________________ . . .
+
+
+    def _prior_timestamp(self, data, *, timeframe) -> int:
+        """
+        This is an internal sub_method for '_init_fetch' method which returns the timestamp of the 
+        one candle before first candle of given data. Which is used for sending the subsequent
+        'initial_fetch' requests.
+        """
+        timeframes: dict[str, int] = {'1': 60,
+                                      '5': 300,
+                                      '15': 900,
+                                      '30': 1_800,
+                                      '60': 3_600,
+                                      '180': 10_800,
+                                      '240': 14_400,
+                                      '360': 21_600,
+                                      '720': 43_200,
+                                      'D': 86_400,
+                                      '2D': 172_800,
+                                      '3D': 259_200}
+        
+        if timeframe not in timeframes.keys():
+            return 0
+        
+        offset_time: int = timeframes.get(timeframe, 0)
+        prior_timestamp = int(data['t'][0]) - offset_time
+
+        return prior_timestamp
 # =================================================================================================
 
 
