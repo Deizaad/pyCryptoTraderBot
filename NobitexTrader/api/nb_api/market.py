@@ -112,9 +112,9 @@ class OHLCData:
     async def new(self):
         try:
             # Get the timestamp of the most recent entry in the DataFrame
-            last_index = self.df.index.max()
-            last_timestamp = JalaliDateTime.to_gregorian(last_index)
-            last_timestamp = int(last_timestamp.timestamp())
+            last_index = self.df.index.max()                            # persian date-time
+            last_timestamp = JalaliDateTime.to_gregorian(last_index)    # Gregorian date-time
+            last_timestamp = int(last_timestamp.timestamp())            # timestamp
 
             self.start = last_timestamp
             
