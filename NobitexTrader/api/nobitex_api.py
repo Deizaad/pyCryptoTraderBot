@@ -167,6 +167,39 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
+    async def initiate_kline(self,
+                             symbol: str,
+                             resolution: str,
+                             required_candles: int,
+                             timeout: float,
+                             try_interval: float,
+                             tries: int,
+                             max_interval: float,
+                             max_rate: str,
+                             rate_period: str = '60'):
+        
+        last_fetch_time = 0.0
+        wait_time = max(0, max_interval - (time.time() - last_fetch_time))
+
+        async with self.client:
+            async with AsyncLimiter(int(max_rate), int(rate_period)):
+                if wait_time > 0:
+                        await asyncio.sleep(wait_time)
+                
+                data = await self.kline(symbol,
+                                        resolution,
+                                        int(time.time()),
+                                        timeout,
+                                        try_interval,
+                                        tries,
+                                        countback=required_candles)
+                
+                last_fetch_time = time.time()
+
+                return data
+    # ____________________________________________________________________________ . . .
+
+
     async def live_kline(self,
                          symbol: str,
                          resolution: str,
@@ -209,7 +242,7 @@ class Market:
                         print(data)
                     except httpx.RequestError as err:
                         print(f"Request failed: {err}.")
-                        
+
                     last_fetch_time = time.time()
 # =================================================================================================
 
