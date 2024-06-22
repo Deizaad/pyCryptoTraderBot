@@ -22,13 +22,13 @@ class Market:
     async def kline(self,
                     symbol: str,
                     resolution: str,
-                    end: str,
-                    countback: str,
+                    end: int,
+                    countback: int | None,
                     timeout: float,
                     tries_interval: float,
                     tries: int,
                     *,
-                    start: str | None = None,
+                    start: int | None = None,
                     url: str = nb.URL.MAIN, 
                     endpoint: str = nb.Endpoint.OHLC) -> dict | None:
         """
@@ -60,9 +60,9 @@ class Market:
         payload = {
             'symbol': symbol,
             'resolution': resolution,
-            'to': end,
-            'countback': countback if start is None else None,
-            'from': start
+            'to': str(end),
+            'countback': str(countback) if start is None else None,
+            'from': str(start)
         }
 
         return await self.service.get(self.client, url, endpoint, timeout, tries_interval, tries, params=payload)    # type: ignore
@@ -72,7 +72,7 @@ class Market:
     async def live_kline(self,
                          symbol: str,
                          resolution: str,
-                         countback: str,
+                         countback: int,
                          max_retries,
                          timeout: float,
                          tries_interval: float,
@@ -109,7 +109,7 @@ class Market:
                         try:
                             data = await self.kline(symbol,
                                                     resolution,
-                                                    str(int(time.time())),
+                                                    int(time.time()),
                                                     countback,
                                                     timeout,
                                                     tries_interval,
@@ -312,16 +312,16 @@ async def oredr_test():
 
 
 if __name__ == '__main__':
-    asyncio.run(oredr_test())
+    # asyncio.run(oredr_test())
 
     market = Market(APIService(), httpx.AsyncClient())
-    # asyncio.run(market.live_kline(md.OHLC.SYMBOL,
-    #                               md.OHLC.RESOLUTION,
-    #                               str(500),
-    #                               3,
-    #                               5.0,
-    #                               nb.Endpoint.OHLC_MI,
-    #                               3,
-    #                               nb.Endpoint.OHLC_MI,
-    #                               nb.Endpoint.OHLC_RL,
-    #                               '60'))
+    asyncio.run(market.live_kline(md.OHLC.SYMBOL,
+                                  md.OHLC.RESOLUTION,
+                                  500,
+                                  3,
+                                  5.0,
+                                  nb.Endpoint.OHLC_MI,
+                                  3,
+                                  nb.Endpoint.OHLC_MI,
+                                  nb.Endpoint.OHLC_RL,
+                                  '60'))
