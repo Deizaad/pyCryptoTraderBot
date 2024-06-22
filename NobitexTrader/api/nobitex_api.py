@@ -2,8 +2,10 @@ import time
 import httpx
 import asyncio
 import numpy as np
+from pydispatch import dispatcher    # type: ignore
 from aiolimiter import AsyncLimiter
 
+from NobitexTrader.utils.event_channels import Event
 from NobitexTrader.api.api_service import APIService
 from NobitexTrader.data.exchange import Nobitex as nb
 from NobitexTrader.configs.config import MarketData as md
@@ -63,7 +65,7 @@ class Market:
             'from': start
         }
 
-        return await self.service.get(self.client, url, endpoint, timeout, tries_interval, tries, params=payload)
+        return await self.service.get(self.client, url, endpoint, timeout, tries_interval, tries, params=payload)    # type: ignore
     # ____________________________________________________________________________ . . .
 
 
@@ -85,6 +87,8 @@ class Market:
             
         Returns:
         """
+        # Sender constant for PyDispatcher:
+        LIVE_KLINE = 'Live kline'
 
         request_count = 0
         start_time = time.time()
@@ -111,6 +115,7 @@ class Market:
                                                     tries_interval,
                                                     tries)
                             
+                            dispatcher.send(Event.SUCCESS_FETCH, LIVE_KLINE, kline=data)
                             success = True
                         except httpx.RequestError as err:
                             retry_count += 1
