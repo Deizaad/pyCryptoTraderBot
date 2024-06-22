@@ -96,7 +96,7 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
-    async def live_kline(self,
+    async def mock_kline(self,
                          symbol: str,
                          resolution: str,
                          countback: int,
@@ -164,6 +164,53 @@ class Market:
                         await asyncio.sleep(3)
                         start_time = time.time()
                         request_count = 0
+    # ____________________________________________________________________________ . . .
+
+
+    async def live_kline(self,
+                         symbol: str,
+                         resolution: str,
+                         required_candles: int,
+                         timeout: float,
+                         tries_interval: float,
+                         tries: int,
+                         max_interval: float,
+                         max_rate: int,
+                         rate_period: int):
+        """
+        Continuously fetches kline data for the last given candles.
+
+        Parameters:
+            
+        Returns:
+        """
+        # Sender constant for PyDispatcher:
+        LIVE_KLINE = 'Live kline'
+
+        last_fetch_time = 0.0
+        wait_time = max(0, max_interval - (time.time() - last_fetch_time))
+
+        async with  self.client:
+            async with AsyncLimiter(max_rate, rate_period):
+                while True:
+                    if wait_time > 0:
+                        await asyncio.sleep(wait_time)
+
+                    try:
+                        data = await self.kline(symbol, 
+                                                resolution, 
+                                                int(time.time()),
+                                                timeout,
+                                                tries_interval,
+                                                tries,
+                                                countback=required_candles)
+                        
+                        dispatcher.send(Event.SUCCESS_FETCH, LIVE_KLINE, kline=data)
+                        print(data)
+                    except httpx.RequestError as err:
+                        print(f"Request failed: {err}.")
+                        
+                    last_fetch_time = time.time()
 # =================================================================================================
 
 
@@ -342,13 +389,23 @@ if __name__ == '__main__':
     # asyncio.run(oredr_test())
 
     market = Market(APIService(), httpx.AsyncClient())
-    asyncio.run(market.live_kline(md.OHLC.SYMBOL,
-                                  md.OHLC.RESOLUTION,
-                                  500,
-                                  3,
-                                  5.0,
-                                  nb.Endpoint.OHLC_MI,
-                                  3,
-                                  nb.Endpoint.OHLC_MI,
-                                  nb.Endpoint.OHLC_RL,
-                                  nb.Endpoint.OHLC_RP))
+    # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,
+    #                               md.OHLC.RESOLUTION,
+    #                               500,
+    #                               3,
+    #                               5.0,
+    #                               nb.Endpoint.OHLC_MI,
+    #                               3,
+    #                               nb.Endpoint.OHLC_MI,
+    #                               nb.Endpoint.OHLC_RL,
+    #                               nb.Endpoint.OHLC_RP))
+    
+    asyncio.run(market.live_kline(symbol=md.OHLC.SYMBOL,
+                                  resolution=md.OHLC.RESOLUTION,
+                                  required_candles=md.OHLC.SIZE,
+                                  timeout=5.0,
+                                  tries_interval=nb.Endpoint.OHLC_MI,
+                                  tries=3,
+                                  max_interval=nb.Endpoint.OHLC_MI,
+                                  max_rate=nb.Endpoint.OHLC_RL,
+                                  rate_period=nb.Endpoint.OHLC_RP))
