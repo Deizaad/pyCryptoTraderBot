@@ -30,7 +30,14 @@ class Nobitex:
         class Order:
             class Place:
                 FUTURES = '/margin/orders/add'
+                FUTURES_MI: float = 6.0
+                FUTURES_RL: int = 100
+                FUTURES_RP: int = 600    # Rate period = 600 second
+
                 SPOT = '/market/orders/add'
+                SPOT_MI: float = 3
+                SPOT_RL: int = 200
+                SPOT_RP: int = 600  # Rate period = 600 second
 
                 _conds = [Order.CATEGORY == 'futures',
                          Order.CATEGORY == 'spot']
