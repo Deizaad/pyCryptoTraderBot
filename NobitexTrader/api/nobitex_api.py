@@ -9,16 +9,15 @@ from NobitexTrader.data.exchange import Nobitex as nb
 from NobitexTrader.configs.config import MarketData as md
 
 
-
 # =================================================================================================
 class Market:
-    def __init__(self, api_service: APIService):
+    def __init__(self, api_service: APIService, client: httpx.AsyncClient):
         self.service = api_service
+        self.client = client
     # ____________________________________________________________________________ . . .
 
 
     async def kline(self,
-                    client: httpx.AsyncClient,
                     symbol: str,
                     resolution: str,
                     end: str,
@@ -64,12 +63,11 @@ class Market:
             'from': start
         }
 
-        return await self.service.get(client, url, endpoint, timeout, tries_interval, tries, params=payload)
+        return await self.service.get(self.client, url, endpoint, timeout, tries_interval, tries, params=payload)
     # ____________________________________________________________________________ . . .
 
 
     async def live_kline(self,
-                         client: httpx.AsyncClient,
                          symbol: str,
                          resolution: str,
                          countback: str,
@@ -87,8 +85,6 @@ class Market:
             
         Returns:
         """
-        
-        market = Market(self.service)
 
         request_count = 0
         start_time = time.time()
@@ -96,7 +92,7 @@ class Market:
         last_fetch_time = 0.0
         wait_time = max(0, max_interval - (time.time() - last_fetch_time))
 
-        async with  client:
+        async with  self.client:
             async with AsyncLimiter(max_rate, int(rate_period)):
                 while True:
                     if wait_time > 0:
@@ -107,11 +103,18 @@ class Market:
 
                     while not success and retry_count < max_retries:
                         try:
-                            data = await market.kline(client, symbol, resolution, str(int(time.time())), countback, timeout, tries_interval, tries)
+                            data = await self.kline(symbol,
+                                                    resolution,
+                                                    str(int(time.time())),
+                                                    countback,
+                                                    timeout,
+                                                    tries_interval,
+                                                    tries)
+                            
                             success = True
                         except httpx.RequestError as err:
                             retry_count += 1
-                            print(f"Request failed: {err}. Retrying {retry_count}/{max_retries}...")
+                            print(f"Request failed: {err}. Retrying {retry_count}/{max_retries}..")
                             await asyncio.sleep(0.1)  # Short delay before retrying
 
                     if not success:
@@ -122,8 +125,7 @@ class Market:
 
                     request_count += 1
                     elapsed_time = time.time() - start_time
-                    print(f"Request #{request_count} at {elapsed_time:.2f} seconds: {data}")
-                    # print(data)
+                    print(f"Request #{request_count} at {elapsed_time:.2f}s: {data}")
 
                     if elapsed_time >= 60:
                         print(f"Total requests in the last 60 seconds: {request_count}")
@@ -307,9 +309,8 @@ async def oredr_test():
 if __name__ == '__main__':
     asyncio.run(oredr_test())
 
-    # market = Market(APIService())
-    # asyncio.run(market.live_kline(httpx.AsyncClient(),
-    #                               md.OHLC.SYMBOL,
+    market = Market(APIService(), httpx.AsyncClient())
+    # asyncio.run(market.live_kline(md.OHLC.SYMBOL,
     #                               md.OHLC.RESOLUTION,
     #                               str(500),
     #                               3,
