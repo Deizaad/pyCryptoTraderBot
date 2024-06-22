@@ -23,11 +23,11 @@ class Market:
                     symbol: str,
                     resolution: str,
                     end: int,
-                    countback: int | None,
                     timeout: float,
                     tries_interval: float,
                     tries: int,
                     *,
+                    countback: int | None = None,
                     start: int | None = None,
                     url: str = nb.URL.MAIN, 
                     endpoint: str = nb.Endpoint.OHLC) -> dict | None:
@@ -65,7 +65,32 @@ class Market:
             'from': str(start)
         }
 
-        return await self.service.get(self.client, url, endpoint, timeout, tries_interval, tries, params=payload)    # type: ignore
+        def is_valid(value):
+            """
+            Checks if the key-value pair should be included in the payload.
+
+            Args:
+                value (any): The value to check.
+
+            Returns:
+                bool: True if the key-value pair is valid, False otherwise.            
+            """
+            if value is None or value == str(None):
+                return False
+            if isinstance(value, float) and np.isnan(value):
+                return False
+            if value == 'null':
+                return False
+            
+            return True
+
+        payload = {key: value for key, value in payload.items() if is_valid(value)}
+
+        data = await self.service.get(
+            self.client, url, endpoint, timeout, tries_interval, tries, params=payload    # type: ignore
+            )
+
+        return data
     # ____________________________________________________________________________ . . .
 
 
@@ -79,7 +104,7 @@ class Market:
                          tries: int,
                          max_interval: float,
                          max_rate: int,
-                         rate_period: str = '60'):
+                         rate_period: int = 60):
         """
         Continuously fetches kline data for the last given candles.
 
@@ -97,7 +122,7 @@ class Market:
         wait_time = max(0, max_interval - (time.time() - last_fetch_time))
 
         async with  self.client:
-            async with AsyncLimiter(max_rate, int(rate_period)):
+            async with AsyncLimiter(max_rate, rate_period):
                 while True:
                     if wait_time > 0:
                         await asyncio.sleep(wait_time)
@@ -110,10 +135,10 @@ class Market:
                             data = await self.kline(symbol,
                                                     resolution,
                                                     int(time.time()),
-                                                    countback,
                                                     timeout,
                                                     tries_interval,
-                                                    tries)
+                                                    tries,
+                                                    countback=countback)
                             
                             dispatcher.send(Event.SUCCESS_FETCH, LIVE_KLINE, kline=data)
                             success = True
@@ -324,4 +349,4 @@ if __name__ == '__main__':
                                   3,
                                   nb.Endpoint.OHLC_MI,
                                   nb.Endpoint.OHLC_RL,
-                                  '60'))
+                                  nb.Endpoint.OHLC_RP))
