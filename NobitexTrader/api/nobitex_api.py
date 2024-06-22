@@ -200,6 +200,55 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
+    async def populate_kline(self,
+                             current_data,
+                             symbol: str,
+                             resolution: str,
+                             required_candles: int,
+                             timeout: float,
+                             try_interval: float,
+                             tries: int,
+                             max_interval: float,
+                             max_rate: str,
+                             rate_period: str = '60'):
+        """
+        This method is an AsyncGenerator function that gives current kline data and number of 
+        required candles (determined in configs) then it fetches kline data in a loop and yield it 
+        untill the number of fetched data be greather than or equal to number of required candles.
+        It most be called in a loop to get the new data untill the number of required candles is 
+        satisfied.
+        """
+
+        last_fetch_time = 0.0
+        wait_time = max(0, max_interval - (time.time() - last_fetch_time))
+
+        data: dict = {}
+        fetched_count: int = len(current_data['t'])
+
+        async with self.client:
+            async with AsyncLimiter(int(max_rate), int(rate_period)):
+                while fetched_count < required_candles:
+                    countback = required_candles - fetched_count
+
+                    if wait_time > 0:
+                        await asyncio.sleep(wait_time)
+
+                    end = self._prior_timestamp(current_data, timeframe=resolution)
+                    data = await self.kline(symbol,
+                                            resolution,
+                                            end,
+                                            timeout,
+                                            try_interval,
+                                            tries,
+                                            countback=countback)
+                    
+                    last_fetch_time = time.time()
+                    fetched_count += len(data['t'])
+
+                    yield data
+    # ____________________________________________________________________________ . . .
+
+
     async def live_kline(self,
                          symbol: str,
                          resolution: str,
