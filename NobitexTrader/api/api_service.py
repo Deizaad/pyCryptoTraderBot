@@ -39,7 +39,9 @@ class APIService:
                 # logger.error(f"Unexpected error: {err}")
                 if attempt < tries - 1:
                     await asyncio.sleep(2 ** attempt)
-        raise Exception("API request failed after retries")
+        # raise Exception("API request failed after retries")
+        empty_data: dict = {}
+        return  empty_data
     # ____________________________________________________________________________ . . .
 
 
