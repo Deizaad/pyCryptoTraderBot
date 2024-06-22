@@ -71,8 +71,8 @@ class Market:
                          max_retries,
                          timeout: float,
                          max_interval: float,
-                         max_rate: str,
-                         rate_period: str = '60',):
+                         max_rate: int,
+                         rate_period: str = '60'):
         """
         Continuously fetches kline data for the last given candles.
 
@@ -90,7 +90,7 @@ class Market:
         wait_time = max(0, max_interval - (time.time() - last_fetch_time))
 
         async with  client:
-            async with AsyncLimiter(int(max_rate), int(rate_period)):
+            async with AsyncLimiter(max_rate, int(rate_period)):
                 while True:
                     if wait_time > 0:
                         await asyncio.sleep(wait_time)
@@ -295,6 +295,6 @@ if __name__ == '__main__':
                                   str(500),
                                   3,
                                   5.0,
-                                  int(nb.Endpoint.OHLC_MI),
+                                  nb.Endpoint.OHLC_MI,
                                   nb.Endpoint.OHLC_RL,
                                   '60'))
