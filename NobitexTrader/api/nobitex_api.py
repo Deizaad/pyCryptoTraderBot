@@ -27,10 +27,11 @@ class Market:
                     tries_interval: float,
                     tries: int,
                     *,
+                    page: int | None = None,
                     countback: int | None = None,
                     start: int | None = None,
                     url: str = nb.URL.MAIN, 
-                    endpoint: str = nb.Endpoint.OHLC) -> dict | None:
+                    endpoint: str = nb.Endpoint.OHLC) -> dict:
         """
         Fetches Kline data for a given symbol.
 
@@ -62,7 +63,8 @@ class Market:
             'resolution': resolution,
             'to': str(end),
             'countback': str(countback) if start is None else None,
-            'from': str(start)
+            'from': str(start),
+            'page': str(page)
         }
 
         def is_valid(value):
