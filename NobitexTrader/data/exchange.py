@@ -22,10 +22,12 @@ class Nobitex:
         TRADES = '/v2/trades/'
         TRADES_MI: str = '4'    # Maximum Interval = 4s
         TRADES_RL: str = '15'    # Rate Limit: 15p/m
+        TRADES_RP: int = 60    # Rate period = 60 second
 
         OHLC = '/market/udf/history'
         OHLC_MI: str = '1'    # Maximum Interval = 1s
         OHLC_RL: str = '60'    # Rate Limit = 60p/m
+        OHLC_RP: int = 60    # Rate period = 60 second
 
         class Order:
             class Place:
