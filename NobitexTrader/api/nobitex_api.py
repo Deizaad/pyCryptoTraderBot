@@ -24,6 +24,9 @@ class Market:
                     end: str,
                     countback: str,
                     timeout: float,
+                    tries_interval: float,
+                    tries: int,
+                    *,
                     start: str | None = None,
                     url: str = nb.URL.MAIN, 
                     endpoint: str = nb.Endpoint.OHLC) -> dict | None:
@@ -38,6 +41,8 @@ class Market:
             end (str): The end timestamp or 'latest' for current time.
             countback (str): Number of data points to retrieve.
             timeout (float): Request timeout in seconds.
+            tries_interval (float): The time period to wait before retrying request in seconds.
+            tries (int): Number of tries for request.
             start (str, optional): The start timestamp or 'oldest' for the oldest available data.
             url (str, optional): The base URL for the request. Defaults to nb.URL.MAIN.
             endpoint (str, optional): The API endpoint. Defaults to nb.Endpoint.OHLC.
@@ -59,7 +64,7 @@ class Market:
             'from': start
         }
 
-        return await self.service.get(client, url, endpoint, timeout, payload)
+        return await self.service.get(client, url, endpoint, timeout, tries_interval, tries, params=payload)
     # ____________________________________________________________________________ . . .
 
 
@@ -70,6 +75,8 @@ class Market:
                          countback: str,
                          max_retries,
                          timeout: float,
+                         tries_interval: float,
+                         tries: int,
                          max_interval: float,
                          max_rate: int,
                          rate_period: str = '60'):
@@ -100,9 +107,7 @@ class Market:
 
                     while not success and retry_count < max_retries:
                         try:
-                            data = await market.kline(
-                                client, symbol, resolution, str(int(time.time())), countback, timeout
-                            )
+                            data = await market.kline(client, symbol, resolution, str(int(time.time())), countback, timeout, tries_interval, tries)
                             success = True
                         except httpx.RequestError as err:
                             retry_count += 1
@@ -144,7 +149,10 @@ class Order:
                     srcCurrency : str,
                     dstCurrency : str,
                     amount : float,
+                    *,
                     timeout: float,
+                    try_interval: float,
+                    tries: int,
                     token: str = nb.USER.API_KEY,
                     url: str = nb.URL.MAIN,
                     mode : str | None = None,
@@ -153,7 +161,7 @@ class Order:
                     leverage : float = np.nan,
                     clientOrderId : str = 'null'):
         """
-        Args:
+        Parameters:
             type (str): Trade direction.
                 Value: 'buy' | 'sell'
 
@@ -225,10 +233,11 @@ class Order:
             return True
 
         payload = {key: value for key, value in payload.items() if is_valid_key_value(key, value)}
-
         headers = {'Authorization': 'Token ' + token}
         
-        response = await self.service.post(client, url, endpoint, timeout, data=payload, headers=headers, tries=1)
+        response = await self.service.post(
+            client, url, endpoint, timeout, try_interval, tries, data=payload, headers=headers
+            )
 
         return response
     # ____________________________________________________________________________ . . .
@@ -279,22 +288,34 @@ class Transaction:
 async def oredr_test():
     service = APIService()
     order = Order(service)
+
     async with httpx.AsyncClient() as client:
-        response = await order.place(client, 'sell', 'limit', 38800, 'btc', 'usdt', 0.0016, timeout=3)
+        response = await order.place(client,
+                                     'sell',
+                                     'limit',
+                                     38800,
+                                     'btc',
+                                     'usdt',
+                                     0.0016,
+                                     timeout=3,
+                                     try_interval=nb.Endpoint.Order.Place.FUTURES_MI,
+                                     tries=1)
+        
         print(response)
 
 
-
 if __name__ == '__main__':
-    # asyncio.run(oredr_test())
+    asyncio.run(oredr_test())
 
-    market = Market(APIService())
-    asyncio.run(market.live_kline(httpx.AsyncClient(),
-                                  md.OHLC.SYMBOL,
-                                  md.OHLC.RESOLUTION,
-                                  str(500),
-                                  3,
-                                  5.0,
-                                  nb.Endpoint.OHLC_MI,
-                                  nb.Endpoint.OHLC_RL,
-                                  '60'))
+    # market = Market(APIService())
+    # asyncio.run(market.live_kline(httpx.AsyncClient(),
+    #                               md.OHLC.SYMBOL,
+    #                               md.OHLC.RESOLUTION,
+    #                               str(500),
+    #                               3,
+    #                               5.0,
+    #                               nb.Endpoint.OHLC_MI,
+    #                               3,
+    #                               nb.Endpoint.OHLC_MI,
+    #                               nb.Endpoint.OHLC_RL,
+    #                               '60'))

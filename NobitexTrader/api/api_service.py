@@ -12,11 +12,13 @@ class APIService:
                        method: str, 
                        url: str, 
                        endpoint: str, 
-                       timeout: float, 
+                       timeout: float,
+                       tries_interval: float,
+                       tries: int,
+                       *,
                        params=None, 
                        data=None, 
-                       headers=None, 
-                       tries=3) -> dict | None:
+                       headers=None) -> dict:
         
         for attempt in range(tries):
             try:
@@ -32,34 +34,69 @@ class APIService:
                 # else:
                 #     logger.error(f"API request failed: {response.status_code} {response.text}")
             except httpx.HTTPError as err:
+                print(err)
                 # logger.error(f"HTTP request error: {err}")
                 if attempt < tries - 1:
-                    await asyncio.sleep(2 ** attempt)
+                    await asyncio.sleep(tries_interval)
             except Exception as err:
+                print(err)
                 # logger.error(f"Unexpected error: {err}")
                 if attempt < tries - 1:
-                    await asyncio.sleep(2 ** attempt)
+                    await asyncio.sleep(tries_interval)
         # raise Exception("API request failed after retries")
         empty_data: dict = {}
         return  empty_data
     # ____________________________________________________________________________ . . .
 
 
-    async def get(self, client: httpx.AsyncClient, url, endpoint, timeout, params=None):
-        return await self._request(client, "GET", url, endpoint, timeout, params=params)
+    async def get(self,
+                  client: httpx.AsyncClient,
+                  url: str,
+                  endpoint: str,
+                  timeout: float,
+                  tries_interval: float,
+                  tries: int,
+                  *,
+                  params: dict[str, str] | None = None):
+        
+        return await self._request(
+            client, "GET", url, endpoint, timeout, tries_interval, tries, params=params
+            )
     # ____________________________________________________________________________ . . .
 
 
-    async def post(self, client: httpx.AsyncClient, url, endpoint, timeout, data, headers, tries):
-        return await self._request(client, "POST", url, endpoint, timeout, headers=headers, data=data, tries=tries)
+    async def post(self,
+                   client: httpx.AsyncClient,
+                   url,
+                   endpoint,
+                   timeout,
+                   interval,
+                   tries,
+                   *,
+                   data,
+                   headers):
+        
+        return await self._request(
+            client, "POST", url, endpoint, timeout, interval, tries, data=data, headers=headers
+            )
     # ____________________________________________________________________________ . . .
 
 
-    async def put(self, client: httpx.AsyncClient, url, endpoint, timeout, data=None):
-        return await self._request(client, "POST", url, endpoint, timeout, data=data)
+    async def put(
+            self, client: httpx.AsyncClient, url, endpoint, timeout, interval, tries, *, data=None
+            ):
+        
+        return await self._request(
+            client, "POST", url, endpoint, timeout, interval, tries, data=data
+            )
     # ____________________________________________________________________________ . . .
 
 
-    async def delete(self, client: httpx.AsyncClient, url, endpoint, timeout, data=None):
-        return await self._request(client, "POST", url, endpoint, timeout, data=data)
+    async def delete(
+            self, client: httpx.AsyncClient, url, endpoint, timeout, interval, tries, *, data=None
+            ):
+        
+        return await self._request(
+            client, "POST", url, endpoint, timeout, interval, tries, data=data
+            )
 # =================================================================================================
