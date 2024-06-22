@@ -249,6 +249,23 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
+    async def update_kline(self, current_data, symbol, resolution, timeout, tries_interval, tries):
+        """
+        This method fetches kline data from the last timestamp of current data to the current time.
+        Preferably it might be called in a loop to keep sending fetch request continuously.
+        """
+        start = int(current_data['t'][-1])
+        new_data = await self.kline(symbol,
+                                    resolution,
+                                    int(time.time()),
+                                    timeout=timeout,
+                                    tries_interval=tries_interval,
+                                    tries=tries,
+                                    start=start)
+        return new_data
+    # ____________________________________________________________________________ . . .
+
+
     async def live_kline(self,
                          symbol: str,
                          resolution: str,
