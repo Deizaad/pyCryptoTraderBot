@@ -5,7 +5,7 @@ import logging
 import requests
 import pandas as pd
 from tqdm import tqdm
-from persiantools.jdatetime import JalaliDateTime
+from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
 from NobitexTrader.configs.config import MarketData as md
 from NobitexTrader.data.exchange import Nobitex as nb
