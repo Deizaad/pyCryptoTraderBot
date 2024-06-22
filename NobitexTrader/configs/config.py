@@ -10,7 +10,7 @@ class Order:
 
 
 class Setup:
-    ENTRY = 'single_supertrend'
+    ENTRY = 'supertrend'
 
 
 class MarketData:
@@ -21,7 +21,7 @@ class MarketData:
         FROM= 0
         COUNTBACK= 500
         PAGE= 1
-        SIZE: int = 1000
+        SIZE: int = 1001
 
     class TRADES:
         SYMBOL: str = 'USDTIRT'

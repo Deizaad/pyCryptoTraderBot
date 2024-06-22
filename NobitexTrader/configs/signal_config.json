@@ -1,8 +1,18 @@
 {
-    "signals_config": [
+    "setups": [
         {
-            "type": "single_supertrend",
-            "parameters": {}
+            "name": "supertrend_setupfunc",
+            "properties": {
+                "window": 14,
+                "factor": 3
+            }
+        },
+        {
+            "name": "strategy_b_setupfunc",
+            "properties": {
+                "param1": "value1",
+                "param2": "value2"
+            }
         }
     ]
 }
