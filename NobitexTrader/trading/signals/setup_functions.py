@@ -49,6 +49,56 @@ def get_selected_setups(module_path: str, config: dict) -> tuple[dict, dict]:
 
 
 
+# =================================================================================================
+def requires_indicators(*indicators):
+    def decorator(func):
+        func.required_indicators = indicators
+        return func
+    return decorator
+# =================================================================================================
+
+
+
+# =================================================================================================
+@requires_indicators(Supertrend(cfg.Study.Supertrend.WINDOW, cfg.Study.Supertrend.FACTOR))
+async def supertrend_setupfunc(kline_df: pd.DataFrame, indicator_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Generate trading signals based on indicator DataFrame for single_supertrend setup.
+
+    Parameters:
+        kline_df (pd.DataFrame): DataFrame containing kline data.
+        indicator_df (pd.DataFrame): DataFrame containing indicator data.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the generated signals.
+    """
+    if indicator_df is None:
+        return pd.DataFrame()
+    
+    try:
+        if not isinstance(kline_df, pd.DataFrame):
+            raise ValueError("kline_df must be a pandas DataFrame")
+        if not isinstance(indicator_df, pd.DataFrame):
+            raise ValueError("indicator_df must be a pandas DataFrame")
+
+        signal_df = pd.DataFrame(index=kline_df.index)
+        signal_df['supertrend'] = 0
+
+        if len(indicator_df) > 2:
+            _supertrend = indicator_df['supertrend_side']
+            _prev_supertrend = indicator_df['supertrend_side'].shift(1)
+
+            signal_df.loc[(_supertrend == 1) & (_prev_supertrend == -1), 'supertrend'] = 1
+            signal_df.loc[(_supertrend == -1) & (_prev_supertrend == 1), 'supertrend'] = -1
+
+        return signal_df
+    except Exception as err:
+        logging.error(f"Error generating signal in SingleSupertrendStrategy: {err}")
+        print(f"Error generating signal in SingleSupertrendStrategy: {err}")
+        return pd.DataFrame()
+# =================================================================================================
+
+
 if __name__ == '__main__':
     selected, indicators = get_selected_setups('NobitexTrader.trading.signals.setup_functions', {
         "setups": [
