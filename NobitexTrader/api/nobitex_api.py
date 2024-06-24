@@ -120,8 +120,8 @@ class Market:
         request_count = 0
         start_time = time.time()
 
-        last_fetch_time = 0.0
-        wait_time = max(0, max_interval - (time.time() - last_fetch_time))
+        last_fetch_time: float = 0.0
+        wait_time: float = 0.0
 
         async with  self.client:
             async with AsyncLimiter(max_rate, rate_period):
@@ -154,6 +154,7 @@ class Market:
                         continue
 
                     last_fetch_time = time.time()
+                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
 
                     request_count += 1
                     elapsed_time = time.time() - start_time
@@ -173,19 +174,9 @@ class Market:
                              required_candles: int,
                              timeout: float,
                              try_interval: float,
-                             tries: int,
-                             max_interval: float,
-                             max_rate: str,
-                             rate_period: str = '60'):
-        
-        last_fetch_time = 0.0
-        wait_time = max(0, max_interval - (time.time() - last_fetch_time))
+                             tries: int):
 
         async with self.client:
-            async with AsyncLimiter(int(max_rate), int(rate_period)):
-                if wait_time > 0:
-                        await asyncio.sleep(wait_time)
-                
                 data = await self.kline(symbol,
                                         resolution,
                                         int(time.time()),
@@ -194,8 +185,6 @@ class Market:
                                         tries,
                                         countback=required_candles)
                 
-                last_fetch_time = time.time()
-
                 return data
     # ____________________________________________________________________________ . . .
 
@@ -219,8 +208,8 @@ class Market:
         satisfied.
         """
 
-        last_fetch_time = 0.0
-        wait_time = max(0, max_interval - (time.time() - last_fetch_time))
+        last_fetch_time: float = 0.0
+        wait_time: float = 0.0
 
         data: dict = {}
         fetched_count: int = len(current_data['t'])
@@ -230,6 +219,7 @@ class Market:
                 while fetched_count < required_candles:
                     countback = required_candles - fetched_count
 
+                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
                     if wait_time > 0:
                         await asyncio.sleep(wait_time)
 
@@ -286,8 +276,8 @@ class Market:
         # Sender constant for PyDispatcher:
         LIVE_KLINE = 'Live kline'
 
-        last_fetch_time = 0.0
-        wait_time = max(0, max_interval - (time.time() - last_fetch_time))
+        last_fetch_time: float = 0.0
+        wait_time: float = 0.0
 
         async with  self.client:
             async with AsyncLimiter(max_rate, rate_period):
@@ -310,6 +300,13 @@ class Market:
                         print(f"Request failed: {err}.")
 
                     last_fetch_time = time.time()
+                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
+    # ____________________________________________________________________________ . . .
+
+
+    def _wait_time(self, max_interval, current_time, last_fetch_time) -> float:
+        wait_time = max(0, (max_interval - (current_time - last_fetch_time)))
+        return wait_time
     # ____________________________________________________________________________ . . .
 
 
