@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "nobitextrader"
+version = "0.1.0"
+description = ""
+authors = ["Deizaad <166605426+Deizaad@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+httpx = "^0.27.0"
+requests = "^2.32.3"
+pandas = "^2.2.2"
+numpy = "^1.26.4"
+tqdm = "^4.66.4"
+persiantools = "^4.0.2"
+aiolimiter = "^1.1.0"
+pydispatcher = "^2.0.7"
+python-dotenv = "^1.0.1"
+pandas-ta = "^0.3.14b0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
