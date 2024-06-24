@@ -1,7 +1,78 @@
 import asyncio
 import pandas as pd
-from typing import Callable, Any, Union, List, Tuple, Dict
+from pydispatch import dispatcher    # type: ignore
+from typing import Callable, Any, List, Tuple, Dict
 
+from NobitexTrader.utils.load_json import load
+from NobitexTrader.utils.event_channels import Event
+import NobitexTrader.trading.analysis.indicator_functions as indicators
+from NobitexTrader.trading.analysis.indicators import Supertrend, MACD
+from NobitexTrader.trading.signals.setup_functions import get_selected_setups
+
+
+# =================================================================================================
+class IndicatorChief:
+    """
+    Hello
+    """
+    def __init__(self):
+        self.config = load(r'NobitexTrader\configs\signal_config.json')
+        self.indicator_df = pd.DataFrame()
+
+        self.attached_indicators = set()
+        _, self.required_indicators = get_selected_setups(
+            'NobitexTrader.trading.signals.setup_functions',
+            self.config
+        )
+    # ____________________________________________________________________________ . . .
+
+
+    def attach(self):
+        for value in self.required_indicators.values():
+            for item in value:
+                if isinstance(item, Supertrend) and item not in self.attached_indicators:
+                    """
+                    Statement for attaching Supertrend indicator to dispatchers.
+                    """
+                    window = item.params[0]
+                    factor = item.params[1]
+                    properties = {'window': window, 'factor': factor}
+                    
+                    dispatcher.connect(
+                        self._create_handler(indicators.pandas_supertrend, properties),
+                        Event.SUCCESS_FETCH,
+                        dispatcher.Any
+                    )
+                    
+                    self.attached_indicators.add(item)
+                # ________________________________________________________________ . . .
+
+                if isinstance(item, MACD) and item not in self.attached_indicators:
+                    """
+                    Placeholder statement for 'MACD' indicator.
+                    """
+                    self.attached_indicators.add(item)
+    # ____________________________________________________________________________ . . .
+
+
+    def _create_handler(self, func, properties):
+        def _handler(sender, **kwargs):
+            kline = kwargs.get('kline')
+            result_df = func(kline, **properties)
+            print(result_df)
+            # self.indicator_df = self.indicator_df.concat(result_df, ignore_index=True)
+        return _handler
+    # ____________________________________________________________________________ . . .
+    
+
+    def get(self) -> pd.DataFrame:
+        return self.indicator_df
+# =================================================================================================
+
+
+supervisor = IndicatorChief()
+
+supervisor.attach()
 
 # =================================================================================================
 class IndicatorSupervisor:
