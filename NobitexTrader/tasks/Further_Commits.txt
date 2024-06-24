@@ -1,71 +1,12 @@
 _____________DONE: _____________
 
+. Write IndicatorChief class in indicator_supervisor.py module.
 
-#01. noun: stage executioner.py
 
-#02. Create execution/ directory.
 
-#03. Move executioner.py to execution/ directory.
+. commit stable tag.
 
-#04. create tasks/ directory.
-
-#05. Write System_Architecture_Thoughts.txt in tasks/ directory.
-
-#06. Move comment_tags.py from NobitexTrader/ to tasks/ directory.
-
-8. Move Further_Commits.txt from repository root to tasks/ directory.
-
-9. Transfer endpoint selecting statements from order.py (Ignore exchange import change here, gonna be commited later) to exchange.py
-
-10. Write 'Returns:' docstring for place method of Order class in order.py
-
-11. Change OHLC_RL to OHLC_MI and TRADES_RL to TRADES_MI in exchange.py. applies to: exchange.py, nb_api/market.py (ignore imports changes here, gonna be committed later), ...
-
-12. Turn nomerous value to string values before sending to api in exchange.py and market.py. applies to: exchange.py, market.py, ...
-
-13. Create api/ directory.
-
-14. Move nb_api/ directory to api/ directory. applies to: __init__.py, account.py, market.py, order.py, utils.py.
-
-15. Add Setup.ENTRY constant in config.py.
-
-16. Create config/ directory.
-
-17. Move config.py to config/ directory. also applies to supertrend.py, data_manager.py, market.py, supertrend.py, ...
-
-18. Write signal_config.json in config/ directory.
-
-19. Improve exception handling in data_manager.
-
-20. modify data_manager to generate signals using SignalSupervisor.
-
-21. Write supertrend setup-function in supertrend.py.
-
-22. Write docstring for TradeSupervisor in trader.py
-
-23. Add 'job', 'involve', and 'perform' methods for TradeSupervisor in trader.py
-
-24. Add _monitor method to IndicatorSupervisor class in indicator_supervisor.py.
-
-25. create trading/ directory.
-
-26. rename study/ directory to analysis/.
-
-27. Move analysis/ directory to trading/.
-
-28. Move trader.py to trading/ directory.
-
-29. Move setups/ directory to trading/signals/. applies to: __init.py, supertrend.py, ...
-
-30. Create data/ directory.
-
-31. Move data_manager.py from NobitexTrader/ to data/ directory.
-
-32. Move exchange.py to data/ directory. also applies to: market.py, order.py.
-
-33. commit stable tag.
-
-34. noun: stage Further_Commits.txt.
+. noun: stage Further_Commits.txt.
 
 _____________TODO: _____________
 * Implement dependencies handling using Poetry
@@ -138,12 +79,66 @@ asyncio.run(data_manager.initiate_kline_df())
 
 * make kline data fetching interval down to 0.7 a second, then bring it back to 0.9 if it reachees 60 calls per minute
 
-* maybe i should remove retry parts from main function in api_service.
+* maybe i should remove retry parts from live_kline in nobitex_api.market.
 
 * somehow keep track of wether bot has started normally or after system restart or bot crash.
 
 * In the NobitexMarket, implement the wait-time inside the _request itself and move it from fetch loop.
 
-* try bringing the limiting context manager out of kline function and write it in the kline_loop.
-
 * rename APIServeice to CallService.
+
+* add conditional parameter for end time in kline_loop() method.
+
+* Announce the issue of live_kline method calls more then rate_limit.
+
+* turn OHLC_RL and OHLC_MI back to float type?
+
+* make kline_live compatible to more than 500 candle requests with page in payloads.
+
+* use plugin architecture and microservices to perform different operations in bot.
+
+* Remove The NewFolder from music folder
+
+* make a signal-generator module that connects setups-functions to the event channels.
+
+* to determine which indicators most be calculated, the trading signal setup-function itself should declare what does it needs.
+
+* rename the Study class of config.py to analysis.
+
+* use python standard libraries or third-party libs to handle retries in http calls.
+
+* properties of required_indicators in setup_functions module most be passed as parameters to be provided with arguments from config file later in the code.
+
+* Rename 'execution_mode' to 'execution_profile' in execution/ directory and in config file.
+
+* Add 'perfered_events' attribute to the setup functions so they can determine which event channel each one listens to.
+
+* Solve the situation of pandas_supertrend getting data from two different source.
+
+* in pandas_supertrend define the default values of window and factor where those are not provided.
+
+* Run the bot.py in docker container without docstrings and without debug moede using "python -oo bot.py"
+
+* mount configuration files to avoid rebuilding the docker image for configuration changes. 
+
+* In the 'indicator_handler function of IndicatorChief class update the indicator_df with result_df properly.
+
+* change the event channel that indicator functions getting connected to, to Event.NEW_KLINES
+
+* Add initial_fetch and live_fetch sub methods to the live_kline method of Market class in nobitex_api.py
+
+* market api most wait for first tick of candle to get init_fetch()
+
+* Implement a function in each exchange_api.py module that checks connection ping delay with that exchange.
+
+* Configure live_kline method in Market class in nobitex_api.py to also fetch data for each of chosen timeframes, pairs, ..., and deliver them.
+
+* create an admin-config file to include data like preferred timeout for api calls or preferred api retries.
+
+* Modify the 'place' method of 'Order' class in nobitex_api.py module to give the client in __init__() method and also to give endpoint as parameter.
+
+* modify the 'timeout' parameter in APIService class to be double for first time when the Asyncclient has not been connected.
+
+* rename the 'NobitexTrader' directory to 'Application'
+
+* use 'timedelta()' to refactor the '_prior_timestamp()' method.
