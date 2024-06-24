@@ -126,8 +126,7 @@ class Market:
         async with  self.client:
             async with AsyncLimiter(max_rate, rate_period):
                 while True:
-                    if wait_time > 0:
-                        await asyncio.sleep(wait_time)
+                    await asyncio.sleep(wait_time) if wait_time > 0 else None
 
                     success = False
                     retry_count = 0
@@ -220,8 +219,8 @@ class Market:
                     countback = required_candles - fetched_count
 
                     wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
-                    if wait_time > 0:
-                        await asyncio.sleep(wait_time)
+                    
+                    await asyncio.sleep(wait_time) if (wait_time > 0) else None
 
                     end = self._prior_timestamp(current_data, timeframe=resolution)
                     data = await self.kline(symbol,
@@ -282,8 +281,7 @@ class Market:
         async with  self.client:
             async with AsyncLimiter(max_rate, rate_period):
                 while True:
-                    if wait_time > 0:
-                        await asyncio.sleep(wait_time)
+                    await asyncio.sleep(wait_time) if wait_time > 0 else None
 
                     try:
                         data = await self.kline(symbol, 
