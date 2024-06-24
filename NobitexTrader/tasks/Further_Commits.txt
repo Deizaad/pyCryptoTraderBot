@@ -9,54 +9,25 @@ _____________DONE: _____________
 . noun: stage Further_Commits.txt.
 
 _____________TODO: _____________
-* Implement dependencies handling using Poetry
-
 * fix update_trades() function that prints duplicate trades data
 
 * define specific lists like (__endpoints__) in nobitex_data to modules and packages
 
-* change 'BASE_URL' and 'TESTNET' to 'URL.MAIN' and 'URL.TEST'.
-
-
-* remove unnecessary returns from OHLCData class
-
-
 * change assigning the previous top and bottom band to replace NaNs with zero.
-
-1* Refactor 'OHLCData' class
-	Refactor the class using AsyncIO, HTTPX, and it's client module to make sessions like requests library to receive data faster. Also using AsyncIO, make this class and it's methods capable to be called concurrently with any other method or function when using in main code.
-
-* Using AsyncIO await the API functions for sleep time.
-
-* Use Ternary if operation for OHLCData.get.param
 
 * check given arguments in order.place.params for mandatory parameters of each order kind: (oco, futures, spot)
 
 * turn aplicable functions to AsyncIO and Threading.
 
-* Integrate config.RATE_LIMIT to functions
-
 * turn supertrend.entry into a class
 
 * make a function for supertrend.entry to make analysis just on last candle row.
-
-* make class or function in trader.py to watch the signal dataframe for signals and call the corresponding method from order.place
-
-* Rename the Repositori to ...
-
-* send string values in requests.
 
 * inside setups/supertrend.py refactor signal function to a class and modify project to be compatible with it.
 
 * handle error in OHLCData.get method when response.text == {"s":"no_data"} and it raises error 't'.
 
 * handle error in OHLCData.new method when the get method returns empty dataframe and None for update time.
-
-* Configure OHLCData class to get symbol and res parameters from config file.
-
-* configure indicator and signal dataframes to continuously check kline_df for new data then update themself if there are new data.
-
-* configure DataManager to run live updates for dataframes without a sleep time.
 
 * how can i configure my OHLCData code in order that when requesting for data untill new data arrives doesn't wait longer than rate_limit time and make another request concurrently.
 
@@ -71,49 +42,29 @@ asyncio.run(data_manager.initiate_kline_df())
 
 * Improve the design pattern of three Supervisors.
 
-* Make sure how to handle httpx.AsyncClient when interacting with api.
-
-* remove retries from _request method.
-
 * what would be the disaster action in case of api max retries?
 
 * make kline data fetching interval down to 0.7 a second, then bring it back to 0.9 if it reachees 60 calls per minute
-
-* maybe i should remove retry parts from live_kline in nobitex_api.market.
 
 * somehow keep track of wether bot has started normally or after system restart or bot crash.
 
 * In the NobitexMarket, implement the wait-time inside the _request itself and move it from fetch loop.
 
-* rename APIServeice to CallService.
-
 * add conditional parameter for end time in kline_loop() method.
 
 * Announce the issue of live_kline method calls more then rate_limit.
 
-* turn OHLC_RL and OHLC_MI back to float type?
-
-* make kline_live compatible to more than 500 candle requests with page in payloads.
-
-* use plugin architecture and microservices to perform different operations in bot.
-
-* Remove The NewFolder from music folder
+* use plugin architecture and microservices to perform different operations in bot
 
 * make a signal-generator module that connects setups-functions to the event channels.
 
-* to determine which indicators most be calculated, the trading signal setup-function itself should declare what does it needs.
-
 * rename the Study class of config.py to analysis.
-
-* use python standard libraries or third-party libs to handle retries in http calls.
 
 * properties of required_indicators in setup_functions module most be passed as parameters to be provided with arguments from config file later in the code.
 
 * Rename 'execution_mode' to 'execution_profile' in execution/ directory and in config file.
 
 * Add 'perfered_events' attribute to the setup functions so they can determine which event channel each one listens to.
-
-* Solve the situation of pandas_supertrend getting data from two different source.
 
 * in pandas_supertrend define the default values of window and factor where those are not provided.
 
@@ -124,8 +75,6 @@ asyncio.run(data_manager.initiate_kline_df())
 * In the 'indicator_handler function of IndicatorChief class update the indicator_df with result_df properly.
 
 * change the event channel that indicator functions getting connected to, to Event.NEW_KLINES
-
-* Add initial_fetch and live_fetch sub methods to the live_kline method of Market class in nobitex_api.py
 
 * market api most wait for first tick of candle to get init_fetch()
 
@@ -141,4 +90,4 @@ asyncio.run(data_manager.initiate_kline_df())
 
 * rename the 'NobitexTrader' directory to 'Application'
 
-* use 'timedelta()' to refactor the '_prior_timestamp()' method.
+* make a singular module named 'Supervisor' and bring all chiefs to same place.
