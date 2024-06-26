@@ -1,10 +1,10 @@
 import logging
 import pandas as pd
 
-from NobitexTrader.api.nobitex_api import Market
-from NobitexTrader.configs.config import MarketData as md
-from NobitexTrader.utils.botlogger import initialize_logger    # Developement-temporary
-from NobitexTrader.data.data_tools import parse_kline_to_df
+from Application.api.nobitex_api import Market
+from Application.configs.config import MarketData as md
+from Application.utils.botlogger import initialize_logger    # Developement-temporary
+from Application.data.data_tools import parse_kline_to_df
 
 
 initialize_logger()    # Developement-temporary

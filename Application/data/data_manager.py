@@ -5,10 +5,10 @@ import logging
 import threading
 import pandas as pd
 
-from NobitexTrader.configs.config import MarketData as md
-from NobitexTrader.api.nb_api.market import OHLCData
-from NobitexTrader.trading.signals.setups.supertrend import signal
-from NobitexTrader.trading.analysis.supertrend import pandas_supertrend
+from Application.configs.config import MarketData as md
+from Application.api.nb_api.market import OHLCData
+from Application.trading.signals.setups.supertrend import signal
+from Application.trading.analysis.supertrend import pandas_supertrend
 # from NobitexTrader.trading.signals.signal_supervisor import SignalSupervisor
 
 

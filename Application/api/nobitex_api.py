@@ -5,10 +5,10 @@ import numpy as np
 from pydispatch import dispatcher    # type: ignore
 from aiolimiter import AsyncLimiter
 
-from NobitexTrader.utils.event_channels import Event
-from NobitexTrader.api.api_service import APIService
-from NobitexTrader.data.exchange import Nobitex as nb
-from NobitexTrader.configs.config import MarketData as md
+from Application.utils.event_channels import Event
+from Application.api.api_service import APIService
+from Application.data.exchange import Nobitex as nb
+from Application.configs.config import MarketData as md
 
 
 # =================================================================================================
@@ -314,18 +314,18 @@ class Market:
         one candle before first candle of given data. Which is used for sending the subsequent
         'initial_fetch' requests.
         """
-        timeframes: dict[str, int] = {'1': 60,
-                                      '5': 300,
-                                      '15': 900,
-                                      '30': 1_800,
-                                      '60': 3_600,
+        timeframes: dict[str, int] = {'1'  : 60,
+                                      '5'  : 300,
+                                      '15' : 900,
+                                      '30' : 1_800,
+                                      '60' : 3_600,
                                       '180': 10_800,
                                       '240': 14_400,
                                       '360': 21_600,
                                       '720': 43_200,
-                                      'D': 86_400,
-                                      '2D': 172_800,
-                                      '3D': 259_200}
+                                      'D'  : 86_400,
+                                      '2D' : 172_800,
+                                      '3D' : 259_200}
         
         if timeframe not in timeframes.keys():
             return 0

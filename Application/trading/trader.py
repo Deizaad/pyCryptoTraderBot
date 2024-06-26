@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from NobitexTrader.api.nb_api.order import Order
+from Application.api.nb_api.order import Order
 
 
 # =================================================================================================

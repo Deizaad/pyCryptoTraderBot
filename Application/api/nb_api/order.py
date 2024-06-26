@@ -1,7 +1,7 @@
 import httpx
 import numpy as np
 
-from NobitexTrader.data.exchange import Nobitex as nb
+from Application.data.exchange import Nobitex as nb
 
 
 class Order():

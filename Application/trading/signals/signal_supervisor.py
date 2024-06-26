@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Any, Tuple
 
-from NobitexTrader.trading.signals.signal_factory import SignalFactory
+from Application.trading.signals.signal_factory import SignalFactory
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')

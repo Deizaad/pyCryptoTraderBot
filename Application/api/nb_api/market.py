@@ -7,9 +7,9 @@ import pandas as pd
 from tqdm import tqdm
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
-from NobitexTrader.configs.config import MarketData as md
-from NobitexTrader.data.exchange import Nobitex as nb
-from NobitexTrader.api.nb_api.utils import clear_console
+from Application.configs.config import MarketData as md
+from Application.data.exchange import Nobitex as nb
+from Application.api.nb_api.utils import clear_console
 
 
 __all__ = ["get_trades", "update_trades", "OHLCData"]

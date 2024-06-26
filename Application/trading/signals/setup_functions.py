@@ -2,8 +2,8 @@ import logging
 import importlib
 import pandas as pd
 
-from NobitexTrader.configs import config as cfg
-from NobitexTrader.trading.analysis.indicators import Supertrend
+from Application.configs import config as cfg
+from Application.trading.analysis.indicator_classes import Supertrend
 
 
 

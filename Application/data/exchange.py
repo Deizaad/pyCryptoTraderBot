@@ -2,7 +2,7 @@ import os
 import numpy as np
 from dotenv import load_dotenv
 
-from NobitexTrader.configs.config import Order
+from Application.configs.config import Order
 
 
 # __all__ = ["API_KEY", "CURRENT_TIME", "BASE_URL", "TESTNET"]

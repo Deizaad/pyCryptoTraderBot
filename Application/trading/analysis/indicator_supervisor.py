@@ -3,11 +3,11 @@ import pandas as pd
 from pydispatch import dispatcher    # type: ignore
 from typing import Callable, Any, List, Tuple, Dict
 
-from NobitexTrader.utils.load_json import load
-from NobitexTrader.utils.event_channels import Event
-import NobitexTrader.trading.analysis.indicator_functions as indicators
-from NobitexTrader.trading.analysis.indicators import Supertrend, MACD
-from NobitexTrader.trading.signals.setup_functions import get_selected_setups
+from Application.utils.load_json import load
+from Application.utils.event_channels import Event
+import Application.trading.analysis.indicator_functions as indicators
+from Application.trading.analysis.indicators import Supertrend, MACD
+from Application.trading.signals.setup_functions import get_selected_setups
 
 
 # =================================================================================================
