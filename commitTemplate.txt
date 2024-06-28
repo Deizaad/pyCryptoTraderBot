@@ -1,0 +1,102 @@
+# Title:
+# <type>[(optional <scope>)][optional <!>]: <description>
+
+# Body:
+# What:
+# Why:
+
+# Footer:
+# [optional <token(-s)>: <value>]
+# or
+# [optional <token(-s)>: #<value>]
+#
+#
+# Keep each commit line under 50 characters
+# Following conventional commits 1.0.0 
+#
+#
+#----------------------------------------------------------------------
+# __commit-types__:                                                   |
+#----------------------------------------------------------------------
+#_noun: Must be or one of below types.                                |
+#                                                                     |
+#_stage: To temporarily commit changes that will be committed later.  |
+#        Used when I want to push changes for collaborator to review, |
+#        or to temporarily commit multiple changes that will be       |
+#        seperated into smaller specific commits, as a whole.         |
+#                                                                     |
+#_fix: MUST be used when a commit represents a bug fix.               |
+#                                                                     |
+#_feat: Implements a new feature for the application.                 |
+#                                                                     |
+#_issue: To announce a comment-tag                                    |
+#                                                                     |
+#_change: The commit changes implementation of existing feature.      |
+#                                                                     |
+#_style: Updates or reformats the style of source code, but doesn't   |
+#        change implementation.                                       |
+#                                                                     |
+#_devops: When commit is related to devops jobs (Dependecy Management,|
+#         CI/CD, Containerizing, Kubernaties,  ...)                   |
+#                                                                     |
+#_repository: Used when creating new directories or moving files.     |
+#                                                                     |
+#_perf: Improves algorithms performance or general execution time.    |
+#                                                                     |
+#_refactor: refactors implementation of existing code as whole or big |
+#           part of it, but does not alter or change existing behavior|
+#                                                                     |
+#_test: Addition or modification of test cases.                       |
+#                                                                     |
+#_docs: used when modifying/creating docs.                            |
+#                                                                     |
+#_build: when preparing for a build.                                  |
+#                                                                     |
+#_chore: Includes technical or preventative maintenance task that     |
+#        is necessary for managing the product or the repository,     |
+#        but it is not tied to any specific feature or user story.    |
+#        Releasing the product can be considered a chore.             |
+#                                                                     |
+#_security: Improves security or resolves a security issue.           |
+#                                                                     |
+#_deprecate: Determines a soon to be removed feature.                 |
+#                                                                     |
+#_remove: removes a feature. Features are deprecated before being     |
+#         removed. Removing feature may considered BREAKING CHANGE    |
+#         and require version number increment.                       |
+#                                                                     |
+#_BREAKING CHANGE: Introduces a breaking API change.                  |
+#                  MUST be indicated in the type/scope prefix of      |
+#                  commit, or as an entry in the footer.              |
+#                  format as commit-type:                             |
+#                  BREAKING CHANGE[(optional <scope>)]!: <description>|
+#                  format as footer-token: BREAKING CHANGE: <value> or|
+#                                          BREAKING CHANGE: #<value>  |
+#----------------------------------------------------------------------
+#
+#
+#----------------------------------------------------------------------
+# __footer-tokens__:                                                  |
+#----------------------------------------------------------------------
+# Close                                                               |
+# Fix                                                                 |
+# Resolve                                                             |
+# Review-by                                                           |
+# Refs                                                                |
+#----------------------------------------------------------------------
+#
+# Commits should follow the format below:
+#
+# [Title]
+# <type>: In under 50 characters, description of the commit
+#
+# [Body]
+# Explain in detail what was done in this commit and 
+# what this is supposed to achieve. Keep this section
+# under 72 characters per line. 
+# 
+# [Footer]
+# Use this section to add any PR/Ticket numbers that this
+# commit is solving or any co-authors.
+#
+#
