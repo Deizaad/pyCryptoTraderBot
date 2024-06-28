@@ -13,7 +13,7 @@ def initialize_logger():
     try:
         os.makedirs(path)
     except OSError as err:
-        if err.winerror == 183:
+        if err.errno == 17:
             print('Attempt to create Logs directory: It already exsist!')
         else:
             print(f'Attempt to create Logs directory: error accured: {err}')
