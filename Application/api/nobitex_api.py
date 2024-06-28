@@ -1,3 +1,12 @@
+import os
+import sys
+from dotenv import load_dotenv
+
+load_dotenv('project_path.env')
+path = os.getenv('PYTHONPATH')
+if path:
+    sys.path.append(path)
+
 import time
 import httpx
 import asyncio
@@ -189,16 +198,16 @@ class Market:
 
 
     async def populate_kline(self,
-                             current_data,
+                             current_data: dict,
                              symbol: str,
                              resolution: str,
                              required_candles: int,
                              timeout: float,
-                             try_interval: float,
+                             tries_interval: float,
                              tries: int,
                              max_interval: float,
-                             max_rate: str,
-                             rate_period: str = '60'):
+                             max_rate: int,
+                             rate_period: int):
         """
         This method is an AsyncGenerator function that gives current kline data and number of 
         required candles (determined in configs) then it fetches kline data in a loop and yield it 
@@ -214,7 +223,7 @@ class Market:
         fetched_count: int = len(current_data['t'])
 
         async with self.client:
-            async with AsyncLimiter(int(max_rate), int(rate_period)):
+            async with AsyncLimiter(max_rate, rate_period):
                 while fetched_count < required_candles:
                     countback = required_candles - fetched_count
 
@@ -227,7 +236,7 @@ class Market:
                                             resolution,
                                             end,
                                             timeout,
-                                            try_interval,
+                                            tries_interval,
                                             tries,
                                             countback=countback)
                     

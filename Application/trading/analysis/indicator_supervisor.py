@@ -1,3 +1,12 @@
+import os
+import sys
+from dotenv import load_dotenv
+
+load_dotenv('project_path.env')
+path = os.getenv('PYTHONPATH')
+if path:
+    sys.path.append(path)
+
 import asyncio
 import pandas as pd
 from pydispatch import dispatcher    # type: ignore
@@ -6,7 +15,7 @@ from typing import Callable, Any, List, Tuple, Dict
 from Application.utils.load_json import load
 from Application.utils.event_channels import Event
 import Application.trading.analysis.indicator_functions as indicators
-from Application.trading.analysis.indicators import Supertrend, MACD
+from Application.trading.analysis.indicator_classes import Supertrend, MACD
 from Application.trading.signals.setup_functions import get_selected_setups
 
 

@@ -1,10 +1,19 @@
+import os
+import sys
+from dotenv import load_dotenv
+
+load_dotenv('project_path.env')
+path = os.getenv('PYTHONPATH')
+if path:
+    sys.path.append(path)
+
 import pandas as pd
 import asyncio
 import json
 import logging
 from typing import Any, Tuple
 
-from Application.trading.signals.signal_factory import SignalFactory
+# from Application.trading.signals.signal_factory import SignalFactory
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -19,7 +28,7 @@ class SignalSupervisor:
         try:
             self.kline_df = kline_df
             self.indicator_df = indicator_df
-            self.signal_factory = SignalFactory()
+            # self.signal_factory = SignalFactory()
             self.signals_config = self._load_config(r"C:\Users\tshoj\OneDrive\Programming\AlgorithmicTrading\Bots\Workspace_2\NobitexTrader\NobitexTrader\signal_config.json")
             self.interval = interval
             self.signal_df = pd.DataFrame(index=kline_df.index)
