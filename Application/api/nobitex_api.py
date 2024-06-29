@@ -97,9 +97,13 @@ class Market:
 
         payload = {key: value for key, value in payload.items() if is_valid(value)}
 
-        data = await self.service.get(
-            self.client, url, endpoint, timeout, tries_interval, tries, params=payload    # type: ignore
-            )
+        data = await self.service.get(client=self.client,
+                                      url=url,
+                                      endpoint=endpoint,
+                                      timeout=timeout,
+                                      tries_interval=tries_interval,
+                                      tries=tries,
+                                      params=payload)    # type: ignore
 
         return data
     # ____________________________________________________________________________ . . .
@@ -177,27 +181,29 @@ class Market:
 
 
     async def initiate_kline(self,
+                             client: httpx.AsyncClient,
                              symbol: str,
                              resolution: str,
                              required_candles: int,
                              timeout: float,
-                             try_interval: float,
+                             tries_interval: float,
                              tries: int):
 
-        async with self.client:
-                data = await self.kline(symbol,
-                                        resolution,
-                                        int(time.time()),
-                                        timeout,
-                                        try_interval,
-                                        tries,
-                                        countback=required_candles)
+        async with client:
+            data = await self.kline(symbol,
+                                    resolution,
+                                    int(time.time()),
+                                    timeout,
+                                    tries_interval,
+                                    tries,
+                                    countback=required_candles)
                 
-                return data
+        return data
     # ____________________________________________________________________________ . . .
 
 
     async def populate_kline(self,
+                             client: httpx.AsyncClient,
                              current_data: dict,
                              symbol: str,
                              resolution: str,
@@ -222,7 +228,7 @@ class Market:
         data: dict = {}
         fetched_count: int = len(current_data['t'])
 
-        async with self.client:
+        async with client:
             async with AsyncLimiter(max_rate, rate_period):
                 while fetched_count < required_candles:
                     countback = required_candles - fetched_count
