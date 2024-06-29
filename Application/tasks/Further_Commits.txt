@@ -1,8 +1,5 @@
 _____________DONE: _____________
 
-. Write IndicatorChief class in indicator_supervisor.py module.
-
-
 
 . commit stable tag.
 
@@ -105,3 +102,15 @@ asyncio.run(data_manager.initiate_kline_df())
 * Create and use a USER with least privilages when building docker image for production.
 
 * Scan the production docker image for vulnerabilities using Docker scan or scan automatically using dockerhub.
+
+* Setup Volume for Docker container development environment.
+
+* Remove the 'client' from 'Market' class's '__init__()' method and bring it to it's functional method's parameters because each method needs it's own client.
+
+* Modify the '_prior_timestamp' method to be responsible when provided data is 0
+
+* Move the '_prior_timestamp' method to 'data_tools.py' module?
+
+* Modify the '_prior_timestamp' method to accept current data as DataFrame.
+
+* Add functions to the 'validator.py' module to check if data is in order, data chain has sequence, no duplicate data.
