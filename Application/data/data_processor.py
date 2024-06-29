@@ -7,13 +7,18 @@ path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
+import asyncio
 import logging
 import pandas as pd
+from httpx import AsyncClient
 
-from Application.api.nobitex_api import Market
-from Application.configs.config import MarketData as md
+from Application.configs import config
+from Application.data.exchange import Nobitex
+from Application.api import nobitex_api as NB_API
+import Application.configs.admin_config as Aconfig
+from Application.api.api_service import APIService
 from Application.utils.botlogger import initialize_logger    # Developement-temporary
-from Application.data.data_tools import parse_kline_to_df
+from Application.data.data_tools import parse_kline_to_df, join_raw_kline
 
 
 initialize_logger()    # Developement-temporary
@@ -37,29 +42,90 @@ class DataProcessor:
         self.kline_df     = pd.DataFrame()
         self.indicator_df = pd.DataFrame()
         self.signal_df    = pd.DataFrame()
+        
+        logging.debug('DataProcessor initialized the data with empty DataFrames!')
     # ____________________________________________________________________________ . . .
 
 
-    def initiate(self):
+    async def initiate(self):
         """
         This method initiates other data processing methods or functions.
         """
-        raise NotImplementedError('The initiate() method from DataProcessor class has no code!')
+        try:
+            async with asyncio.TaskGroup() as tg:
+                market = NB_API.Market(APIService(), AsyncClient())
+                kline_task = tg.create_task(self._initiate_kline(market,
+                                                                 config.MarketData.OHLC.SYMBOL,
+                                                                 config.MarketData.OHLC.RESOLUTION,
+                                                                 config.MarketData.OHLC.SIZE,
+                                                                 Aconfig.OHLC.TIMEOUT,
+                                                                 Nobitex.Endpoint.OHLC_MI,
+                                                                 Aconfig.OHLC.TRIES))
+
+                # indicator_task = tg.create_task(self._initiate_analysis())
+
+                # signal_task = tg.create_task(self._initiate_signals())
+
+                await asyncio.gather(kline_task)
+
+        except ExceptionGroup as errors:
+            for err in errors.exceptions:
+                print(f'error while initiating data: {err}')
     # ____________________________________________________________________________ . . .
 
 
-    def _initiate_kline(self, market: Market):
+    async def _initiate_kline(self,
+                              market: NB_API.Market,
+                              symbol: str,
+                              resolution: str,
+                              required_candles: int,
+                              timeout: float,
+                              tries_interval: float,
+                              tries: int):
         """
-        This method initiates the kline DataFrame by populating the 
+        This method initiates the kline DataFrame by populating is to desired size.
         """
-        self.kline_df = market.initiate_kline()
-        
-        while True:
-            next(market.populate_kline(self.kline_df))
+        # Requesting first initial_fetch to current time
+        data = await market.initiate_kline(AsyncClient(),
+                                           symbol,
+                                           resolution,
+                                           required_candles,
+                                           timeout,
+                                           tries_interval,
+                                           tries)
+        # ________________________________________________________________________ . . .
 
-        logging.error('The _initiate_kline() method from DataProcessor class has no code!')
-        raise NotImplementedError('The _initiate_kline() method from DataProcessor class has no code!')    
+
+        # Requesting subsequent initial_fetches to populate the kline dataframe to desired size
+        try:
+            async for new_data in market.populate_kline(AsyncClient(),
+                                                        data,
+                                                        symbol,
+                                                        resolution,
+                                                        required_candles,
+                                                        timeout,
+                                                        tries_interval,
+                                                        tries,
+                                                        max_interval = Nobitex.Endpoint.OHLC_MI,
+                                                        max_rate     = Nobitex.Endpoint.OHLC_RL,
+                                                        rate_period  = Nobitex.Endpoint.OHLC_RP):
+
+                data = join_raw_kline(data, new_data, 'PREPEND')
+
+            return data
+        except Exception as err:
+            print('error in requesting subsequent initial_fetches: ', err)
+    # ____________________________________________________________________________ . . .
+
+
+    def get_kline(self):
+        """
+        This method return the kline dataframe.
+        """
+        return self.kline_df
 # =================================================================================================
 
+
+
 data = DataProcessor()
-data._initiate_kline()
+asyncio.run(data.initiate())
