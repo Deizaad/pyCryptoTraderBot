@@ -1,19 +1,53 @@
+import logging
+import numpy as np
 import pandas as pd
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
 
 def parse_kline_to_df(raw_kline):
     kline_df = pd.DataFrame({
-        'time':   [JalaliDateTime.fromtimestamp(timestamp) for timestamp in raw_kline['t']],
-        'open':   raw_kline['o'],
-        'high':   raw_kline['h'],
-        'low':    raw_kline['l'],
-        'close':  raw_kline['c'],
+        'time'  : [JalaliDateTime.fromtimestamp(timestamp) for timestamp in raw_kline['t']],
+        'open'  : raw_kline['o'],
+        'high'  : raw_kline['h'],
+        'low'   : raw_kline['l'],
+        'close' : raw_kline['c'],
         'volume': raw_kline['v']
     }).set_index('time')
 
     return kline_df
-    
+# ____________________________________________________________________________ . . .
+
+
+def join_raw_kline(current_data, data_piece, join_method):
+    """
+    This function attaches pieces of kline data to current data and returns a dictionary.
+    """
+    keys = ['t', 'o', 'h', 'l', 'c', 'v']
+
+    match join_method:
+        case 'PREPEND':
+            # Convert lists to numpy arrays for efficient operations
+            for key in keys:
+                current_data[key] = np.array(current_data[key])
+                data_piece[key] = np.array(data_piece[key])
+            
+            # Prepend new data to current data using numpy
+            for key in keys:
+                current_data[key] = np.concatenate((data_piece[key], current_data[key]))
+
+            # Convert numpy arrays back to lists
+            for key in keys:
+                current_data[key] = current_data[key].tolist()
+            
+            return current_data
+        
+        case 'APPEND':
+            raise NotImplementedError('The APPEND join_method in join_raw_kline function has no code!')
+        
+        case _:
+            logging.error(f'Wrong join_method provided to join_raw_kline function: {join_method}')
+# ____________________________________________________________________________ . . .
+
 
 if __name__ == '__main__':
     raw_data = {'s': 'ok', 't': [1719228600, 1719228660, 1719228720, 1719228780, 1719228840, 
