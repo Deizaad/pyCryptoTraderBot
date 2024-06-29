@@ -91,3 +91,17 @@ asyncio.run(data_manager.initiate_kline_df())
 * rename the 'NobitexTrader' directory to 'Application'
 
 * make a singular module named 'Supervisor' and bring all chiefs to same place.
+
+* Add statement to Dockerfile to fix system time (timezone) automatically.
+
+* Refactor the structure of config files.
+
+* Modify the DataProcessor to process data for every symbol and resolution and ... in config file.
+
+* Build the production docker container using multi-stage build.
+
+* Seperate .dockerignore for development from .dockerignore for production.
+
+* Create and use a USER with least privilages when building docker image for production.
+
+* Scan the production docker image for vulnerabilities using Docker scan or scan automatically using dockerhub.
