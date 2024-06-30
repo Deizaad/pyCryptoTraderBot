@@ -20,6 +20,7 @@ from Application.utils.event_channels import Event
 from Application.api.api_service import APIService
 from Application.data.exchange import Nobitex as nb
 from Application.configs.config import MarketData as md
+from Application.data.data_tools import Tehran_timestamp
 
 
 # =================================================================================================
@@ -194,7 +195,7 @@ class Market:
         async with client:
             data = await self.kline(symbol,
                                     resolution,
-                                    int(time.time()),
+                                    Tehran_timestamp(),
                                     timeout,
                                     tries_interval,
                                     tries,
@@ -282,12 +283,13 @@ class Market:
 
                     new_data = await self.kline(symbol         = symbol,
                                                 resolution     = resolution,
-                                                end            = int(time.time()),
+                                                end            = Tehran_timestamp(),
                                                 timeout        = timeout,
                                                 tries_interval = tries_interval,
                                                 tries          = tries,
                                                 start          = start)
                     
+                    print(Tehran_timestamp())
                     last_fetch_time = time.time()
                     start = self._last_timestamp(new_data)
                     yield new_data
@@ -299,8 +301,8 @@ class Market:
             last_timestamp = int(data['t'][-1])
 
         elif type(data) is pd.DataFrame:
-            last_timestamp = data.index.max()
-            last_timestamp = JalaliDateTime.to_gregorian(last_timestamp).timestamp()
+            Jalali_datetime = data.index.max()
+            last_timestamp = JalaliDateTime.to_gregorian(Jalali_datetime).timestamp()
             last_timestamp = int(last_timestamp)
 
         return last_timestamp

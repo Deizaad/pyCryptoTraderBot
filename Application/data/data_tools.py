@@ -1,12 +1,19 @@
+import pytz
 import logging
 import numpy as np
 import pandas as pd
+from datetime import datetime
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
 
-def parse_kline_to_df(raw_kline):
+def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
+    """
+    This function turns raw kline dict to pandas DataFrame.
+    """
+    tz = pytz.timezone('Asia/Tehran')
+
     kline_df = pd.DataFrame({
-        'time'  : [JalaliDateTime.fromtimestamp(timestamp) for timestamp in raw_kline['t']],
+        'time'  : [JalaliDateTime.fromtimestamp(timestamp, tz) for timestamp in raw_kline['t']],
         'open'  : raw_kline['o'],
         'high'  : raw_kline['h'],
         'low'   : raw_kline['l'],
@@ -46,6 +53,20 @@ def join_raw_kline(current_data, data_piece, join_method):
         
         case _:
             logging.error(f'Wrong join_method provided to join_raw_kline function: {join_method}')
+            return {}
+# ____________________________________________________________________________ . . .
+
+
+def Tehran_timestamp():
+    """
+    This function returns the timestamp for current time in 'Asia/Tehran' timezone.
+    """
+    timezone = pytz.timezone('Asia/Tehran')
+    time = datetime.now(timezone)
+    print(time)
+    timestamp = int(time.timestamp())
+
+    return timestamp
 # ____________________________________________________________________________ . . .
 
 
