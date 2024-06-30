@@ -11,8 +11,10 @@ import time
 import httpx
 import asyncio
 import numpy as np
+import pandas as pd
 from pydispatch import dispatcher    # type: ignore
 from aiolimiter import AsyncLimiter
+from persiantools.jdatetime import JalaliDateTime    #type: ignore
 
 from Application.utils.event_channels import Event
 from Application.api.api_service import APIService
@@ -234,7 +236,6 @@ class Market:
                     countback = required_candles - fetched_count
 
                     wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
-                    
                     await asyncio.sleep(wait_time) if (wait_time > 0) else None
 
                     end = self._prior_timestamp(current_data, timeframe=resolution)
@@ -267,6 +268,19 @@ class Market:
                                     tries=tries,
                                     start=start)
         return new_data
+    # ____________________________________________________________________________ . . .
+
+
+    def _last_timestamp(self, data: pd.DataFrame | dict) -> int:
+        if type(data) is dict:
+            last_timestamp = int(data['t'][-1])
+
+        elif type(data) is pd.DataFrame:
+            last_timestamp = data.index.max()
+            last_timestamp = JalaliDateTime.to_gregorian(last_timestamp).timestamp()
+            last_timestamp = int(last_timestamp)
+
+        return last_timestamp
     # ____________________________________________________________________________ . . .
 
 
