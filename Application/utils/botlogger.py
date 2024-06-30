@@ -1,10 +1,11 @@
 import os
+import pytz
 from datetime import date, datetime
 from persiantools.jdatetime import JalaliDate    # type: ignore
 import logging
 
 def initialize_logger():
-    file_name = str(datetime.now().strftime("%H-00")) + '.log'
+    file_name = str(datetime.now(pytz.timezone('Asia/Tehran')).strftime("%H-00")) + '.log'
 
     folder_name = './Logs/'
     month_folder_name = str(date.today().strftime("%B_%Y-%m")) \
