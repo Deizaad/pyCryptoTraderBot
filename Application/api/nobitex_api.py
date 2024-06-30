@@ -254,20 +254,43 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
-    async def update_kline(self, current_data, symbol, resolution, timeout, tries_interval, tries):
+    async def update_kline(self,
+                           client: httpx.AsyncClient,
+                           current_data: pd.DataFrame,
+                           symbol: str,
+                           resolution: str,
+                           timeout: float,
+                           tries_interval: float,
+                           tries: int,
+                           max_interval: float,
+                           max_rate: int,
+                           rate_period: int):
         """
         This method fetches kline data from the last timestamp of current data to the current time.
         Preferably it might be called in a loop to keep sending fetch request continuously.
         """
-        start = int(current_data['t'][-1])
-        new_data = await self.kline(symbol,
-                                    resolution,
-                                    int(time.time()),
-                                    timeout=timeout,
-                                    tries_interval=tries_interval,
-                                    tries=tries,
-                                    start=start)
-        return new_data
+        wait_time: float = 0.0
+        last_fetch_time: float = 0.0
+
+        start = self._last_timestamp(current_data)
+
+        async with client:
+            async with AsyncLimiter(max_rate, rate_period):
+                while True:
+                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
+                    await asyncio.sleep(wait_time) if (wait_time > 0) else None
+
+                    new_data = await self.kline(symbol         = symbol,
+                                                resolution     = resolution,
+                                                end            = int(time.time()),
+                                                timeout        = timeout,
+                                                tries_interval = tries_interval,
+                                                tries          = tries,
+                                                start          = start)
+                    
+                    last_fetch_time = time.time()
+                    start = self._last_timestamp(new_data)
+                    yield new_data
     # ____________________________________________________________________________ . . .
 
 
