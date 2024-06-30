@@ -53,8 +53,8 @@ class DataProcessor:
         """
         try:
             async with asyncio.TaskGroup() as tg:
-                market = NB_API.Market(APIService(), AsyncClient())
-                kline_task = tg.create_task(self._initiate_kline(market,
+                self.market = NB_API.Market(APIService(), AsyncClient())
+                kline_task = tg.create_task(self._initiate_kline(self.market,
                                                                  config.MarketData.OHLC.SYMBOL,
                                                                  config.MarketData.OHLC.RESOLUTION,
                                                                  config.MarketData.OHLC.SIZE,
@@ -83,7 +83,7 @@ class DataProcessor:
                               tries_interval: float,
                               tries: int):
         """
-        This method initiates the kline DataFrame by populating is to desired size.
+        This method initiates the kline DataFrame by populating it to the desired size.
         """
         # Requesting first initial_fetch to current time
         data = await market.initiate_kline(AsyncClient(),
@@ -93,6 +93,7 @@ class DataProcessor:
                                            timeout,
                                            tries_interval,
                                            tries)
+        self.kline_df = data
         # ________________________________________________________________________ . . .
 
 
@@ -112,9 +113,27 @@ class DataProcessor:
 
                 data = join_raw_kline(data, new_data, 'PREPEND')
 
-            return data
+            self.kline_df = data
         except Exception as err:
             print('error in requesting subsequent initial_fetches: ', err)
+    # ____________________________________________________________________________ . . .
+
+
+    async def _live_kline(self):
+        async for data in self.market.update_kline(
+            client         = AsyncClient(),
+            current_data   = self.kline_df,
+            symbol         = config.MarketData.OHLC.SYMBOL,
+            resolution     = config.MarketData.OHLC.RESOLUTION,
+            timeout        = Aconfig.OHLC.TIMEOUT,
+            tries_interval = Nobitex.Endpoint.OHLC_MI,
+            tries          = Aconfig.OHLC.TRIES,
+            max_interval   = Nobitex.Endpoint.OHLC_MI,
+            max_rate       = Nobitex.Endpoint.OHLC_RL,
+            rate_period    = Nobitex.Endpoint.OHLC_RP
+        ):
+            self.kline_df = parse_kline_to_df(data)
+            print(self.kline_df)
     # ____________________________________________________________________________ . . .
 
 
@@ -129,3 +148,4 @@ class DataProcessor:
 
 data = DataProcessor()
 asyncio.run(data.initiate())
+asyncio.run(data.live())
