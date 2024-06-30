@@ -119,6 +119,18 @@ class DataProcessor:
     # ____________________________________________________________________________ . . .
 
 
+    async def live(self):
+        async with asyncio.TaskGroup() as tg:
+            kline_task = tg.create_task(self._live_kline())
+
+            # indicator_task = tg.create_task(self._live_indicator())
+
+            # signal_task = tg.create_task(self._live_signal())
+            
+            await asyncio.gather(kline_task)
+    # ____________________________________________________________________________ . . .
+
+
     async def _live_kline(self):
         async for data in self.market.update_kline(
             client         = AsyncClient(),
