@@ -93,7 +93,8 @@ class DataProcessor:
                                            timeout,
                                            tries_interval,
                                            tries)
-        self.kline_df = data
+        
+        self.kline_df = parse_kline_to_df(data)
         # ________________________________________________________________________ . . .
 
 
@@ -113,7 +114,7 @@ class DataProcessor:
 
                 data = join_raw_kline(data, new_data, 'PREPEND')
 
-            self.kline_df = data
+            self.kline_df = parse_kline_to_df(data)
         except Exception as err:
             print('error in requesting subsequent initial_fetches: ', err)
     # ____________________________________________________________________________ . . .
@@ -144,7 +145,8 @@ class DataProcessor:
             max_rate       = Nobitex.Endpoint.OHLC_RL,
             rate_period    = Nobitex.Endpoint.OHLC_RP
         ):
-            self.kline_df = parse_kline_to_df(data)
+            new_data = parse_kline_to_df(data)
+            self.kline_df = pd.concat([self.kline_df, new_data])
             print(self.kline_df)
     # ____________________________________________________________________________ . . .
 
