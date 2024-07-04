@@ -114,3 +114,23 @@ asyncio.run(data_manager.initiate_kline_df())
 * Modify the '_prior_timestamp' method to accept current data as DataFrame.
 
 * Add functions to the 'validator.py' module to check if data is in order, data chain has sequence, no duplicate data.
+
+* Modify 'botlogger.py' to also log Jalali dates.
+
+* Configuring NTP Server on host.
+
+* Use 'timedatectl set-timezone Asia/Tehran' as Dockerfile RUN command?
+
+* Fix 'day_folder_name' and 'month_folder_name' in 'botlogger.py' to to be set to currect timezone.
+
+* Configure the 'format=' parameter from logging.basicconfig to write time with the currect timezone.
+
+* Configure the 'format=' parameter from logging.basicconfig to write time in Jalali.
+
+* refactor the logs file name to also contain day month and year but keep the time first.
+
+* Use polars instead of pandas.
+
+* Move the 'event_handler.py' and 'event_channels.py' to 'events' directory and rename them accordingly.
+
+* in 'event_handler.py' replace the positions of listeners and events in method parameters.
