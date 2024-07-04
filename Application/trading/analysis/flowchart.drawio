@@ -1,0 +1,102 @@
+<mxfile host="65bd71144e">
+    <diagram id="ASlOi-w-6r8y548wiENu" name="Page-1">
+        <mxGraphModel dx="1386" dy="899" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="9" value="" style="edgeStyle=none;html=1;fontColor=#00CC00;" parent="1" source="3" target="4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="Triger" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#00CC00;" parent="9" vertex="1" connectable="0">
+                    <mxGeometry x="-0.5619" y="2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3" value="New Market Data&lt;br&gt;Event" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="204" width="150" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="Return" style="edgeStyle=none;html=1;fontColor=#00CC00;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="4" target="11" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="385" y="294" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="17" value="Call" style="edgeStyle=none;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;fontSize=11;fontColor=#00CC00;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" parent="1" source="18" target="15" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="560" y="95" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="33" value="Call" style="edgeStyle=entityRelationEdgeStyle;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="4" target="31" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="Compute Indicators Function" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="325" y="224" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" style="edgeStyle=none;shape=link;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontSize=11;fontColor=#00CC00;entryX=0.493;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="5" target="3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Market" style="rounded=1;whiteSpace=wrap;html=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="30" width="170" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" style="edgeStyle=none;shape=link;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="7" target="18" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="Data Processor" style="rounded=1;whiteSpace=wrap;html=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="30" width="170" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Indicators DataFrame" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="335" y="354" width="100" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" style="edgeStyle=none;shape=link;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="14" target="15" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="Indicator Chief" style="rounded=1;whiteSpace=wrap;html=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="30" width="170" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="Call" style="edgeStyle=entityRelationEdgeStyle;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="15" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="800" y="95" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="15" value="Appoint Chosen Indicator functions" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="565" y="80" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="Awake Indicators and connect dispatchers to Events" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="325" y="80" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" style="edgeStyle=none;shape=link;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="27" target="28" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="Setup Functions" style="rounded=1;whiteSpace=wrap;html=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="780" y="30" width="170" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="Return" style="edgeStyle=entityRelationEdgeStyle;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="28" target="15" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="Get selected setups with required indicators" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="805" y="80" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="Return" style="edgeStyle=entityRelationEdgeStyle;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="31" target="4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="Call" style="edgeStyle=entityRelationEdgeStyle;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="31" target="38" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="&lt;font style=&quot;font-size: 11px;&quot;&gt;Calculate appointed indicators by calling the indicator functions and providing it with market kline data and indicator properties then deliver indicator&amp;nbsp; values and join them in a DataFrame&lt;/font&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="531.25" y="191.5" width="187.5" height="125" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" style="edgeStyle=none;shape=link;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="37" target="38" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="Indicator Functions" style="rounded=1;whiteSpace=wrap;html=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="780" y="174" width="170" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="Return" style="edgeStyle=entityRelationEdgeStyle;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;fontSize=11;fontColor=#00CC00;" parent="1" source="38" target="31" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="chosen indicator functions" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontColor=#00CC00;" parent="1" vertex="1">
+                    <mxGeometry x="805" y="224" width="120" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
