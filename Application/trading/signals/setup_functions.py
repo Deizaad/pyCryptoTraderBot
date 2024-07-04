@@ -109,7 +109,7 @@ async def supertrend_setupfunc(kline_df: pd.DataFrame, indicator_df: pd.DataFram
 
 
 if __name__ == '__main__':
-    selected, indicators = get_selected_setups('NobitexTrader.trading.signals.setup_functions', {
+    selected, indicators = get_selected_setups('Application.trading.signals.setup_functions', {
         "setups": [
             {
                 "name": "supertrend_setupfunc",
