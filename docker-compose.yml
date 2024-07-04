@@ -1,0 +1,6 @@
+services:
+  development_container:
+    build:
+      context: .
+      dockerfile: DockerFile.dev
+    command: bash
