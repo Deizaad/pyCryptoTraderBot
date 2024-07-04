@@ -6,6 +6,6 @@ def load(file_path: str) -> dict:
 
 
 if __name__ == '__main__':
-    config = load(r'NobitexTrader\configs\signal_config.json')
+    config = load(r'Application/configs/signal_config.json')
 
     print(config, type(config))
