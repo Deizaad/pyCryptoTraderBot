@@ -1,22 +1,19 @@
-FROM python:3.12-alpine
+FROM python:3.12-slim
 
 # Install Poetry
 RUN pip install poetry
 
 # Copy and install dependencies using Poetry
-WORKDIR /bot
-COPY pyproject.toml poetry.lock /bot/
+WORKDIR /app
+COPY pyproject.toml poetry.lock /app/
 RUN poetry install --no-root --no-interaction --no-ansi
 
 # Copy the rest of your application code
-COPY . /bot
-
-# Set environment variables
-ENV ENV_VARIABLE_NAME=value
-
-# Run the bot main file
-CMD ["python", "bot.py"]
+COPY . /app
 
 # Clean up
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Run the bot main file
+CMD ["python", "Application/test.py"]
