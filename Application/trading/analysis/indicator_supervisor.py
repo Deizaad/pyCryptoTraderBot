@@ -1,22 +1,18 @@
 import os
 import sys
+import asyncio
+import logging
+import pandas as pd
 from dotenv import load_dotenv
+from typing import Callable, Any, List, Tuple, Dict
 
 load_dotenv('project_path.env')
 path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
-import asyncio
-import pandas as pd
-from pydispatch import dispatcher    # type: ignore
-from typing import Callable, Any, List, Tuple, Dict
-
-from Application.utils.load_json import load
-from Application.utils.event_channels import Event
-import Application.trading.analysis.indicator_functions as indicators
-from Application.trading.analysis.indicator_classes import Supertrend, MACD
-from Application.trading.signals.setup_functions import get_selected_setups
+from Application.trading.analysis.indicator_tasks import tasks_dict  # noqa: E402
+from Application.trading.signals.setup_functions import get_selected_setups  # noqa: E402
 
 
 # =================================================================================================
@@ -25,63 +21,60 @@ class IndicatorChief:
     Hello
     """
     def __init__(self):
-        self.config = load(r'NobitexTrader\configs\signal_config.json')
         self.indicator_df = pd.DataFrame()
-
-        self.attached_indicators = set()
-        _, self.required_indicators = get_selected_setups(
-            'NobitexTrader.trading.signals.setup_functions',
-            self.config
-        )
+        self.indicators_set = set()
     # ____________________________________________________________________________ . . .
 
 
-    def attach(self):
+    def declare_indicators(self, path_to_setups_module: str, configs: Dict):
+        """
+        This method declares the required indicators.
+        """
+        _, self.required_indicators = get_selected_setups(path_to_setups_module, configs)
+
         for value in self.required_indicators.values():
             for item in value:
-                if isinstance(item, Supertrend) and item not in self.attached_indicators:
-                    """
-                    Statement for attaching Supertrend indicator to dispatchers.
-                    """
-                    window = item.params[0]
-                    factor = item.params[1]
-                    properties = {'window': window, 'factor': factor}
-                    
-                    dispatcher.connect(
-                        self._create_handler(indicators.pandas_supertrend, properties),
-                        Event.SUCCESS_FETCH,
-                        dispatcher.Any
-                    )
-                    
-                    self.attached_indicators.add(item)
-                # ________________________________________________________________ . . .
-
-                if isinstance(item, MACD) and item not in self.attached_indicators:
-                    """
-                    Placeholder statement for 'MACD' indicator.
-                    """
-                    self.attached_indicators.add(item)
+                if item not in self.indicators_set:
+                    self.indicators_set.add(item)
+                    logging.info(f'Indicator {item} has been added to indicators_set.')
     # ____________________________________________________________________________ . . .
 
 
-    def _create_handler(self, func, properties):
-        def _handler(sender, **kwargs):
-            kline = kwargs.get('kline')
-            result_df = func(kline, **properties)
-            print(result_df)
-            # self.indicator_df = self.indicator_df.concat(result_df, ignore_index=True)
-        return _handler
-    # ____________________________________________________________________________ . . .
-    
+    async def cook_indicators(self, kline_df: pd.DataFrame):
+        """
+        This method asynchronously executes indicator functions and returns the indicator DataFrame
+        """
+        tasks = []
 
-    def get(self) -> pd.DataFrame:
-        return self.indicator_df
+        for item in self.indicators_set:
+            for key in tasks_dict.keys():
+                if isinstance(item, key):
+                    tasks.append(tasks_dict[key](item, kline_df))
+
+        try:
+            results = await asyncio.gather(*tasks)
+        except asyncio.CancelledError:
+            logging.error("A task was cancelled during cook_indicators.")
+            raise
+
+        indicators_df = pd.DataFrame(index=kline_df.index)
+        for result in results:
+            print('result received in \'cook_indicators()\' method:\n', result)
+            if not result.empty:
+                indicators_df = indicators_df.merge(
+                    result, left_index=True, right_index=True, how='left'
+                )
+
+        return indicators_df
 # =================================================================================================
 
 
-supervisor = IndicatorChief()
 
-supervisor.attach()
+# supervisor = IndicatorChief(load(r'Application/configs/signal_config.json'))
+
+# supervisor.attach()
+
+
 
 # =================================================================================================
 class IndicatorSupervisor:
