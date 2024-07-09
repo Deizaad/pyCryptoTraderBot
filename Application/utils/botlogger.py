@@ -26,7 +26,7 @@ def initialize_logger():
         filename = path+file_name,
         filemode='w',
         format = "%(levelname)s from \"%(funcName)s\" in \"%(filename)s\" at %(asctime)s:\n    %(message)s\n",
-        level=logging.DEBUG
+        level=logging.INFO
     )
 
     logging.getLogger().addHandler(logging.StreamHandler())
