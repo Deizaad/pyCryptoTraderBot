@@ -63,7 +63,6 @@ def Tehran_timestamp():
     """
     timezone = pytz.timezone('Asia/Tehran')
     time = datetime.now(timezone)
-    print(time)
     timestamp = int(time.timestamp())
 
     return timestamp
