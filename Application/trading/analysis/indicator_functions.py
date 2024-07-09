@@ -1,8 +1,11 @@
+import logging
 import pandas as pd
 import pandas_ta as ta    # type: ignore
 
 
-def pandas_supertrend(kline_df, **kwargs) -> pd.DataFrame:    # FIXME NO-005
+
+# =================================================================================================
+async def pandas_supertrend(kline_df, **kwargs) -> pd.DataFrame:    # FIXME NO-005
     """
     Supertrend indicator function using pandas_ta library.
 
@@ -12,23 +15,32 @@ def pandas_supertrend(kline_df, **kwargs) -> pd.DataFrame:    # FIXME NO-005
         multiplier (float): The ATR multiplier. Can be set in config file.
 
     Returns:
-        DataFrame: A DataFrame with two columns 'supertrend' and 'supertrend_side'.
+        DataFrame: Indicator DataFrame with two columns 'supertrend' and 'supertrend_side'.
     """
+    print('kline_df inside pandas_supertrend:\n', kline_df)
+    
     window = kwargs.get('window')
     factor = kwargs.get('factor')
-    print(window, factor)
-    # kline_df = kwargs.get('kline')
-    # print(kline_df)
-    if kline_df is None:
+    
+    try:
+        _df = ta.supertrend(kline_df['high'], kline_df['low'], kline_df['close'], window, factor)
+        if _df is None:
+            raise ValueError("Supertrend calculation returned None")
+    except ValueError as err:
+        logging.error(f'error while calculating \'pandas_supertrend\' indicator values: {err}')
         return pd.DataFrame()
-    
-    _df = ta.supertrend(kline_df['high'], kline_df['low'], kline_df['close'], window, factor)
-    
-    if _df is None:
-        # logging.error()
+    except Exception as err:
+        logging.error(f'Error while calculating \'pandas_supertrend\' indicator values: {err}')
         return pd.DataFrame()
     
     _df = _df.iloc[:, 0:2]
     _df.columns = ['supertrend', 'supertrend_side']
 
+    print('pandas_supertrend calculated values:')
+    print(_df)
     return _df
+    # ____________________________________________________________________________ . . .
+
+
+# Definition of other indicator functions ...
+# =================================================================================================
