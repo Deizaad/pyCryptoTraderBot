@@ -38,7 +38,7 @@ class EventHandler:
             event (str): The event channel name.
         """
         self._listeners[event].append(listener)
-        logging.debug(f'Listener \'{listener.__name__}\' attached to event \'{event}\'.')
+        logging.info(f'Listener \'{listener.__name__}\' attached to event chanel \'{event}\'.')
     # ____________________________________________________________________________ . . .
     
     
@@ -55,6 +55,8 @@ class EventHandler:
             
             if not self._listeners[event]:
                 del self._listeners[event]
+
+        logging.info(f'Listener \'{listener.__name__}\' detached from event chanel \'{event}\'.')
     # ____________________________________________________________________________ . . .
 
     
@@ -70,7 +72,12 @@ class EventHandler:
         loop = asyncio.get_event_loop()
         tasks = [self.__invoke_listener(listener, *args, **kwargs) for listener in self._listeners[event]]
 
-        loop.run_until_complete(asyncio.gather(*tasks))
+        # Check if the event loop is already running
+        if loop.is_running():
+            # Use asyncio.gather to run tasks if the loop is already running
+            asyncio.ensure_future(asyncio.gather(*tasks))
+        else:
+            loop.run_until_complete(asyncio.gather(*tasks))
     # ____________________________________________________________________________ . . .
 
 
