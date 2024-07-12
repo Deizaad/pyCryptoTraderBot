@@ -19,7 +19,7 @@ from Application.utils.event_channels import Event    # noqa: E402
 import Application.configs.admin_config as Aconfig    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 from Application.utils.botlogger import initialize_logger    # Developement-temporary # noqa: E402
-from Application.data.data_tools import parse_kline_to_df, join_raw_kline    # noqa: E402
+from Application.data.data_tools import parse_kline_to_df, join_raw_kline, update_dataframe    # noqa: E402
 from Application.trading.analysis.indicator_supervisor import IndicatorChief    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 
@@ -116,7 +116,7 @@ class DataProcessor:
                                            tries_interval,
                                            tries)
         
-        self.kline_df = parse_kline_to_df(data)
+        self.kline_df = update_dataframe(self.kline_df, parse_kline_to_df(data), required_candles)
         logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
 
         func_name=self._initiate_kline.__qualname__
@@ -144,7 +144,10 @@ class DataProcessor:
 
                 data = join_raw_kline(data, new_data, 'PREPEND')
 
-            self.kline_df = parse_kline_to_df(data)
+            self.kline_df = update_dataframe(self.kline_df,
+                                             parse_kline_to_df(data),
+                                             required_candles)
+            
             logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
 
             func_name=self._initiate_kline.__qualname__
@@ -175,7 +178,10 @@ class DataProcessor:
                 rate_period    = Nobitex.Endpoint.OHLC_RP
             ):
                 new_data = parse_kline_to_df(data)
-                self.kline_df = pd.concat([self.kline_df, new_data])
+                self.kline_df = update_dataframe(self.kline_df,
+                                                 new_data,
+                                                 config.MarketData.OHLC.SIZE)
+                
                 logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
 
                 func_name=self._live_kline.__qualname__

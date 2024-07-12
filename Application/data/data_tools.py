@@ -69,6 +69,37 @@ def Tehran_timestamp():
 # ____________________________________________________________________________ . . .
 
 
+def update_dataframe(current_df: pd.DataFrame, new_df: pd.DataFrame, size: int):
+    """
+    This function updates any dataframe with new data while keeping the dataframe size constant.
+    The current_df also can be an empty dataframe.
+    """
+    # Return the new_df with proper size if current_df is empty
+    if current_df.empty and len(new_df) > size:
+        updated_df = new_df.sort_index(ascending=False).head(size).sort_index()
+        return updated_df
+
+    # get new rows
+    existing_indexes = current_df.index.unique()
+    received_indexes = new_df.index.unique()
+    new_indexes = received_indexes[~received_indexes.isin(existing_indexes)]
+    new_rows = new_df.loc[new_df.index.isin(new_indexes)]
+
+    # update existing dataframe (existing rows) with new values
+    current_df.update(new_df)
+    
+    # update existing dataframe with new rows
+    updated_df = pd.concat([current_df, new_rows])
+
+    # drop oldest rows
+    if len(updated_df) > size:
+        updated_df = updated_df.sort_index(ascending=False).head(size).sort_index()
+    
+    return updated_df
+# ____________________________________________________________________________ . . .
+
+
+
 if __name__ == '__main__':
     raw_data = {'s': 'ok', 't': [1719228600, 1719228660, 1719228720, 1719228780, 1719228840, 
                                  1719228900, 1719228960, 1719229020, 1719229080, 1719229140, 
