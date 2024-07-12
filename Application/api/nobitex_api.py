@@ -294,7 +294,7 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
-    def _last_timestamp(self, data: pd.DataFrame | dict) -> int:
+    def _last_timestamp(self, data: pd.DataFrame | dict) -> int:    # FIXME NO-006
         if type(data) is dict:
             last_timestamp = int(data['t'][-1])
 
