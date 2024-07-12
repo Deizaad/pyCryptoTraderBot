@@ -1,26 +1,25 @@
 import os
 import sys
+import time
+import httpx
+import asyncio
+import numpy as np
+import pandas as pd
 from dotenv import load_dotenv
+from pydispatch import dispatcher    # type: ignore
+from aiolimiter import AsyncLimiter
+from persiantools.jdatetime import JalaliDateTime    #type: ignore
 
 load_dotenv('project_path.env')
 path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
-import time
-import httpx
-import asyncio
-import numpy as np
-import pandas as pd
-from pydispatch import dispatcher    # type: ignore
-from aiolimiter import AsyncLimiter
-from persiantools.jdatetime import JalaliDateTime    #type: ignore
-
-from Application.utils.event_channels import Event
-from Application.api.api_service import APIService
-from Application.data.exchange import Nobitex as nb
-from Application.configs.config import MarketData as md
-from Application.data.data_tools import Tehran_timestamp
+from Application.utils.event_channels import Event    # noqa: E402
+from Application.api.api_service import APIService    # noqa: E402
+from Application.data.exchange import Nobitex as nb    # noqa: E402
+from Application.configs.config import MarketData as md    # noqa: E402
+from Application.data.data_tools import Tehran_timestamp    # noqa: E402
 
 
 # =================================================================================================
@@ -289,7 +288,6 @@ class Market:
                                                 tries          = tries,
                                                 start          = start)
                     
-                    print(Tehran_timestamp())
                     last_fetch_time = time.time()
                     start = self._last_timestamp(new_data)
                     yield new_data
@@ -340,14 +338,13 @@ class Market:
                     try:
                         data = await self.kline(symbol, 
                                                 resolution, 
-                                                int(time.time()),
+                                                Tehran_timestamp(),
                                                 timeout,
                                                 tries_interval,
                                                 tries,
                                                 countback=required_candles)
                         
                         dispatcher.send(Event.SUCCESS_FETCH, LIVE_KLINE, kline=data)
-                        print(data)
                     except httpx.RequestError as err:
                         print(f"Request failed: {err}.")
 
