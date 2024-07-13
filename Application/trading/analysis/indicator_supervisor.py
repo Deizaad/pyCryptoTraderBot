@@ -11,7 +11,7 @@ path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
-from Application.trading.analysis.indicator_tasks import coroutines_map  # noqa: E402
+from Application.trading.analysis.plugins import coroutines_map  # noqa: E402
 from Application.trading.signals.setup_functions import get_selected_setups  # noqa: E402
 
 
