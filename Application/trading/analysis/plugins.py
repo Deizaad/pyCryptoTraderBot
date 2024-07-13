@@ -1,15 +1,13 @@
 import os
 import sys
+import pandas as pd
 from dotenv import load_dotenv
+from typing import Coroutine, Callable
 
 load_dotenv('project_path.env')
 path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
-
-import pandas as pd    # noqa: E402
-from typing import Coroutine, Callable    # noqa: E402
-
 
 import Application.trading.analysis.indicator_functions as indicators    # noqa: E402
 from Application.trading.analysis.indicator_classes import Supertrend    # noqa: E402
@@ -34,5 +32,5 @@ def supertrend_task(item: Supertrend, kline_df: pd.DataFrame) -> Coroutine:
 
 # =================================================================================================
 coroutines_map: dict[type, Callable] = {Supertrend: supertrend_task,
-                    }    # function mappingfor other indicators ...
+                                        }    # function mappingfor other indicators ...
 # =================================================================================================
