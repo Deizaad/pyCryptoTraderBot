@@ -11,7 +11,7 @@ path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
-from Application.trading.analysis.indicator_tasks import tasks_dict  # noqa: E402
+from Application.trading.analysis.indicator_tasks import coroutines_map  # noqa: E402
 from Application.trading.signals.setup_functions import get_selected_setups  # noqa: E402
 
 
@@ -47,9 +47,9 @@ class IndicatorChief:
         tasks = []
 
         for item in self.indicators_set:
-            for key in tasks_dict.keys():
+            for key in coroutines_map.keys():
                 if isinstance(item, key):
-                    tasks.append(tasks_dict[key](item, kline_df))
+                    tasks.append(coroutines_map[key](item, kline_df))
 
         try:
             results = await asyncio.gather(*tasks)
