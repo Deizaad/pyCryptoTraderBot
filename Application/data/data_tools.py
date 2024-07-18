@@ -125,6 +125,18 @@ def df_has_news(origin_df: pd.DataFrame, late_df: pd.DataFrame):
 # ____________________________________________________________________________ . . .
 
 
+def turn_Jalali_to_gregorian(series: pd.Series):
+    """
+    Converts JalaliDateTime values of a series into GregorianDateTime values.
+    """
+    if isinstance(series.min(), JalaliDateTime):
+        gregorian_index = series.apply(lambda jdatetime: JalaliDateTime.to_gregorian(jdatetime))
+    else:
+        gregorian_index = series
+
+    return gregorian_index
+# ____________________________________________________________________________ . . .
+
 
 if __name__ == '__main__':
     raw_data = {'s': 'ok', 't': [1719228600, 1719228660, 1719228720, 1719228780, 1719228840, 
