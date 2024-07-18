@@ -2,13 +2,14 @@ import os
 import sys
 import time
 import httpx
+import logging
 import asyncio
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from pydispatch import dispatcher    # type: ignore
 from aiolimiter import AsyncLimiter
-from persiantools.jdatetime import JalaliDateTime    #type: ignore
+from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
 load_dotenv('project_path.env')
 path = os.getenv('PYTHONPATH')
@@ -295,13 +296,17 @@ class Market:
 
 
     def _last_timestamp(self, data: pd.DataFrame | dict) -> int:    # FIXME NO-006
-        if type(data) is dict:
+        """
+        This method returns the integer timestamp of last row of data whether data is of type dict
+        or DataFrame.
+        """
+        if isinstance(data, dict):
             last_timestamp = int(data['t'][-1])
 
-        elif type(data) is pd.DataFrame:
+        elif isinstance(data, pd.DataFrame):
             Jalali_datetime = data.index.max()
-            last_timestamp = JalaliDateTime.to_gregorian(Jalali_datetime).timestamp()
-            last_timestamp = int(last_timestamp)
+            last_timestamp  = JalaliDateTime.to_gregorian(Jalali_datetime).timestamp()
+            last_timestamp  = int(last_timestamp)
 
         return last_timestamp
     # ____________________________________________________________________________ . . .
@@ -359,32 +364,44 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
-    def _prior_timestamp(self, data, *, timeframe) -> int:
+    def _prior_timestamp(self, data: pd.DataFrame | dict, *, timeframe: str) -> int:
         """
         This is an internal sub_method for '_init_fetch' method which returns the timestamp of the 
-        one candle before first candle of given data. Which is used for sending the subsequent
-        'initial_fetch' requests.
+        first candle of given data. Which is used for sending the subsequent 'initial_fetch' 
+        requests.
         """
-        timeframes: dict[str, int] = {'1'  : 60,
-                                      '5'  : 300,
-                                      '15' : 900,
-                                      '30' : 1_800,
-                                      '60' : 3_600,
-                                      '180': 10_800,
-                                      '240': 14_400,
-                                      '360': 21_600,
-                                      '720': 43_200,
-                                      'D'  : 86_400,
-                                      '2D' : 172_800,
-                                      '3D' : 259_200}
-        
-        if timeframe not in timeframes.keys():
-            return 0
-        
-        offset_time: int = timeframes.get(timeframe, 0)
-        prior_timestamp = int(data['t'][0]) - offset_time
+        try:
+            timeframes: dict[str, int] = {'1'  : 60,
+                                          '5'  : 300,
+                                          '15' : 900,
+                                          '30' : 1_800,
+                                          '60' : 3_600,
+                                          '180': 10_800,
+                                          '240': 14_400,
+                                          '360': 21_600,
+                                          '720': 43_200,
+                                          'D'  : 86_400,
+                                          '2D' : 172_800,
+                                          '3D' : 259_200}
+            
+            if timeframe not in timeframes.keys():
+                raise ValueError(f'Provided resolution (timeframe) {timeframe} is not in \
+                                 Nobitex\'s approved resolutions or has wrong data type of \
+                                 {type(timeframe)}, str is only accepted.')
+            
+            # offset_time: int = timeframes.get(timeframe, 0)
+            
+            if isinstance(data, pd.DataFrame):
+                first_timestamp = int(JalaliDateTime.to_gregorian(data.index.min()).timestamp())
+            else:
+                first_timestamp = int(data['t'][0])
 
-        return prior_timestamp
+            prior_timestamp: int = first_timestamp# - offset_time
+
+            return prior_timestamp
+        except ValueError as err:
+            logging.error('Inside "_prior_timestamp()" method of "nobitex_api.Market" class: ',err)
+            return 0
 # =================================================================================================
 
 
