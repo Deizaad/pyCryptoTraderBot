@@ -207,7 +207,7 @@ class Market:
 
     async def populate_kline(self,
                              client: httpx.AsyncClient,
-                             current_data: dict,
+                             initial_df: pd.DataFrame,
                              symbol: str,
                              resolution: str,
                              required_candles: int,
@@ -225,21 +225,27 @@ class Market:
         satisfied.
         """
 
-        last_fetch_time: float = 0.0
         wait_time: float = 0.0
+        last_fetch_time: float = 0.0
 
         data: dict = {}
-        fetched_count: int = len(current_data['t'])
+        fetched_count: int = initial_df.shape[0]
+        is_first_iteration = True
 
         async with client:
             async with AsyncLimiter(max_rate, rate_period):
                 while fetched_count < required_candles:
                     countback = required_candles - fetched_count
 
+                    if is_first_iteration:
+                        end = self._prior_timestamp(initial_df, timeframe=resolution)
+                        is_first_iteration = False
+                    else:
+                        end = self._prior_timestamp(data, timeframe=resolution)
+
                     wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
                     await asyncio.sleep(wait_time) if (wait_time > 0) else None
 
-                    end = self._prior_timestamp(current_data, timeframe=resolution)
                     data = await self.kline(symbol,
                                             resolution,
                                             end,
@@ -250,7 +256,7 @@ class Market:
                     
                     last_fetch_time = time.time()
                     fetched_count += len(data['t'])
-
+                    
                     yield data
     # ____________________________________________________________________________ . . .
 
