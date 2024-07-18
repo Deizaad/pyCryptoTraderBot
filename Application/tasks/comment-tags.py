@@ -45,12 +45,14 @@ FIXME NO-005 fix indicator dataframe populates late.
                    to: me
                    on: 2024-05-26
 
-# FIXME NO-006 there is a bug in the 'update_kline()' or 'populate_kline()' and '_last_timestamp()'
+# FIXED NO-006 there is a bug in the 'update_kline()' or 'populate_kline()' and '_last_timestamp()'
                methods of 'nobitex_api.Market' class which has been caused to fetch dissordered 
                kline data. It's recommended to refactor how 'data_processor.py' initiates and 
                streams kline data in an approach that all steps perform on data frames.
              issue by: Deizaad -> 166605426+Deizaad@users.noreply.github.com
                    to: me
                    on: 2024-07-12
+             perform by: me
+                     on: 2024-07-18
 """ 
 ##################################################################################################

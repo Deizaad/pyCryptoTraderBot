@@ -18,8 +18,9 @@ from Application.api import nobitex_api as NB_API    # noqa: E402
 from Application.utils.event_channels import Event    # noqa: E402
 import Application.configs.admin_config as Aconfig    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
-from Application.utils.botlogger import initialize_logger    # Developement-temporary # noqa: E402
-from Application.data.data_tools import parse_kline_to_df, join_raw_kline, update_dataframe    # noqa: E402
+# from Application.data.validator import is_consistent    # noqa: E402
+from Application.utils.botlogger import initialize_logger    # noqa: E402 # Developement-temporary
+from Application.data.data_tools import parse_kline_to_df, update_dataframe, df_has_news    # noqa: E402
 from Application.trading.analysis.indicator_supervisor import IndicatorChief    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 
@@ -115,23 +116,29 @@ class DataProcessor:
                                            timeout,
                                            tries_interval,
                                            tries)
-        
-        self.kline_df = update_dataframe(self.kline_df, parse_kline_to_df(data), required_candles)
-        logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
 
-        func_name=self._initiate_kline.__qualname__
-        event_channel=Event.NEW_KLINE_DATA
-        logging.info(f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...')
-        self.jarchi.emit(Event.NEW_KLINE_DATA,
-                         kline_df=self.kline_df)
+        data = parse_kline_to_df(data)
+
+        if not data.equals(self.kline_df):
+            self.kline_df = update_dataframe(self.kline_df, data, required_candles)
+            # logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
+
+            # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
+            func_name=self._initiate_kline.__qualname__
+            event_channel=Event.NEW_KLINE_DATA
+            logging.info(f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...')
+            self.jarchi.emit(Event.NEW_KLINE_DATA,
+                             kline_df=self.kline_df)
         # ________________________________________________________________________ . . .
 
 
         # Requesting subsequent initial_fetches to populate the kline dataframe to desired size
         logging.info('Sending subsequent initial_fetch requests for Kline data ...')
         try:
+            is_first_subsequent_fetch = True
+
             async for new_data in market.populate_kline(AsyncClient(),
-                                                        data,
+                                                        self.kline_df,
                                                         symbol,
                                                         resolution,
                                                         required_candles,
@@ -142,20 +149,23 @@ class DataProcessor:
                                                         max_rate     = Nobitex.Endpoint.OHLC_RL,
                                                         rate_period  = Nobitex.Endpoint.OHLC_RP):
 
-                data = join_raw_kline(data, new_data, 'PREPEND')
+                if is_first_subsequent_fetch:
+                    data = parse_kline_to_df(new_data)
+                    is_first_subsequent_fetch = False
+                else:
+                    data = pd.concat([parse_kline_to_df(new_data), data])
 
-            self.kline_df = update_dataframe(self.kline_df,
-                                             parse_kline_to_df(data),
-                                             required_candles)
-            
-            logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
+            if not data.equals(self.kline_df):
+                self.kline_df = pd.concat([data, self.kline_df])
+                # logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
 
-            func_name=self._initiate_kline.__qualname__
-            event_channel=Event.NEW_KLINE_DATA
-            logging.info(f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...')
-            self.jarchi.emit(Event.NEW_KLINE_DATA,
-                             #  sender=self._initiate_kline.__qualname__,
-                             kline_df=self.kline_df)
+                # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
+                func_name=self._initiate_kline.__qualname__
+                event_channel=Event.NEW_KLINE_DATA
+                logging.info(f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...')
+                self.jarchi.emit(Event.NEW_KLINE_DATA,
+                                 #  sender=self._initiate_kline.__qualname__,
+                                 kline_df=self.kline_df)
 
         except Exception as err:
             logging.error(f'Error in requesting subsequent initial_fetches: {err}')
@@ -177,20 +187,22 @@ class DataProcessor:
                 max_rate       = Nobitex.Endpoint.OHLC_RL,
                 rate_period    = Nobitex.Endpoint.OHLC_RP
             ):
-                new_data = parse_kline_to_df(data)
-                self.kline_df = update_dataframe(self.kline_df,
-                                                 new_data,
-                                                 config.MarketData.OHLC.SIZE)
-                
-                logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
+                data = parse_kline_to_df(data)
+                if not data.equals(self.kline_df) and df_has_news(self.kline_df, data):
+                    self.kline_df = update_dataframe(self.kline_df,
+                                                     data,
+                                                     config.MarketData.OHLC.SIZE)
+                    
+                    # logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
 
-                func_name=self._live_kline.__qualname__
-                event_channel=Event.NEW_KLINE_DATA
-                logging.info(f'Sending \"{event_channel}\" event signal from \"{func_name}\" ...')
-                self.jarchi.emit(Event.NEW_KLINE_DATA,
-                                 #  sender=self._live_kline.__qualname__,
-                                 kline_df=self.kline_df)
-                
+                    # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
+                    func_name=self._live_kline.__qualname__
+                    event_channel=Event.NEW_KLINE_DATA
+                    logging.info(f'Sending \"{event_channel}\" event signal from \"{func_name}\" ...')
+                    self.jarchi.emit(Event.NEW_KLINE_DATA,
+                                     #  sender=self._live_kline.__qualname__,
+                                     kline_df=self.kline_df)
+                    
         except Exception as err:
             logging.error(f'Error during live kline fetching: {err}')
     # ____________________________________________________________________________ . . .
@@ -208,7 +220,7 @@ class DataProcessor:
     async def _compute_indicators(self, kline_df):
         try:
             self.indicator_df = await self.analysis.cook_indicators(kline_df)
-            logging.info(f'Indicator DataFrame got updated, new length: {len(self.indicator_df)}')
+            # logging.info(f'Indicator DataFrame got updated, new length: {len(self.indicator_df)}')
         except Exception as err:
             logging.error(f'Error while computing indicators: {err}')
     # ____________________________________________________________________________ . . .
