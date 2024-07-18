@@ -1,5 +1,6 @@
 import os
 import sys
+import numpy as np
 from dotenv import load_dotenv
 
 load_dotenv('project_path.env')
@@ -7,11 +8,7 @@ path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
-import os
-import numpy as np
-from dotenv import load_dotenv
-
-from Application.configs.config import Order
+from Application.configs.config import Order  # noqa: E402
 
 
 # __all__ = ["API_KEY", "CURRENT_TIME", "BASE_URL", "TESTNET"]
