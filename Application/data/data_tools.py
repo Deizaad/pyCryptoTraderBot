@@ -1,6 +1,4 @@
 import pytz
-import logging
-import numpy as np
 import pandas as pd
 from datetime import datetime
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
@@ -25,35 +23,35 @@ def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
 # ____________________________________________________________________________ . . .
 
 
-def join_raw_kline(current_data, data_piece, join_method):
-    """
-    This function attaches pieces of kline data to current data and returns a dictionary.
-    """
-    keys = ['t', 'o', 'h', 'l', 'c', 'v']
+# def join_raw_kline(current_data, data_piece, join_method):
+#     """
+#     This function attaches pieces of kline data to current data and returns a dictionary.
+#     """
+#     keys = ['t', 'o', 'h', 'l', 'c', 'v']
 
-    match join_method:
-        case 'PREPEND':
-            # Convert lists to numpy arrays for efficient operations
-            for key in keys:
-                current_data[key] = np.array(current_data[key])
-                data_piece[key] = np.array(data_piece[key])
+#     match join_method:
+#         case 'PREPEND':
+#             # Convert lists to numpy arrays for efficient operations
+#             for key in keys:
+#                 current_data[key] = np.array(current_data[key])
+#                 data_piece[key] = np.array(data_piece[key])
             
-            # Prepend new data to current data using numpy
-            for key in keys:
-                current_data[key] = np.concatenate((data_piece[key], current_data[key]))
+#             # Prepend new data to current data using numpy
+#             for key in keys:
+#                 current_data[key] = np.concatenate((data_piece[key], current_data[key]))
 
-            # Convert numpy arrays back to lists
-            for key in keys:
-                current_data[key] = current_data[key].tolist()
+#             # Convert numpy arrays back to lists
+#             for key in keys:
+#                 current_data[key] = current_data[key].tolist()
             
-            return current_data
+#             return current_data
         
-        case 'APPEND':
-            raise NotImplementedError('The APPEND join_method in join_raw_kline function has no code!')
+#         case 'APPEND':
+#             raise NotImplementedError('The APPEND join_method in join_raw_kline function has no code!')
         
-        case _:
-            logging.error(f'Wrong join_method provided to join_raw_kline function: {join_method}')
-            return {}
+#         case _:
+#             logging.error(f'Wrong join_method provided to join_raw_kline function: {join_method}')
+#             return {}
 # ____________________________________________________________________________ . . .
 
 
@@ -69,33 +67,61 @@ def Tehran_timestamp():
 # ____________________________________________________________________________ . . .
 
 
-def update_dataframe(current_df: pd.DataFrame, new_df: pd.DataFrame, size: int):
+def update_dataframe(origin_df: pd.DataFrame, late_df: pd.DataFrame, size: int):
     """
     This function updates any dataframe with new data while keeping the dataframe size constant.
-    The current_df also can be an empty dataframe.
+    The origin_df also can be an empty dataframe.
     """
-    # Return the new_df with proper size if current_df is empty
-    if current_df.empty and len(new_df) > size:
-        updated_df = new_df.sort_index(ascending=False).head(size).sort_index()
+    # Return the late_df with proper size if origin_df is empty
+    if origin_df.empty:
+        if len(late_df) <= size:
+            updated_df = late_df
+        else:
+            updated_df = late_df.sort_index(ascending=False).head(size).sort_index()
         return updated_df
 
     # get new rows
-    existing_indexes = current_df.index.unique()
-    received_indexes = new_df.index.unique()
+    existing_indexes = origin_df.index.unique()
+    received_indexes = late_df.index.unique()
     new_indexes = received_indexes[~received_indexes.isin(existing_indexes)]
-    new_rows = new_df.loc[new_df.index.isin(new_indexes)]
+    new_rows    = late_df.loc[late_df.index.isin(new_indexes)]
 
     # update existing dataframe (existing rows) with new values
-    current_df.update(new_df)
+    origin_df.update(late_df)
     
     # update existing dataframe with new rows
-    updated_df = pd.concat([current_df, new_rows])
+    updated_df = pd.concat([origin_df, new_rows])
 
     # drop oldest rows
     if len(updated_df) > size:
         updated_df = updated_df.sort_index(ascending=False).head(size).sort_index()
     
     return updated_df
+# ____________________________________________________________________________ . . .
+
+
+def df_has_news(origin_df: pd.DataFrame, late_df: pd.DataFrame):
+    """
+    
+    """
+    # Check if late_df has indexes that are not in origin_df
+    if not late_df.index.difference(origin_df.index).empty:
+        return True
+    
+    # Check for updated cells in overlapping rows
+    common_index = origin_df.index.intersection(late_df.index)
+    origin_common = origin_df.loc[common_index]
+    late_common = late_df.loc[common_index]
+
+    # Compare cell by cell for the common rows
+    updated_cells = late_common.ne(origin_common) & late_common.notnull()
+    
+    # Check if there are any updated cells
+    if updated_cells.any().any():
+        return True
+    
+    # If no new rows or updated cells found
+    return False
 # ____________________________________________________________________________ . . .
 
 
