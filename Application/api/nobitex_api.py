@@ -112,77 +112,6 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
-    async def mock_kline(self,
-                         symbol: str,
-                         resolution: str,
-                         countback: int,
-                         max_retries,
-                         timeout: float,
-                         tries_interval: float,
-                         tries: int,
-                         max_interval: float,
-                         max_rate: int,
-                         rate_period: int = 60):
-        """
-        Continuously fetches kline data for the last given candles.
-
-        Parameters:
-            
-        Returns:
-        """
-        # Sender constant for PyDispatcher:
-        LIVE_KLINE = 'Live kline'
-
-        request_count = 0
-        start_time = time.time()
-
-        last_fetch_time: float = 0.0
-        wait_time: float = 0.0
-
-        async with  self.client:
-            async with AsyncLimiter(max_rate, rate_period):
-                while True:
-                    await asyncio.sleep(wait_time) if wait_time > 0 else None
-
-                    success = False
-                    retry_count = 0
-
-                    while not success and retry_count < max_retries:
-                        try:
-                            data = await self.kline(symbol,
-                                                    resolution,
-                                                    int(time.time()),
-                                                    timeout,
-                                                    tries_interval,
-                                                    tries,
-                                                    countback=countback)
-                            
-                            dispatcher.send(Event.SUCCESS_FETCH, LIVE_KLINE, kline=data)
-                            success = True
-                        except httpx.RequestError as err:
-                            retry_count += 1
-                            print(f"Request failed: {err}. Retrying {retry_count}/{max_retries}..")
-                            await asyncio.sleep(0.1)  # Short delay before retrying
-
-                    if not success:
-                        print("Max retries reached. Skipping this request.")
-                        continue
-
-                    last_fetch_time = time.time()
-                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
-
-                    request_count += 1
-                    elapsed_time = time.time() - start_time
-                    print(f"Request #{request_count} at {elapsed_time:.2f}s: {data}")
-
-                    if elapsed_time >= 60:
-                        print(f"Total requests in the last 60 seconds: {request_count}")
-                        await asyncio.sleep(3)
-                        start_time = time.time()
-                        request_count = 0
-    # ____________________________________________________________________________ . . .
-
-
     async def initiate_kline(self,
                              client: httpx.AsyncClient,
                              symbol: str,
@@ -301,6 +230,53 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
+    def _wait_time(self, max_interval, current_time, last_fetch_time) -> float:
+        wait_time = max(0, (max_interval - (current_time - last_fetch_time)))
+        return wait_time
+    # ____________________________________________________________________________ . . .
+
+
+    def _prior_timestamp(self, data: pd.DataFrame | dict, *, timeframe: str) -> int:
+        """
+        This is an internal sub_method for '_init_fetch' method which returns the timestamp of the 
+        first candle of given data. Which is used for sending the subsequent 'initial_fetch' 
+        requests.
+        """
+        try:
+            timeframes: dict[str, int] = {'1'  : 60,
+                                          '5'  : 300,
+                                          '15' : 900,
+                                          '30' : 1_800,
+                                          '60' : 3_600,
+                                          '180': 10_800,
+                                          '240': 14_400,
+                                          '360': 21_600,
+                                          '720': 43_200,
+                                          'D'  : 86_400,
+                                          '2D' : 172_800,
+                                          '3D' : 259_200}
+            
+            if timeframe not in timeframes.keys():
+                raise ValueError(f'Provided resolution (timeframe) {timeframe} is not in \
+                                 Nobitex\'s approved resolutions or has wrong data type of \
+                                 {type(timeframe)}, str is only accepted.')
+            
+            # offset_time: int = timeframes.get(timeframe, 0)
+            
+            if isinstance(data, pd.DataFrame):
+                first_timestamp = int(JalaliDateTime.to_gregorian(data.index.min()).timestamp())
+            else:
+                first_timestamp = int(data['t'][0])
+
+            prior_timestamp: int = first_timestamp# - offset_time
+
+            return prior_timestamp
+        except ValueError as err:
+            logging.error('Inside "_prior_timestamp()" method of "nobitex_api.Market" class: ',err)
+            return 0
+    # ____________________________________________________________________________ . . .
+
+
     def _last_timestamp(self, data: pd.DataFrame | dict) -> int:    # FIXME NO-006
         """
         This method returns the integer timestamp of last row of data whether data is of type dict
@@ -364,50 +340,74 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
-    def _wait_time(self, max_interval, current_time, last_fetch_time) -> float:
-        wait_time = max(0, (max_interval - (current_time - last_fetch_time)))
-        return wait_time
-    # ____________________________________________________________________________ . . .
-
-
-    def _prior_timestamp(self, data: pd.DataFrame | dict, *, timeframe: str) -> int:
+    async def mock_kline(self,
+                         symbol: str,
+                         resolution: str,
+                         countback: int,
+                         max_retries,
+                         timeout: float,
+                         tries_interval: float,
+                         tries: int,
+                         max_interval: float,
+                         max_rate: int,
+                         rate_period: int = 60):
         """
-        This is an internal sub_method for '_init_fetch' method which returns the timestamp of the 
-        first candle of given data. Which is used for sending the subsequent 'initial_fetch' 
-        requests.
+        Continuously fetches kline data for the last given candles.
+
+        Parameters:
+            
+        Returns:
         """
-        try:
-            timeframes: dict[str, int] = {'1'  : 60,
-                                          '5'  : 300,
-                                          '15' : 900,
-                                          '30' : 1_800,
-                                          '60' : 3_600,
-                                          '180': 10_800,
-                                          '240': 14_400,
-                                          '360': 21_600,
-                                          '720': 43_200,
-                                          'D'  : 86_400,
-                                          '2D' : 172_800,
-                                          '3D' : 259_200}
-            
-            if timeframe not in timeframes.keys():
-                raise ValueError(f'Provided resolution (timeframe) {timeframe} is not in \
-                                 Nobitex\'s approved resolutions or has wrong data type of \
-                                 {type(timeframe)}, str is only accepted.')
-            
-            # offset_time: int = timeframes.get(timeframe, 0)
-            
-            if isinstance(data, pd.DataFrame):
-                first_timestamp = int(JalaliDateTime.to_gregorian(data.index.min()).timestamp())
-            else:
-                first_timestamp = int(data['t'][0])
+        # Sender constant for PyDispatcher:
+        LIVE_KLINE = 'Live kline'
 
-            prior_timestamp: int = first_timestamp# - offset_time
+        request_count = 0
+        start_time = time.time()
 
-            return prior_timestamp
-        except ValueError as err:
-            logging.error('Inside "_prior_timestamp()" method of "nobitex_api.Market" class: ',err)
-            return 0
+        last_fetch_time: float = 0.0
+        wait_time: float = 0.0
+
+        async with  self.client:
+            async with AsyncLimiter(max_rate, rate_period):
+                while True:
+                    await asyncio.sleep(wait_time) if wait_time > 0 else None
+
+                    success = False
+                    retry_count = 0
+
+                    while not success and retry_count < max_retries:
+                        try:
+                            data = await self.kline(symbol,
+                                                    resolution,
+                                                    int(time.time()),
+                                                    timeout,
+                                                    tries_interval,
+                                                    tries,
+                                                    countback=countback)
+                            
+                            dispatcher.send(Event.SUCCESS_FETCH, LIVE_KLINE, kline=data)
+                            success = True
+                        except httpx.RequestError as err:
+                            retry_count += 1
+                            print(f"Request failed: {err}. Retrying {retry_count}/{max_retries}..")
+                            await asyncio.sleep(0.1)  # Short delay before retrying
+
+                    if not success:
+                        print("Max retries reached. Skipping this request.")
+                        continue
+
+                    last_fetch_time = time.time()
+                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
+
+                    request_count += 1
+                    elapsed_time = time.time() - start_time
+                    print(f"Request #{request_count} at {elapsed_time:.2f}s: {data}")
+
+                    if elapsed_time >= 60:
+                        print(f"Total requests in the last 60 seconds: {request_count}")
+                        await asyncio.sleep(3)
+                        start_time = time.time()
+                        request_count = 0
 # =================================================================================================
 
 
