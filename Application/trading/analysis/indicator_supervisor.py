@@ -21,7 +21,6 @@ class IndicatorChief:
     Hello
     """
     def __init__(self):
-        self.indicator_df = pd.DataFrame()
         self.indicators_set = set()
     # ____________________________________________________________________________ . . .
 
@@ -59,7 +58,6 @@ class IndicatorChief:
 
         indicators_df = pd.DataFrame(index=kline_df.index)
         for result in results:
-            print('result received in \'cook_indicators()\' method:\n', result)
             if not result.empty:
                 indicators_df = indicators_df.merge(
                     result, left_index=True, right_index=True, how='left'
