@@ -1,10 +1,10 @@
 import asyncio
+import inspect
 import logging
 from collections import defaultdict
-from inspect import iscoroutinefunction
 from typing import Callable, Coroutine, Dict, List, Any
 
-
+# Introducing Listeners type
 Listener = Callable[..., Coroutine[Any, Any, Any]] | Callable[..., Any]
 
 
@@ -25,7 +25,7 @@ class EventHandler:
             self._initialized = True
 
             self._listeners: Dict[str, List[Listener]] = defaultdict(list)
-            self.config: dict = {}
+            self._event_params: Dict[str, List[str]] = {}
     # ____________________________________________________________________________ . . .
 
 
@@ -37,6 +37,10 @@ class EventHandler:
             listener (Callable | Coroutine): The listener function or coroutine.
             event (str): The event channel name.
         """
+        if event not in self._event_params:
+            raise ValueError(f"""Event "{event}" is not registered. Register the event before 
+                             attaching listeners""")
+        
         self._listeners[event].append(listener)
         logging.info(f'Listener \'{listener.__name__}\' attached to event chanel \'{event}\'.')
     # ____________________________________________________________________________ . . .
@@ -59,18 +63,37 @@ class EventHandler:
         logging.info(f'Listener \'{listener.__name__}\' detached from event chanel \'{event}\'.')
     # ____________________________________________________________________________ . . .
 
+
+    def register_event(self, event: str, required_params: List[str]):
+        """
+        Register an event along with it's required parameters.
+
+        parameters:
+            event (str): The event channel name.
+            required_params (List[str]): The list of required parameters for event channel.
+        """
+        self._event_params[event] = required_params
+    # ____________________________________________________________________________ . . .
+
     
-    def emit(self, event: str, *args, **kwargs):
+    def emit(self, event: str, **kwargs):
         """
         Broadcasting an event channel for all it's listeners to be executed asynchronously.
 
         Parameters:
             event (str): The event channel name.
-            *args (any):
-            **kwargs (any):
+            **kwargs (any): Keyword arguments to pass to listeners.
         """
+        if event not in self._event_params:
+            raise ValueError(f'Event {event} is not registered.')
+        
+        required_params = self._event_params[event]
+        for param in required_params:
+            if param not in kwargs:
+                raise ValueError(f'Missing required parameter "{param}" for event "{event}".')
+
         loop = asyncio.get_event_loop()
-        tasks = [self.__invoke_listener(listener, *args, **kwargs) for listener in self._listeners[event]]
+        tasks = [self.__invoke_listener(listener, **kwargs) for listener in self._listeners[event]]
 
         # Check if the event loop is already running
         if loop.is_running():
@@ -81,11 +104,17 @@ class EventHandler:
     # ____________________________________________________________________________ . . .
 
 
-    def __invoke_listener(self, listener: Listener, *args, **kwargs):
-        if iscoroutinefunction(listener):
-            return listener(*args, **kwargs)
+    def __invoke_listener(self, listener: Listener, **kwargs):
+        # Get the signature of listener
+        signature = inspect.signature(listener)
+        
+        # Extract the parameters that match the listener's signature
+        listener_kwargs = {k: v for k, v in kwargs.items() if k in signature.parameters}
+
+        if inspect.iscoroutinefunction(listener):
+            return listener(**listener_kwargs)
         else:
-            return asyncio.to_thread(listener, *args, **kwargs)
+            return asyncio.to_thread(listener, **listener_kwargs)
     # ____________________________________________________________________________ . . .
 
 # =================================================================================================
