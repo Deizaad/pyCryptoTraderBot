@@ -68,11 +68,6 @@ class IndicatorChief:
 
 
 
-# supervisor = IndicatorChief(load(r'Application/configs/signal_config.json'))
-
-# supervisor.attach()
-
-
 
 # =================================================================================================
 class IndicatorSupervisor:
