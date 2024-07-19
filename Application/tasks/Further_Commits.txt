@@ -134,3 +134,5 @@ asyncio.run(data_manager.initiate_kline_df())
 * Move the 'event_handler.py' and 'event_channels.py' to 'events' directory and rename them accordingly.
 
 * in 'event_handler.py' replace the positions of listeners and events in method parameters.
+
+* Maybe it's better to convert chiefs/Supervisors into functions from classes?
