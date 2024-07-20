@@ -522,27 +522,33 @@ class Order:
     # ____________________________________________________________________________ . . .
 
 
-    async def positions(self, client: httpx.AsyncClient, category: str, srcCurrency: str, dstCurrency: str, status: str):
+    async def positions(self,
+                        client     : httpx.AsyncClient,
+                        environment: str,
+                        srcCurrency: str,
+                        dstCurrency: str,
+                        status     : str):
         """
         Parameters:
-            category (str): The category of market. Eather "spot" or "futures".
+            environment (str): The environment of market. Eather "spot" or "futures".
         """
-        if category != 'spot' and category != 'futures':
-            raise ValueError(f"""Wrong category of "{category}" is provided. It most be eather
+        if (environment != 'spot') and (environment != 'futures'):
+            raise ValueError(f"""Wrong environment of "{environment}" is provided. It most be eather
                              "spot" or "futures".""")
         
-        match category:
-            case 'spot':
-                payload: dict = {}
-                endpoint: str = nb.Endpoint.ORDERS
-                tries_interval: float = nb.Endpoint.ORDERS_MI
-            case 'futures':
-                payload: dict = {'srcCurrency': srcCurrency,
-                                 'dstCurrency': dstCurrency,
-                                 'status': status}
+        elif environment == 'spot':
+            payload: dict = {'status': status,
+                             }
+            endpoint: str = nb.Endpoint.ORDERS
+            tries_interval: float = nb.Endpoint.ORDERS_MI
 
-                endpoint: str = nb.Endpoint.POSITIONS
-                tries_interval: float = nb.Endpoint.POSITIONS_MI
+        elif environment == 'futures':
+            payload = {'srcCurrency': srcCurrency,
+                       'dstCurrency': dstCurrency,
+                       'status': status}
+
+            endpoint = nb.Endpoint.POSITIONS
+            tries_interval = nb.Endpoint.POSITIONS_MI
 
         data = await self.service.get(client=client,
                                       url=nb.URL.MAIN,
