@@ -52,8 +52,8 @@ def get_selected_setups(module_path: str, config: dict) -> tuple[dict, dict]:
                 }
                 required_indicators[setup_name] = func.required_indicators
             else:
-                raise NameError(f"""Setup "{setup_name}" from config file could not be found in
-                                    defined setup functions. Perhaps you meisspell it?""")
+                raise NameError(f'Setup "{setup_name}" from config file could not be found in' \
+                                 'defined setup functions. Perhaps you meisspell it?')
 
         return selected_functions, required_indicators
     except NameError as err:
@@ -91,26 +91,22 @@ async def supertrend_setupfunc(
     """
     print(kline_df)
     print(indicator_df)
-    if not (kline_df.empty or indicator_df.empty):
-        try:
-            signal_df = pd.DataFrame(index=kline_df.index)
-            signal_df['supertrend'] = 0
+    try:
+        signal_df = pd.DataFrame(index=indicator_df.index)
+        signal_df['supertrend'] = 0
 
-            if len(indicator_df) > 2:
-                _supertrend = indicator_df['supertrend_side']
-                _prev_supertrend = indicator_df['supertrend_side'].shift(1)
+        _supertrend = indicator_df['supertrend_side']
+        _prev_supertrend = indicator_df['supertrend_side'].shift(1)
 
-                signal_df.loc[(_supertrend == 1) & (_prev_supertrend == -1), 'supertrend'] = 1
-                signal_df.loc[(_supertrend == -1) & (_prev_supertrend == 1), 'supertrend'] = -1
+        signal_df.loc[(_supertrend == 1) & (_prev_supertrend == -1), 'supertrend'] = 1
+        signal_df.loc[(_supertrend == -1) & (_prev_supertrend == 1), 'supertrend'] = -1
 
-            print(signal_df)
-            return signal_df
-        except Exception as err:
-            logging.error(f"Error while generating signals in supertrend_setupfunc() func: {err}")
-            return pd.DataFrame()
-    else:
+        print(signal_df)
+        return signal_df
+    except Exception as err:
+        logging.error(f"Error while generating signals in supertrend_setupfunc() func: {err}")
         return pd.DataFrame()
-    # ____________________________________________________________________________ . . .
+# ________________________________________________________________________________ . . .
 
 
 # Definition of other setup functions ...
@@ -130,85 +126,3 @@ if __name__ == '__main__':
         ]
         })
     print(selected, '\n', indicators)
-
-
-
-
-
-
-
-
-
-# # =================================================================================================
-# def get_setups():
-#     setup_functions = {
-#         name: func for name, func in globals().items()
-#         if callable(func) and hasattr(func, 'required_indicators')
-#     }
-#     return setup_functions
-# # =================================================================================================
-
-
-
-# # =================================================================================================
-# class SignalSetup:
-#     def __init__(self):
-#         pass
-    
-    
-#     def apply(self, kline_df: pd.DataFrame, indicator_df: pd.DataFrame) -> pd.DataFrame:
-#         """
-#         Applies the strategy to the provided dataframes and returns a signal dataframe.
-#         """
-#         raise NotImplementedError("generate_signal() must be implemented by subclasses.")
-# # =================================================================================================
-
-
-
-# # =================================================================================================
-# class SuperTrendSetup(SignalSetup):
-#     def apply(self, kline_df: pd.DataFrame, indicator_df: pd.DataFrame) -> pd.DataFrame:
-#         """
-#         Generate trading signals based on indicator DataFrame for single_supertrend setup.
-
-#         Parameters:
-#             kline_df (pd.DataFrame): DataFrame containing kline data.
-#             indicator_df (pd.DataFrame): DataFrame containing indicator data.
-
-#         Returns:
-#             pd.DataFrame: DataFrame containing the generated signals.
-#         """
-#         if indicator_df is None:
-#             return pd.DataFrame()
-        
-#         try:
-#             if not isinstance(kline_df, pd.DataFrame):
-#                 raise ValueError("kline_df must be a pandas DataFrame")
-#             if not isinstance(indicator_df, pd.DataFrame):
-#                 raise ValueError("indicator_df must be a pandas DataFrame")
-
-#             signal_df = pd.DataFrame(index=kline_df.index)
-#             signal_df['supertrend'] = 0
-
-#             if len(indicator_df) > 2:
-#                 _supertrend = indicator_df['supertrend_side']
-#                 _prev_supertrend = indicator_df['supertrend_side'].shift(1)
-
-#                 signal_df.loc[(_supertrend == 1) & (_prev_supertrend == -1), 'supertrend'] = 1
-#                 signal_df.loc[(_supertrend == -1) & (_prev_supertrend == 1), 'supertrend'] = -1
-
-#             return signal_df
-#         except Exception as err:
-#             logging.error(f"Error generating signal in SingleSupertrendStrategy: {err}")
-#             print(f"Error generating signal in SingleSupertrendStrategy: {err}")
-#             return pd.DataFrame()
-# # =================================================================================================
-
-
-
-# # =================================================================================================
-# list = {
-#     'single_supertrend': SuperTrendSetup
-#     # Add other setup-functions here
-# }
-# # =================================================================================================
