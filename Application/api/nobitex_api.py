@@ -16,6 +16,7 @@ path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
+import Application.configs.admin_config as aconfig    # noqa: E402
 from Application.utils.event_channels import Event    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 from Application.data.exchange import Nobitex as nb    # noqa: E402
@@ -518,6 +519,40 @@ class Order:
             )
 
         return response
+    # ____________________________________________________________________________ . . .
+
+
+    async def positions(self, client: httpx.AsyncClient, category: str, srcCurrency: str, dstCurrency: str, status: str):
+        """
+        Parameters:
+            category (str): The category of market. Eather "spot" or "futures".
+        """
+        if category != 'spot' and category != 'futures':
+            raise ValueError(f"""Wrong category of "{category}" is provided. It most be eather
+                             "spot" or "futures".""")
+        
+        match category:
+            case 'spot':
+                payload: dict = {}
+                endpoint: str = nb.Endpoint.ORDERS
+                tries_interval: float = nb.Endpoint.ORDERS_MI
+            case 'futures':
+                payload: dict = {'srcCurrency': srcCurrency,
+                                 'dstCurrency': dstCurrency,
+                                 'status': status}
+
+                endpoint: str = nb.Endpoint.POSITIONS
+                tries_interval: float = nb.Endpoint.POSITIONS_MI
+
+        data = await self.service.get(client=client,
+                                      url=nb.URL.MAIN,
+                                      endpoint=endpoint,
+                                      timeout=aconfig.Order.Positions.TIMEOUT,
+                                      tries_interval=tries_interval,
+                                      tries=aconfig.Order.Positions.TRIES,
+                                      params=payload)
+        
+        return data
     # ____________________________________________________________________________ . . .
 
 

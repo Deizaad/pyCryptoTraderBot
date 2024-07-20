@@ -35,6 +35,16 @@ class Nobitex:
         OHLC_RL: int = 60    # Rate Limit = 60p/m
         OHLC_RP: int = 60    # Rate period = 60 second
 
+        POSITIONS: str = '/positions/list'
+        POSITIONS_MI: float = 2.0
+        POSITIONS_RL: int = 30
+        POSITIONS_RP: int = 60
+
+        ORDERS: str = '/market/orders/list'
+        ORDERS_MI: float = 2.0
+        ORDERS_RL: int = 30
+        ORDERS_RP: int = 60
+
         class Order:
             class Place:
                 FUTURES = '/margin/orders/add'
