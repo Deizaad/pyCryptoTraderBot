@@ -167,7 +167,6 @@ class DataProcessor:
                 )
 
                 self.jarchi.emit(Event.NEW_KLINE_DATA,
-                                 #  sender=self._initiate_kline.__qualname__,
                                  kline_df=self.kline_df,
                                  indicator_df=self.indicator_df)
 
@@ -241,12 +240,14 @@ class DataProcessor:
 
     async def _generate_signals(self, kline_df: pd.DataFrame, indicator_df: pd.DataFrame):
         try:
-            if not kline_df.empty or indicator_df.empty:
+            if (not kline_df.empty) and (not indicator_df.empty):
                 self.signal_df = await self.signal.generate_signals(kline_df, indicator_df)
 
         except Exception as err:
             logging.error(f'Inside "_generate_signal()" method of DataProcessor: {err}')
 # =================================================================================================
+
+
 
 async def main():
     data = DataProcessor()

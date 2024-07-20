@@ -25,7 +25,7 @@ class EventHandler:
             self._initialized = True
 
             self._listeners: Dict[str, List[Listener]] = defaultdict(list)
-            self._event_params: Dict[str, List[str]] = {}
+            self._event_supplies: Dict[str, List[str]] = {}
     # ____________________________________________________________________________ . . .
 
 
@@ -37,7 +37,7 @@ class EventHandler:
             listener (Callable | Coroutine): The listener function or coroutine.
             event (str): The event channel name.
         """
-        if event not in self._event_params:
+        if event not in self._event_supplies:
             raise ValueError(f"""Event "{event}" is not registered. Register the event before 
                              attaching listeners""")
         
@@ -64,15 +64,15 @@ class EventHandler:
     # ____________________________________________________________________________ . . .
 
 
-    def register_event(self, event: str, required_params: List[str]):
+    def register_event(self, event: str, event_supplies: List[str]):
         """
         Register an event along with it's required parameters.
 
         parameters:
             event (str): The event channel name.
-            required_params (List[str]): The list of required parameters for event channel.
+            event_supplies (List[str]): The list of supply parameters for event channel.
         """
-        self._event_params[event] = required_params
+        self._event_supplies[event] = event_supplies
     # ____________________________________________________________________________ . . .
 
     
@@ -84,13 +84,13 @@ class EventHandler:
             event (str): The event channel name.
             **kwargs (any): Keyword arguments to pass to listeners.
         """
-        if event not in self._event_params:
+        if event not in self._event_supplies:
             raise ValueError(f'Event {event} is not registered.')
         
-        required_params = self._event_params[event]
-        for param in required_params:
-            if param not in kwargs:
-                raise ValueError(f'Missing required parameter "{param}" for event "{event}".')
+        event_supplies = self._event_supplies[event]
+        for supply in event_supplies:
+            if supply not in kwargs:
+                raise ValueError(f'Missing supply parameter "{supply}" for event "{event}".')
 
         loop = asyncio.get_event_loop()
         tasks = [self.__invoke_listener(listener, **kwargs) for listener in self._listeners[event]]
