@@ -528,7 +528,8 @@ class Order:
                         environment: str,
                         status     : str,
                         srcCurrency: str | None = None,
-                        dstCurrency: str | None = None):
+                        dstCurrency: str | None = None,
+                        page       : int | None = None):
         """
         Parameters:
             environment (str): The environment of market. Eather "spot" or "futures".
@@ -539,12 +540,17 @@ class Order:
         
         elif environment == 'spot':
             # 'status' = 'all' | 'open' | 'close' | 'done'
-            payload: dict[str, str] = {'status' : status, 'details': '2'}
+            payload: dict[str, str] = {'status': status,
+                                       'details': '2',
+                                       'page': str(page),
+                                       'pageSize': '100'}
+            
             endpoint: str = nb.Endpoint.ORDERS
             tries_interval: float = nb.Endpoint.ORDERS_MI
 
         elif environment == 'futures':
-            payload = {'status': status} # 'active' | 'past'
+            # 'status' = 'active' | 'past'
+            payload = {'status': status, 'page': str(page), 'pageSize': '100'}
             endpoint = nb.Endpoint.POSITIONS
             tries_interval = nb.Endpoint.POSITIONS_MI
 
