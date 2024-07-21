@@ -531,8 +531,21 @@ class Order:
                         dstCurrency: str | None = None,
                         page       : int | None = None):
         """
+        Fetch list of user's positions.
+
         Parameters:
+            client (httpx.AsyncClient)
+            token (str): User API token.
             environment (str): The environment of market. Eather "spot" or "futures".
+            status (str): The status of positions. For "spot" market expects eather "all" | "open" | "done" | "close". For "futures" market expects eather "active" | "past".
+            srcCurrency (str): Source currency.
+            dstCurrency (str): Destination currency is eather "rls" | "usdt".
+            page (int): Requests specific page of response in case "hasNext" flag is "True".
+
+        Raises:
+            ValueError()
+
+        Returns: A dictionary containing 3 elements: -request status, -positions, and -hasNext bool
         """
         if (environment != 'spot') and (environment != 'futures'):
             raise ValueError(f'Wrong environment "{environment}" is provided. It most be eather'\
