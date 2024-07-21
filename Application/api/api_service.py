@@ -1,16 +1,13 @@
 import os
 import sys
+import httpx
+import asyncio
 from dotenv import load_dotenv
 
 load_dotenv('project_path.env')
 path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
-
-import asyncio
-import httpx
-
-# from NobitexTrader.logging import logger
 
 
 
@@ -66,11 +63,20 @@ class APIService:
                   tries_interval: float,
                   tries: int,
                   *,
-                  params: dict[str, str] | None = None):
+                  params : dict[str, str] | None = None,
+                  data   : dict[str, str] | None = None,
+                  headers: dict[str, str] | None = None):
         
-        return await self._request(
-            client, "GET", url, endpoint, timeout, tries_interval, tries, params=params
-            )
+        return await self._request(client=client,
+                                   method="GET",
+                                   url=url,
+                                   endpoint=endpoint,
+                                   timeout=timeout,
+                                   tries_interval=tries_interval,
+                                   tries=tries,
+                                   params=params,
+                                   data=data,
+                                   headers=headers)
     # ____________________________________________________________________________ . . .
 
 

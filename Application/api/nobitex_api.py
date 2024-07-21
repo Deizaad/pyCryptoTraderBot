@@ -20,7 +20,7 @@ import Application.configs.admin_config as aconfig    # noqa: E402
 from Application.utils.event_channels import Event    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 from Application.data.exchange import Nobitex as nb    # noqa: E402
-from Application.configs.config import MarketData as md    # noqa: E402
+# from Application.configs.config import MarketData as md    # noqa: E402
 from Application.data.data_tools import Tehran_timestamp    # noqa: E402
 
 
@@ -524,31 +524,36 @@ class Order:
 
     async def positions(self,
                         client     : httpx.AsyncClient,
+                        token      : str,
                         environment: str,
-                        srcCurrency: str,
-                        dstCurrency: str,
-                        status     : str):
+                        status     : str,
+                        srcCurrency: str | None = None,
+                        dstCurrency: str | None = None):
         """
         Parameters:
             environment (str): The environment of market. Eather "spot" or "futures".
         """
         if (environment != 'spot') and (environment != 'futures'):
-            raise ValueError(f"""Wrong environment of "{environment}" is provided. It most be eather
-                             "spot" or "futures".""")
+            raise ValueError(f'Wrong environment "{environment}" is provided. It most be eather'\
+                             '"spot" or "futures".')
         
         elif environment == 'spot':
-            payload: dict = {'status': status,
-                             }
+            # 'status' = 'all' | 'open' | 'close' | 'done'
+            payload: dict[str, str] = {'status' : status, 'details': '2'}
             endpoint: str = nb.Endpoint.ORDERS
             tries_interval: float = nb.Endpoint.ORDERS_MI
 
         elif environment == 'futures':
-            payload = {'srcCurrency': srcCurrency,
-                       'dstCurrency': dstCurrency,
-                       'status': status}
-
+            payload = {'status': status} # 'active' | 'past'
             endpoint = nb.Endpoint.POSITIONS
             tries_interval = nb.Endpoint.POSITIONS_MI
+
+        if srcCurrency and dstCurrency:
+            payload['dstCurrency'] = dstCurrency
+            payload['srcCurrency'] = srcCurrency
+
+
+        headers = {'Authorization': 'Token ' + token}
 
         data = await self.service.get(client=client,
                                       url=nb.URL.MAIN,
@@ -556,8 +561,9 @@ class Order:
                                       timeout=aconfig.Order.Positions.TIMEOUT,
                                       tries_interval=tries_interval,
                                       tries=aconfig.Order.Positions.TRIES,
-                                      params=payload)
-        
+                                      data=payload,
+                                      headers=headers)
+
         return data
     # ____________________________________________________________________________ . . .
 
@@ -622,11 +628,22 @@ async def oredr_test():
         
         print(response)
 
+async def positions_test():
+    service = APIService()
+    order   = Order(service)
+
+    async with httpx.AsyncClient() as client:
+        response = await order.positions(client      = client,
+                                         token       = nb.USER.API_KEY,
+                                         environment = 'futures',
+                                         status      = 'active')
+        print(response)
 
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
+    asyncio.run(positions_test())
 
-    market = Market(APIService(), httpx.AsyncClient())
+    # market = Market(APIService(), httpx.AsyncClient())
     # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,
     #                               md.OHLC.RESOLUTION,
     #                               500,
@@ -638,12 +655,12 @@ if __name__ == '__main__':
     #                               nb.Endpoint.OHLC_RL,
     #                               nb.Endpoint.OHLC_RP))
     
-    asyncio.run(market.live_kline(symbol=md.OHLC.SYMBOL,
-                                  resolution=md.OHLC.RESOLUTION,
-                                  required_candles=md.OHLC.SIZE,
-                                  timeout=5.0,
-                                  tries_interval=nb.Endpoint.OHLC_MI,
-                                  tries=3,
-                                  max_interval=nb.Endpoint.OHLC_MI,
-                                  max_rate=nb.Endpoint.OHLC_RL,
-                                  rate_period=nb.Endpoint.OHLC_RP))
+    # asyncio.run(market.live_kline(symbol=md.OHLC.SYMBOL,
+    #                               resolution=md.OHLC.RESOLUTION,
+    #                               required_candles=md.OHLC.SIZE,
+    #                               timeout=5.0,
+    #                               tries_interval=nb.Endpoint.OHLC_MI,
+    #                               tries=3,
+    #                               max_interval=nb.Endpoint.OHLC_MI,
+    #                               max_rate=nb.Endpoint.OHLC_RL,
+    #                               rate_period=nb.Endpoint.OHLC_RP))
