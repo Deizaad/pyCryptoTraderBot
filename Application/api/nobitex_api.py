@@ -16,6 +16,7 @@ path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
+from Application.api.utils import wait_time    # noqa: E402
 import Application.configs.admin_config as aconfig    # noqa: E402
 from Application.utils.event_channels import Event    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
@@ -155,7 +156,7 @@ class Market:
         satisfied.
         """
 
-        wait_time: float = 0.0
+        wait: float = 0.0
         last_fetch_time: float = 0.0
 
         data: dict = {}
@@ -173,8 +174,8 @@ class Market:
                     else:
                         end = self._prior_timestamp(data, timeframe=resolution)
 
-                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
-                    await asyncio.sleep(wait_time) if (wait_time > 0) else None
+                    wait = wait_time(max_interval, time.time(), last_fetch_time)
+                    await asyncio.sleep(wait) if (wait > 0) else None
 
                     data = await self.kline(symbol,
                                             resolution,
@@ -206,7 +207,7 @@ class Market:
         This method fetches kline data from the last timestamp of current data to the current time.
         Preferably it might be called in a loop to keep sending fetch request continuously.
         """
-        wait_time: float = 0.0
+        wait: float = 0.0
         last_fetch_time: float = 0.0
 
         start = self._last_timestamp(current_data)
@@ -214,8 +215,8 @@ class Market:
         async with client:
             async with AsyncLimiter(max_rate, rate_period):
                 while True:
-                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
-                    await asyncio.sleep(wait_time) if (wait_time > 0) else None
+                    wait = wait_time(max_interval, time.time(), last_fetch_time)
+                    await asyncio.sleep(wait) if (wait > 0) else None
 
                     new_data = await self.kline(symbol         = symbol,
                                                 resolution     = resolution,
@@ -228,12 +229,6 @@ class Market:
                     last_fetch_time = time.time()
                     start = self._last_timestamp(new_data)
                     yield new_data
-    # ____________________________________________________________________________ . . .
-
-
-    def _wait_time(self, max_interval, current_time, last_fetch_time) -> float:
-        wait_time = max(0, (max_interval - (current_time - last_fetch_time)))
-        return wait_time
     # ____________________________________________________________________________ . . .
 
 
@@ -316,12 +311,12 @@ class Market:
         LIVE_KLINE = 'Live kline'
 
         last_fetch_time: float = 0.0
-        wait_time: float = 0.0
+        wait: float = 0.0
 
         async with  self.client:
             async with AsyncLimiter(max_rate, rate_period):
                 while True:
-                    await asyncio.sleep(wait_time) if wait_time > 0 else None
+                    await asyncio.sleep(wait) if wait > 0 else None
 
                     try:
                         data = await self.kline(symbol, 
@@ -337,7 +332,7 @@ class Market:
                         print(f"Request failed: {err}.")
 
                     last_fetch_time = time.time()
-                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
+                    wait = wait_time(max_interval, time.time(), last_fetch_time)
     # ____________________________________________________________________________ . . .
 
 
@@ -366,12 +361,12 @@ class Market:
         start_time = time.time()
 
         last_fetch_time: float = 0.0
-        wait_time: float = 0.0
+        wait: float = 0.0
 
         async with  self.client:
             async with AsyncLimiter(max_rate, rate_period):
                 while True:
-                    await asyncio.sleep(wait_time) if wait_time > 0 else None
+                    await asyncio.sleep(wait) if wait > 0 else None
 
                     success = False
                     retry_count = 0
@@ -398,7 +393,7 @@ class Market:
                         continue
 
                     last_fetch_time = time.time()
-                    wait_time = self._wait_time(max_interval, time.time(), last_fetch_time)
+                    wait = wait_time(max_interval, time.time(), last_fetch_time)
 
                     request_count += 1
                     elapsed_time = time.time() - start_time
@@ -522,7 +517,7 @@ class Order:
     # ____________________________________________________________________________ . . .
 
 
-    async def positions(self,
+    async def fetch_positions(self,
                         client     : httpx.AsyncClient,
                         token      : str,
                         environment: str,
@@ -553,11 +548,11 @@ class Order:
         
         elif environment == 'spot':
             # 'status' = 'all' | 'open' | 'close' | 'done'
-            payload: dict[str, str] = {'status': status,
-                                       'details': '2',
-                                       'page': str(page),
+            payload: dict[str, str] = {'status'  : status,
+                                       'details' : '2',
+                                       'page'    : str(page),
                                        'pageSize': '100'}
-            
+
             endpoint: str = nb.Endpoint.ORDERS
             tries_interval: float = nb.Endpoint.ORDERS_MI
 
@@ -574,14 +569,14 @@ class Order:
 
         headers = {'Authorization': 'Token ' + token}
 
-        data = await self.service.get(client=client,
-                                      url=nb.URL.MAIN,
-                                      endpoint=endpoint,
-                                      timeout=aconfig.Order.Positions.TIMEOUT,
-                                      tries_interval=tries_interval,
-                                      tries=aconfig.Order.Positions.TRIES,
-                                      data=payload,
-                                      headers=headers)
+        data = await self.service.get(client         = client,
+                                      url            = nb.URL.MAIN,
+                                      endpoint       = endpoint,
+                                      timeout        = aconfig.Order.Positions.TIMEOUT,
+                                      tries_interval = tries_interval,
+                                      tries          = aconfig.Order.Positions.TRIES,
+                                      data           = payload,
+                                      headers        = headers)
 
         return data
     # ____________________________________________________________________________ . . .
@@ -647,12 +642,12 @@ async def oredr_test():
         
         print(response)
 
-async def positions_test():
+async def fetch_positions_test():
     service = APIService()
     order   = Order(service)
 
     async with httpx.AsyncClient() as client:
-        response = await order.positions(client      = client,
+        response = await order.fetch_positions(client      = client,
                                          token       = nb.USER.API_KEY,
                                          environment = 'futures',
                                          status      = 'active')
@@ -660,7 +655,7 @@ async def positions_test():
 
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
-    asyncio.run(positions_test())
+    asyncio.run(fetch_positions_test())
 
     # market = Market(APIService(), httpx.AsyncClient())
     # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,
