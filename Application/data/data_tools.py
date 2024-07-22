@@ -1,7 +1,22 @@
+import os
+import sys
 import pytz
+import logging
 import pandas as pd
 from datetime import datetime
+from dotenv import load_dotenv
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
+
+load_dotenv('project_path.env')
+path = os.getenv('PYTHONPATH')
+if path:
+    sys.path.append(path)
+
+from Application.utils.event_channels import Event    # noqa: E402
+from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
+
+
+jarchi = EventHandler()
 
 
 def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
@@ -136,6 +151,43 @@ def turn_Jalali_to_gregorian(series: pd.Series):
 
     return gregorian_index
 # ____________________________________________________________________________ . . .
+
+
+def broadcast_open_positions_event(futures_poss_df: pd.DataFrame, spot_poss_df: pd.DataFrame):
+    """
+    Broadcasts "OPEN_POSITIONS" event for each or both "spot" and "futures" markets if there are
+    any open positions.
+
+    Parameters:
+        futures_poss_df (DataFrame): Futures market's open positions dataframe.
+        spot_poss_df (DataFrame): Spot market's open positions dataframe.
+    """
+    if (not futures_poss_df.empty) and (not spot_poss_df.empty):
+        logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_futures}" and '\
+                        f'"{Event.OPEN_POSITIONS_spot}" events from '\
+                        '"DataProcessor._initiate_positions()" method.')
+        
+        event_to_emit = [
+            (Event.OPEN_POSITIONS_spot, {'spot_positions_df': spot_poss_df}),
+            (Event.OPEN_POSITIONS_futures, {'futures_positions_df': futures_poss_df})
+        ]
+        jarchi.bulk_emit(*event_to_emit)
+
+    elif not futures_poss_df.empty:
+        logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_futures}" event from'\
+                        '"DataProcessor._initiate_positions()" method.')
+        
+        jarchi.emit(event=Event.OPEN_POSITIONS_futures,
+                    futures_positions_df=futures_poss_df)
+        
+    elif not spot_poss_df.empty:
+        logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_spot}" event from'\
+                        '"DataProcessor._initiate_positions()" method.')
+        
+        jarchi.emit(event=Event.OPEN_POSITIONS_spot,
+                    spot_positions_df=spot_poss_df)
+# ____________________________________________________________________________ . . .
+
 
 
 if __name__ == '__main__':
