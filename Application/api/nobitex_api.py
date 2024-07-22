@@ -683,9 +683,8 @@ async def init_fetch_positions_test():
     service = APIService()
     order   = Order(service)
 
-    async with httpx.AsyncClient() as client:
-        results = await order.init_fetch_positions(client=client, token=nb.USER.API_KEY)
-        print(results)
+    results = await order.init_fetch_positions(client=httpx.AsyncClient(), token=nb.USER.API_KEY)
+    print(results)
 
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
