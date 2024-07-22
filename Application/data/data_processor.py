@@ -1,5 +1,6 @@
 import os
 import sys
+import httpx
 import asyncio
 import logging
 import pandas as pd
@@ -23,7 +24,10 @@ from Application.utils.botlogger import initialize_logger    # noqa: E402 # Deve
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 from Application.trading.signals.signal_supervisor import SignalChief    # noqa: E402
 from Application.trading.analysis.indicator_supervisor import IndicatorChief    # noqa: E402
-from Application.data.data_tools import parse_kline_to_df, update_dataframe, df_has_news    # noqa: E402
+from Application.data.data_tools import parse_kline_to_df,\
+                                        parse_positions_to_df,\
+                                        update_dataframe,\
+                                        df_has_news    # noqa: E402
 
 
 initialize_logger()    # Developement-temporary
@@ -53,6 +57,8 @@ class DataProcessor:
         self.kline_df     = pd.DataFrame()
         self.indicator_df = pd.DataFrame()
         self.signal_df    = pd.DataFrame()
+        self.futures_positions_df = pd.DataFrame()
+        self.spot_positions_df    = pd.DataFrame()
         
         logging.info('DataProcessor initialized data with empty DataFrames!')
     # ____________________________________________________________________________ . . .
@@ -78,7 +84,10 @@ class DataProcessor:
             self.signal = SignalChief()
             signal_task = self._awake_signals(self.signal)
 
-            await asyncio.gather(kline_task, indicator_task, signal_task)
+            self.order = NB_API.Order(APIService())
+            positions_task = self._initiate_positions(self.order)
+
+            await asyncio.gather(kline_task, indicator_task, signal_task, positions_task)
 
         except Exception as err:
             logging.error(f'Error while initiating data: {err}')
@@ -245,6 +254,19 @@ class DataProcessor:
 
         except Exception as err:
             logging.error(f'Inside "_generate_signal()" method of DataProcessor: {err}')
+    # ____________________________________________________________________________ . . .
+
+
+    async def _initiate_positions(self, orders: NB_API.Order):
+        """
+        Initiates positions DataFrame by populating it with all open positions.
+        """
+        logging.info('Initiating "positions_df" ...')
+
+        results = await orders.init_fetch_positions(client=httpx.AsyncClient(),
+                                                 token=Nobitex.USER.API_KEY)
+        
+        self.futures_positions_df, self.spot_positions_df = parse_positions_to_df(results)        
 # =================================================================================================
 
 
