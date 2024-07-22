@@ -608,6 +608,41 @@ class Order:
     # ____________________________________________________________________________ . . .
 
 
+    async def update_fetch_positions(self,
+                                     client      : httpx.AsyncClient,
+                                     token       : str,
+                                     req_interval: float,
+                                     max_rate    : int,
+                                     rate_period : int):
+        """
+        
+        """
+        # wait: float = 0.0
+        last_fetch_time: float = 0.0
+
+        async with client:
+            async with AsyncLimiter(max_rate, rate_period):
+                while True:
+                    wait = wait_time(req_interval, time.time(), last_fetch_time)
+                    await asyncio.sleep(wait) if (wait > 0) else None
+
+                    spot_positions = self.fetch_positions(client      = client,
+                                                          token       = token,
+                                                          environment = 'spot',
+                                                          status      = 'open')
+
+                    futures_positions = self.fetch_positions(client      = client,
+                                                             token       = token,
+                                                             environment = 'futures',
+                                                             status      = 'active')
+
+                    results = await asyncio.gather(spot_positions, futures_positions)
+
+                    last_fetch_time = time.time()
+                    yield results
+    # ____________________________________________________________________________ . . .
+
+
     async def status(self):
         pass
     # ____________________________________________________________________________ . . .
