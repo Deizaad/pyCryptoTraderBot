@@ -17,8 +17,6 @@ async def pandas_supertrend(kline_df, **kwargs) -> pd.DataFrame:    # FIXME NO-0
     Returns:
         DataFrame: Indicator DataFrame with two columns 'supertrend' and 'supertrend_side'.
     """
-    print('kline_df inside pandas_supertrend:\n', kline_df)
-    
     window = kwargs.get('window')
     factor = kwargs.get('factor')
     
@@ -36,8 +34,6 @@ async def pandas_supertrend(kline_df, **kwargs) -> pd.DataFrame:    # FIXME NO-0
     _df = _df.iloc[:, 0:2]
     _df.columns = ['supertrend', 'supertrend_side']
 
-    print('pandas_supertrend calculated values:')
-    print(_df)
     return _df
     # ____________________________________________________________________________ . . .
 

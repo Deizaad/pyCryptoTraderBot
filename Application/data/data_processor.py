@@ -20,9 +20,10 @@ import Application.configs.admin_config as Aconfig    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 # from Application.data.validator import is_consistent    # noqa: E402
 from Application.utils.botlogger import initialize_logger    # noqa: E402 # Developement-temporary
-from Application.data.data_tools import parse_kline_to_df, update_dataframe, df_has_news    # noqa: E402
-from Application.trading.analysis.indicator_supervisor import IndicatorChief    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
+from Application.trading.signals.signal_supervisor import SignalChief    # noqa: E402
+from Application.trading.analysis.indicator_supervisor import IndicatorChief    # noqa: E402
+from Application.data.data_tools import parse_kline_to_df, update_dataframe, df_has_news    # noqa: E402
 
 
 initialize_logger()    # Developement-temporary
@@ -44,6 +45,7 @@ class DataProcessor:
 
     def __init__(self) -> None:
         self.jarchi = EventHandler()
+        self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df', 'indicator_df'])
     # ____________________________________________________________________________ . . .
 
 
@@ -73,9 +75,10 @@ class DataProcessor:
             self.analysis = IndicatorChief()
             indicator_task = self._awake_indicators(self.analysis)
 
-            # signal_task = tg.create_task(self._initiate_signals())
+            self.signal = SignalChief()
+            signal_task = self._awake_signals(self.signal)
 
-            await asyncio.gather(kline_task, indicator_task)
+            await asyncio.gather(kline_task, indicator_task, signal_task)
 
         except Exception as err:
             logging.error(f'Error while initiating data: {err}')
@@ -85,8 +88,6 @@ class DataProcessor:
     async def live(self):
         try:
             kline_task = self._live_kline()
-            # indicator_task = tg.create_task(self._live_indicator())
-            # signal_task = tg.create_task(self._live_signal())
 
             await asyncio.gather(kline_task)
         except Exception as err:
@@ -121,14 +122,14 @@ class DataProcessor:
 
         if not data.equals(self.kline_df):
             self.kline_df = update_dataframe(self.kline_df, data, required_candles)
-            # logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
 
             # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
             func_name=self._initiate_kline.__qualname__
             event_channel=Event.NEW_KLINE_DATA
             logging.info(f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...')
             self.jarchi.emit(Event.NEW_KLINE_DATA,
-                             kline_df=self.kline_df)
+                             kline_df=self.kline_df,
+                             indicator_df=self.indicator_df)
         # ________________________________________________________________________ . . .
 
 
@@ -157,15 +158,17 @@ class DataProcessor:
 
             if not data.equals(self.kline_df):
                 self.kline_df = pd.concat([data, self.kline_df])
-                # logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
 
                 # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
                 func_name=self._initiate_kline.__qualname__
                 event_channel=Event.NEW_KLINE_DATA
-                logging.info(f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...')
+                logging.info(
+                    f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...'
+                )
+
                 self.jarchi.emit(Event.NEW_KLINE_DATA,
-                                 #  sender=self._initiate_kline.__qualname__,
-                                 kline_df=self.kline_df)
+                                 kline_df=self.kline_df,
+                                 indicator_df=self.indicator_df)
 
         except Exception as err:
             logging.error(f'Error in requesting subsequent initial_fetches: {err}')
@@ -193,15 +196,16 @@ class DataProcessor:
                                                      data,
                                                      config.MarketData.OHLC.SIZE)
                     
-                    # logging.info(f'kline_df just got updated, new length: {len(self.kline_df)}')
-
                     # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
                     func_name=self._live_kline.__qualname__
                     event_channel=Event.NEW_KLINE_DATA
-                    logging.info(f'Sending \"{event_channel}\" event signal from \"{func_name}\" ...')
+                    logging.info(
+                        f'Sending \"{event_channel}\" event signal from \"{func_name}\" ...'
+                    )
+
                     self.jarchi.emit(Event.NEW_KLINE_DATA,
-                                     #  sender=self._live_kline.__qualname__,
-                                     kline_df=self.kline_df)
+                                     kline_df=self.kline_df,
+                                     indicator_df=self.indicator_df)
                     
         except Exception as err:
             logging.error(f'Error during live kline fetching: {err}')
@@ -220,18 +224,30 @@ class DataProcessor:
     async def _compute_indicators(self, kline_df):
         try:
             self.indicator_df = await self.analysis.cook_indicators(kline_df)
-            # logging.info(f'Indicator DataFrame got updated, new length: {len(self.indicator_df)}')
         except Exception as err:
             logging.error(f'Error while computing indicators: {err}')
     # ____________________________________________________________________________ . . .
 
 
-    def get_kline(self):
-        """
-        This method return the kline dataframe.
-        """
-        return self.kline_df
+    async def _awake_signals(self, signal_chief: SignalChief):
+        signal_chief.declare_setups('Application.trading.signals.setup_functions',
+                                    load(r'Application/configs/signal_config.json'))
+        
+        self.jarchi.attach(self._generate_signals,
+                           Event.NEW_KLINE_DATA)
+    # ____________________________________________________________________________ . . .
+
+
+    async def _generate_signals(self, kline_df: pd.DataFrame, indicator_df: pd.DataFrame):
+        try:
+            if (not kline_df.empty) and (not indicator_df.empty):
+                self.signal_df = await self.signal.generate_signals(kline_df, indicator_df)
+
+        except Exception as err:
+            logging.error(f'Inside "_generate_signal()" method of DataProcessor: {err}')
 # =================================================================================================
+
+
 
 async def main():
     data = DataProcessor()
