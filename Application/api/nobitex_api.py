@@ -582,6 +582,32 @@ class Order:
     # ____________________________________________________________________________ . . .
 
 
+    async def init_fetch_positions(self, client: httpx.AsyncClient, token: str):
+        """
+        Fetches a maximum of 100 open positions for each of "spot" and "futures" markets.
+
+        Parameters:
+            client (httpx.AsyncClient): HTTP client.
+            token (str): Client's API token.
+
+        Returns (tuple[dict]): Tuple of dict results for each market environments.
+        """
+        spot_positions = self.fetch_positions(client      = client,
+                                              token       = token,
+                                              environment = 'spot',
+                                              status      = 'open')
+
+        futures_positions = self.fetch_positions(client      = client,
+                                                 token       = token,
+                                                 environment = 'futures',
+                                                 status      = 'active')
+
+        results = await asyncio.gather(spot_positions, futures_positions)
+
+        return results
+    # ____________________________________________________________________________ . . .
+
+
     async def status(self):
         pass
     # ____________________________________________________________________________ . . .
@@ -648,14 +674,23 @@ async def fetch_positions_test():
 
     async with httpx.AsyncClient() as client:
         response = await order.fetch_positions(client      = client,
-                                         token       = nb.USER.API_KEY,
-                                         environment = 'futures',
-                                         status      = 'active')
+                                               token       = nb.USER.API_KEY,
+                                               environment = 'futures',
+                                               status      = 'active')
         print(response)
+
+async def init_fetch_positions_test():
+    service = APIService()
+    order   = Order(service)
+
+    async with httpx.AsyncClient() as client:
+        results = await order.init_fetch_positions(client=client, token=nb.USER.API_KEY)
+        print(results)
 
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
-    asyncio.run(fetch_positions_test())
+    # asyncio.run(fetch_positions_test())
+    asyncio.run(init_fetch_positions_test())
 
     # market = Market(APIService(), httpx.AsyncClient())
     # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,
