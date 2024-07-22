@@ -23,35 +23,35 @@ def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
 # ____________________________________________________________________________ . . .
 
 
-# def join_raw_kline(current_data, data_piece, join_method):
-#     """
-#     This function attaches pieces of kline data to current data and returns a dictionary.
-#     """
-#     keys = ['t', 'o', 'h', 'l', 'c', 'v']
+def parse_positions_to_df(raw_positions: tuple[dict, dict] | list[dict]) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Converts raw positions data into a dataframe.
 
-#     match join_method:
-#         case 'PREPEND':
-#             # Convert lists to numpy arrays for efficient operations
-#             for key in keys:
-#                 current_data[key] = np.array(current_data[key])
-#                 data_piece[key] = np.array(data_piece[key])
-            
-#             # Prepend new data to current data using numpy
-#             for key in keys:
-#                 current_data[key] = np.concatenate((data_piece[key], current_data[key]))
+    Parameters:
+        raw_positions (list[dict]): Raw positions data received from API.
 
-#             # Convert numpy arrays back to lists
-#             for key in keys:
-#                 current_data[key] = current_data[key].tolist()
-            
-#             return current_data
-        
-#         case 'APPEND':
-#             raise NotImplementedError('The APPEND join_method in join_raw_kline function has no code!')
-        
-#         case _:
-#             logging.error(f'Wrong join_method provided to join_raw_kline function: {join_method}')
-#             return {}
+    Returns (DataFrame): A dataframe containing positions data.
+    """
+    futures_positions: list = []
+    spot_positions:    list = []
+
+    for item in raw_positions:
+        if 'positions' in item:
+            futures_positions.extend(item['positions'])
+        if 'orders' in item:
+            spot_positions.extend(item['orders'])
+
+    futures_df = pd.json_normalize(futures_positions) if futures_positions else pd.DataFrame()
+    spot_df    = pd.json_normalize(spot_positions)    if spot_positions    else pd.DataFrame()
+
+    if (not futures_df.empty) and (not spot_df.empty):
+        # Standardizing column names
+        spot_df.rename(columns={'created_at': 'createdAt'}, inplace=True)
+
+        futures_df.set_index('id', inplace=True)
+        spot_df.set_index('id', inplace=True)
+
+    return futures_df, spot_df
 # ____________________________________________________________________________ . . .
 
 
@@ -139,28 +139,85 @@ def turn_Jalali_to_gregorian(series: pd.Series):
 
 
 if __name__ == '__main__':
-    raw_data = {'s': 'ok', 't': [1719228600, 1719228660, 1719228720, 1719228780, 1719228840, 
-                                 1719228900, 1719228960, 1719229020, 1719229080, 1719229140, 
-                                 1719229200, 1719229260, 1719229320, 1719229380, 1719229440, 
-                                 1719229500, 1719229560, 1719229620, 1719229680, 1719229740], 
-                                 'o': [60985.0, 60985.0, 60985.0, 60951.0, 60952.0, 
-                                 60955.0, 60982.0, 60996.0, 60983.0, 60995.0, 60995.0, 60997.0, 
-                                 60961.0, 60961.0, 60966.0, 60990.0, 60991.0, 60996.0, 60990.0, 
-                                 60989.0], 'h': [60985.0, 60989.0, 60987.0, 60996.0, 60983.0, 
-                                 60982.0, 60996.0, 60996.0, 60996.0, 60996.0, 60997.0, 60998.0, 
-                                 60961.0, 60999.0, 60997.0, 60996.0, 60996.0, 60996.0, 60990.0, 
-                                 60996.0], 'l': [60950.0, 60950.0, 60951.0, 60950.0, 60951.0, 
-                                 60955.0, 60956.0, 60956.0, 60983.0, 60982.0, 60994.0, 60960.0, 
-                                 60957.0, 60957.0, 60961.0, 60961.0, 60962.0, 60964.0, 60970.0, 
-                                 60970.0], 'c': [60950.0, 60950.0, 60955.0, 60955.0, 60955.0, 
-                                 60956.0, 60996.0, 60983.0, 60995.0, 60995.0, 60997.0, 60961.0, 
-                                 60958.0, 60997.0, 60995.0, 60991.0, 60996.0, 60990.0, 60989.0, 
-                                 60990.0], 'v': [5503.55443304, 6298.7836152988, 1880.542894261, 
-                                 20501.8400133588, 2967.0603120826, 8466.2199580257, 
-                                 4407.032887752, 6731.5128804735, 4086.24595, 5328.4879254301, 
-                                 6609.4729541354, 5970.5679817479, 5051.3518966021, 
-                                 11347.9331739157, 1435.6668853334, 1516.49, 5088.56, 
-                                 4292.6875235137, 3889.6737491196, 1834.2927355984]}
+    raw_data = (
+    {
+        "status": "ok",
+        "positions": [
+            {
+                "id": 128,
+                "createdAt": "2022-10-20T11:36:13.604420+00:00",
+                "srcCurrency": "btc",
+                "dstCurrency": "rls",
+                "side": "sell",
+                "status": "Open",
+                "marginType": "Isolated Margin",
+                "collateral": "320000000",
+                "leverage": "2",
+                "openedAt": "2022-10-20T11:36:16.562038+00:00",
+                "closedAt": None,
+                "liquidationPrice": "25174302690",
+                "entryPrice": "6400000000",
+                "exitPrice": None,
+                "delegatedAmount": "0.03",
+                "liability": "0.0300450676",
+                "totalAsset": "831712000",
+                "marginRatio": "1.49",
+                "liabilityInOrder": "0",
+                "assetInOrder": "0",
+                "unrealizedPNL": "−576435",
+                "unrealizedPNLPercent": "−0.09",
+                "expirationDate": "2022-11-20",
+                "extensionFee": "320000"
+            },
+            {
+                "id": 32,
+                "createdAt": "2022-08-14T15:09:58.001901+00:00",
+                "srcCurrency": "btc",
+                "dstCurrency": "usdt",
+                "side": "sell",
+                "status": "Closed",
+                "marginType": "Isolated Margin",
+                "collateral": "2130",
+                "leverage": "1",
+                "openedAt": "2022-08-14T15:10:19.937801+00:00",
+                "closedAt": "2022-08-17T18:39:52.890674+00:00",
+                "liquidationPrice": "38986.54",
+                "entryPrice": "21300",
+                "exitPrice": "19900",
+                "PNL": "118.46",
+                "PNLPercent": "5.56"
+            }
+        ],
+        "hasNext": False
+    },
+    {
+        "status": "ok",
+        "orders": [
+            {
+                "unmatchedAmount": "3.0000000000",
+                "partial": False,
+                "created_at": "2018-11-28T12:25:22.696029+00:00",
+                "totalPrice": "25500000.00000000000000000000",
+                "tradeType": "spot",
+                "id": 173546223,
+                "type": "sell",
+                "execution": "Limit",
+                "status": "Active",
+                "srcCurrency": "Bitcoin",
+                "dstCurrency": "Tether",
+                "price": "9750.01",
+                "amount": "0.0123",
+                "matchedAmount": "0E-10",
+                "averagePrice": "0",
+                "fee": "0E-10",
+                "clientOrderId": "order1"
+            }
+        ],
+        "hasNext": False
+    }
+    )
+
+    no_positions_data = [{'status': 'ok', 'orders': [], 'hasNext': False}, {'status': 'ok', 'positions': [], 'hasNext': False}]
     
-    kline_df = parse_kline_to_df(raw_data)
-    print(kline_df)
+    futures_df, spot_df = parse_positions_to_df(no_positions_data)
+    print(futures_df, '\n', spot_df)
