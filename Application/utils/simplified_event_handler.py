@@ -2,7 +2,7 @@ import asyncio
 import inspect
 import logging
 from collections import defaultdict
-from typing import Callable, Coroutine, Dict, List, Any
+from typing import Callable, Coroutine, Dict, List, Any, Tuple
 
 # Introducing Listeners type
 Listener = Callable[..., Coroutine[Any, Any, Any]] | Callable[..., Any]
@@ -117,4 +117,33 @@ class EventHandler:
             return asyncio.to_thread(listener, **listener_kwargs)
     # ____________________________________________________________________________ . . .
 
+
+    def bulk_emit(self, *events: Tuple[str, Dict[str, Any]]):
+        """
+        Broadcasting multiple event channels for all their listeners to be executed asynchronously
+
+        Parameters:
+            *events (Tuple[str, Tuple[Any], Dict[str, Any]]):
+                Variable length tuple where each item is a tuple containing:
+                - event (str): The event channel name.
+                - kwargs (dict): Keyword arguments to pass to the listener.
+        """        
+        for event, kwargs in events:
+            if event not in self._event_supplies:
+                raise ValueError(f'Event {event} is not registered.')
+            
+            event_supplies = self._event_supplies[event]
+            for supply in event_supplies:
+                if supply not in kwargs:
+                    raise ValueError(f'Missing supply parameter "{supply}" for event "{event}".')
+            
+            loop = asyncio.get_event_loop()
+            tasks = [
+                self.__invoke_listener(listener, **kwargs) for listener in self._listeners[event]
+            ]
+
+        if loop.is_running():
+            asyncio.ensure_future(asyncio.gather(*tasks))
+        else:
+            loop.run_until_complete(asyncio.gather(*tasks))
 # =================================================================================================
