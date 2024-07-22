@@ -21,13 +21,14 @@ import Application.configs.admin_config as Aconfig    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 # from Application.data.validator import is_consistent    # noqa: E402
 from Application.utils.botlogger import initialize_logger    # noqa: E402 # Developement-temporary
+from Application.data.data_tools import df_has_news,\
+                                        update_dataframe,\
+                                        parse_kline_to_df,\
+                                        parse_positions_to_df,\
+                                        broadcast_open_positions_event    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 from Application.trading.signals.signal_supervisor import SignalChief    # noqa: E402
 from Application.trading.analysis.indicator_supervisor import IndicatorChief    # noqa: E402
-from Application.data.data_tools import parse_kline_to_df,\
-                                        parse_positions_to_df,\
-                                        update_dataframe,\
-                                        df_has_news    # noqa: E402
 
 
 initialize_logger()    # Developement-temporary
@@ -50,6 +51,8 @@ class DataProcessor:
     def __init__(self) -> None:
         self.jarchi = EventHandler()
         self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df', 'indicator_df'])
+        self.jarchi.register_event(Event.OPEN_POSITIONS_futures, ['futures_positions_df'])
+        self.jarchi.register_event(Event.OPEN_POSITIONS_spot, ['spot_positions_df'])
     # ____________________________________________________________________________ . . .
 
 
@@ -208,10 +211,7 @@ class DataProcessor:
                     # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
                     func_name=self._live_kline.__qualname__
                     event_channel=Event.NEW_KLINE_DATA
-                    logging.info(
-                        f'Sending \"{event_channel}\" event signal from \"{func_name}\" ...'
-                    )
-
+                    logging.info(f'Sending "{event_channel}" event from "{func_name}" ...')
                     self.jarchi.emit(Event.NEW_KLINE_DATA,
                                      kline_df=self.kline_df,
                                      indicator_df=self.indicator_df)
@@ -264,9 +264,16 @@ class DataProcessor:
         logging.info('Initiating "positions_df" ...')
 
         results = await orders.init_fetch_positions(client=httpx.AsyncClient(),
-                                                 token=Nobitex.USER.API_KEY)
+                                                    token=Nobitex.USER.API_KEY)
         
-        self.futures_positions_df, self.spot_positions_df = parse_positions_to_df(results)        
+        # check if it's needed to fetch for populating the positions_df
+        # ...
+
+        self.futures_positions_df, self.spot_positions_df = parse_positions_to_df(results)
+
+        # broadcast OPEN_POSITION event in case there are any open positions
+        broadcast_open_positions_event(futures_poss_df=self.futures_positions_df,
+                                       spot_poss_df=self.spot_positions_df)
 # =================================================================================================
 
 
