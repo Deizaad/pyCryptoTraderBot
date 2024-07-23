@@ -267,7 +267,16 @@ class DataProcessor:
                                                     token=Nobitex.USER.API_KEY)
         
         # check if it's needed to fetch for populating the positions_df
-        # ...
+        for result in results:
+            if 'positions' in result:
+                futures_has_next = result['hasNext']
+            if 'orders' in result:
+                spot_has_next = result['hasNext']
+
+        if spot_has_next or futures_has_next:
+            # Code block olace holder for invoking the populate_positions()
+            raise NotImplementedError('There is no code implemented for when open positions has '\
+                                      'next pages!')
 
         self.futures_positions_df, self.spot_positions_df = parse_positions_to_df(results)
 
