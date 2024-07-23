@@ -140,3 +140,7 @@ asyncio.run(data_manager.initiate_kline_df())
 * Move the declaration of setup functions and indicator functions to one place so it executes once.
 
 * Seperate the implementation of fetching open positions for futures and spot market.
+
+* Set the maximum of concurrent open positions to 100 per user per market environment (spot and futures) due to the architecture of nobitex's positions API thet causes need of multiple fetch requests for open positions of more than 100 however it can be increased by fetching open positions for each specific trading pair.
+
+* use aiolimiter.asynclimiter.acquire() method wherever I have used the asynclimiter.
