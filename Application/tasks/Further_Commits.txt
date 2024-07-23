@@ -138,3 +138,5 @@ asyncio.run(data_manager.initiate_kline_df())
 * Maybe it's better to convert chiefs/Supervisors into functions from classes?
 
 * Move the declaration of setup functions and indicator functions to one place so it executes once.
+
+* Seperate the implementation of fetching open positions for futures and spot market.

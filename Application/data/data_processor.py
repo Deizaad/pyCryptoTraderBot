@@ -88,7 +88,7 @@ class DataProcessor:
             signal_task = self._awake_signals(self.signal)
 
             self.order = NB_API.Order(APIService())
-            positions_task = self._initiate_positions(self.order)
+            positions_task = self._initiate_positions()
 
             await asyncio.gather(kline_task, indicator_task, signal_task, positions_task)
 
@@ -257,14 +257,14 @@ class DataProcessor:
     # ____________________________________________________________________________ . . .
 
 
-    async def _initiate_positions(self, orders: NB_API.Order):
+    async def _initiate_positions(self):
         """
         Initiates positions DataFrame by populating it with all open positions.
         """
         logging.info('Initiating "positions_df" ...')
 
-        results = await orders.init_fetch_positions(client=httpx.AsyncClient(),
-                                                    token=Nobitex.USER.API_KEY)
+        results = await self.order.init_fetch_positions(client = httpx.AsyncClient(),
+                                                        token  = Nobitex.USER.API_KEY)
         
         # check if it's needed to fetch for populating the positions_df
         for result in results:
