@@ -24,7 +24,6 @@ from Application.utils.botlogger import initialize_logger    # noqa: E402 # Deve
 from Application.data.data_tools import df_has_news,\
                                         update_dataframe,\
                                         parse_kline_to_df,\
-                                        parse_positions_to_df,\
                                         broadcast_open_positions_event    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 from Application.trading.signals.signal_supervisor import SignalChief    # noqa: E402
@@ -90,7 +89,7 @@ class DataProcessor:
             self.order = NB_API.Order(APIService())
             positions_task = self._initiate_positions()
 
-            await asyncio.gather(kline_task, indicator_task, signal_task, positions_task)
+            await asyncio.gather(positions_task, kline_task, indicator_task, signal_task)
 
         except Exception as err:
             logging.error(f'Error while initiating data: {err}')
@@ -263,22 +262,26 @@ class DataProcessor:
         """
         logging.info('Initiating "positions_df" ...')
 
-        results = await self.order.init_fetch_positions(client = httpx.AsyncClient(),
-                                                        token  = Nobitex.USER.API_KEY)
-        
-        # check if it's needed to fetch for populating the positions_df
-        for result in results:
-            if 'positions' in result:
-                futures_has_next = result['hasNext']
-            if 'orders' in result:
-                spot_has_next = result['hasNext']
+        futures_coroutine = anext(self.order.fetch_open_positions(
+            client       = httpx.AsyncClient(),
+            token        = Nobitex.USER.API_KEY,
+            environment  = 'futures',
+            req_interval = Nobitex.Endpoint.POSITIONS_MI,
+            max_rate     = Nobitex.Endpoint.POSITIONS_RL,
+            rate_period  = Nobitex.Endpoint.POSITIONS_RP
+        ))
 
-        if spot_has_next or futures_has_next:
-            # Code block olace holder for invoking the populate_positions()
-            raise NotImplementedError('There is no code implemented for when open positions has '\
-                                      'next pages!')
+        spot_coroutine = anext(self.order.fetch_open_positions(
+            client       = httpx.AsyncClient(),
+            token        = Nobitex.USER.API_KEY,
+            environment  = 'spot',
+            req_interval = Nobitex.Endpoint.ORDERS_MI,
+            max_rate     = Nobitex.Endpoint.ORDERS_RL,
+            rate_period  = Nobitex.Endpoint.ORDERS_RP
+        ))
 
-        self.futures_positions_df, self.spot_positions_df = parse_positions_to_df(results)
+        results = await asyncio.gather(futures_coroutine, spot_coroutine)
+        self.futures_positions_df, self.spot_positions_df = results
 
         # broadcast OPEN_POSITION event in case there are any open positions
         broadcast_open_positions_event(futures_poss_df=self.futures_positions_df,

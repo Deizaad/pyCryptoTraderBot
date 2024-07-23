@@ -22,7 +22,7 @@ from Application.utils.event_channels import Event    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 from Application.data.exchange import Nobitex as nb    # noqa: E402
 # from Application.configs.config import MarketData as md    # noqa: E402
-from Application.data.data_tools import Tehran_timestamp    # noqa: E402
+from Application.data.data_tools import Tehran_timestamp, parse_positions    # noqa: E402
 
 
 # =================================================================================================
@@ -582,64 +582,71 @@ class Order:
     # ____________________________________________________________________________ . . .
 
 
-    async def init_fetch_positions(self, client: httpx.AsyncClient, token: str):
+    async def fetch_open_positions(self,
+                                   client      : httpx.AsyncClient,
+                                   token       : str,
+                                   environment : str,
+                                   req_interval: float,
+                                   max_rate    : int,
+                                   rate_period : int):
         """
-        Fetches a maximum of 100 open positions for each of "spot" and "futures" markets.
+        Fetches all open positions of user for the given market environment.
 
         Parameters:
             client (httpx.AsyncClient): HTTP client.
             token (str): Client's API token.
+            environment (str): Market environment. Most be eather "spot" or "futures".
+            req_interval (float): Interval between requests in seconds.
+            max_rate (int): Maximum number of requests.
+            rate_period (int): Period in seconds for rate limiting.
 
-        Returns (tuple[dict]): Tuple of dict results for each market environments.
+        Raises:
+            ValueError
+
+        Yields:
+            pd.DataFrame: A dataframe containing positions data.
         """
-        spot_positions = self.fetch_positions(client      = client,
-                                              token       = token,
-                                              environment = 'spot',
-                                              status      = 'open')
+        if environment not in ['spot', 'futures']:
+            raise ValueError(f'Wrong environment "{environment}" is provided. It most be eather'\
+                             '"spot" or "futures".')
 
-        futures_positions = self.fetch_positions(client      = client,
-                                                 token       = token,
-                                                 environment = 'futures',
-                                                 status      = 'active')
+        params: dict = {'client'     : client,
+                        'token'      : token,
+                        'environment': environment,
+                        'status'     : 'active' if environment=='futures' else 'open'}
 
-        results = await asyncio.gather(spot_positions, futures_positions)
-
-        return results
-    # ____________________________________________________________________________ . . .
-
-
-    async def update_fetch_positions(self,
-                                     client      : httpx.AsyncClient,
-                                     token       : str,
-                                     req_interval: float,
-                                     max_rate    : int,
-                                     rate_period : int):
-        """
-        
-        """
-        # wait: float = 0.0
         last_fetch_time: float = 0.0
 
         async with client:
-            async with AsyncLimiter(max_rate, rate_period):
-                while True:
+            limiter = AsyncLimiter(max_rate, rate_period)
+            while True:
+                await limiter.acquire()
+                wait = wait_time(req_interval, time.time(), last_fetch_time)
+                await asyncio.sleep(wait) if (wait > 0) else None
+
+                data = await self.fetch_positions(**params)
+
+                last_fetch_time = time.time()
+
+                positions_df = parse_positions(data)
+                has_next: bool = data['hasNext']
+                page: int = 2
+
+                while has_next:
+                    await limiter.acquire()
                     wait = wait_time(req_interval, time.time(), last_fetch_time)
                     await asyncio.sleep(wait) if (wait > 0) else None
 
-                    spot_positions = self.fetch_positions(client      = client,
-                                                          token       = token,
-                                                          environment = 'spot',
-                                                          status      = 'open')
-
-                    futures_positions = self.fetch_positions(client      = client,
-                                                             token       = token,
-                                                             environment = 'futures',
-                                                             status      = 'active')
-
-                    results = await asyncio.gather(spot_positions, futures_positions)
+                    new_data = await self.fetch_positions(**params, page=page)
 
                     last_fetch_time = time.time()
-                    yield results
+                    has_next = new_data['hasNext']
+                    page += 1
+
+                    new_positions_df = parse_positions(new_data)
+                    positions_df = pd.concat([positions_df, new_positions_df])
+
+                yield positions_df
     # ____________________________________________________________________________ . . .
 
 
@@ -714,17 +721,10 @@ async def fetch_positions_test():
                                                status      = 'active')
         print(response)
 
-async def init_fetch_positions_test():
-    service = APIService()
-    order   = Order(service)
-
-    results = await order.init_fetch_positions(client=httpx.AsyncClient(), token=nb.USER.API_KEY)
-    print(results)
 
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
-    # asyncio.run(fetch_positions_test())
-    asyncio.run(init_fetch_positions_test())
+    asyncio.run(fetch_positions_test())
 
     # market = Market(APIService(), httpx.AsyncClient())
     # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,

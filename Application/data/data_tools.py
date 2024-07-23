@@ -38,35 +38,29 @@ def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
 # ____________________________________________________________________________ . . .
 
 
-def parse_positions_to_df(raw_positions: tuple[dict, dict] | list[dict]) -> tuple[pd.DataFrame, pd.DataFrame]:
+def parse_positions(raw_positions: dict) -> pd.DataFrame:
     """
     Converts raw positions data into a dataframe.
 
     Parameters:
-        raw_positions (list[dict]): Raw positions data received from API.
+        raw_positions (dict): Raw positions data received from API.
 
     Returns (DataFrame): A dataframe containing positions data.
     """
-    futures_positions: list = []
-    spot_positions:    list = []
+    positions: list = []
+    if 'positions' in raw_positions:
+        positions.extend(raw_positions['positions'])
+    elif 'orders' in raw_positions:
+        positions.extend(raw_positions['orders'])
 
-    for item in raw_positions:
-        if 'positions' in item:
-            futures_positions.extend(item['positions'])
-        if 'orders' in item:
-            spot_positions.extend(item['orders'])
+    positions_df = pd.json_normalize(positions)
 
-    futures_df = pd.json_normalize(futures_positions) if futures_positions else pd.DataFrame()
-    spot_df    = pd.json_normalize(spot_positions)    if spot_positions    else pd.DataFrame()
+    if not positions_df.empty:
+        if 'created_at' in positions_df.columns:
+            positions_df.rename(columns={'created_at': 'createdAt'}, inplace=True)
+        positions_df.set_index('id', inplace=True)
 
-    if (not futures_df.empty) and (not spot_df.empty):
-        # Standardizing column names
-        spot_df.rename(columns={'created_at': 'createdAt'}, inplace=True)
-
-        futures_df.set_index('id', inplace=True)
-        spot_df.set_index('id', inplace=True)
-
-    return futures_df, spot_df
+    return positions_df
 # ____________________________________________________________________________ . . .
 
 
@@ -187,89 +181,3 @@ def broadcast_open_positions_event(futures_poss_df: pd.DataFrame, spot_poss_df: 
         jarchi.emit(event=Event.OPEN_POSITIONS_spot,
                     spot_positions_df=spot_poss_df)
 # ____________________________________________________________________________ . . .
-
-
-
-if __name__ == '__main__':
-    raw_data = (
-    {
-        "status": "ok",
-        "positions": [
-            {
-                "id": 128,
-                "createdAt": "2022-10-20T11:36:13.604420+00:00",
-                "srcCurrency": "btc",
-                "dstCurrency": "rls",
-                "side": "sell",
-                "status": "Open",
-                "marginType": "Isolated Margin",
-                "collateral": "320000000",
-                "leverage": "2",
-                "openedAt": "2022-10-20T11:36:16.562038+00:00",
-                "closedAt": None,
-                "liquidationPrice": "25174302690",
-                "entryPrice": "6400000000",
-                "exitPrice": None,
-                "delegatedAmount": "0.03",
-                "liability": "0.0300450676",
-                "totalAsset": "831712000",
-                "marginRatio": "1.49",
-                "liabilityInOrder": "0",
-                "assetInOrder": "0",
-                "unrealizedPNL": "−576435",
-                "unrealizedPNLPercent": "−0.09",
-                "expirationDate": "2022-11-20",
-                "extensionFee": "320000"
-            },
-            {
-                "id": 32,
-                "createdAt": "2022-08-14T15:09:58.001901+00:00",
-                "srcCurrency": "btc",
-                "dstCurrency": "usdt",
-                "side": "sell",
-                "status": "Closed",
-                "marginType": "Isolated Margin",
-                "collateral": "2130",
-                "leverage": "1",
-                "openedAt": "2022-08-14T15:10:19.937801+00:00",
-                "closedAt": "2022-08-17T18:39:52.890674+00:00",
-                "liquidationPrice": "38986.54",
-                "entryPrice": "21300",
-                "exitPrice": "19900",
-                "PNL": "118.46",
-                "PNLPercent": "5.56"
-            }
-        ],
-        "hasNext": False
-    },
-    {
-        "status": "ok",
-        "orders": [
-            {
-                "unmatchedAmount": "3.0000000000",
-                "partial": False,
-                "created_at": "2018-11-28T12:25:22.696029+00:00",
-                "totalPrice": "25500000.00000000000000000000",
-                "tradeType": "spot",
-                "id": 173546223,
-                "type": "sell",
-                "execution": "Limit",
-                "status": "Active",
-                "srcCurrency": "Bitcoin",
-                "dstCurrency": "Tether",
-                "price": "9750.01",
-                "amount": "0.0123",
-                "matchedAmount": "0E-10",
-                "averagePrice": "0",
-                "fee": "0E-10",
-                "clientOrderId": "order1"
-            }
-        ],
-        "hasNext": False
-    }
-    )
-
-    no_positions_data = [{'status': 'ok', 'orders': [], 'hasNext': False}, {'status': 'ok', 'positions': [], 'hasNext': False}]
-    
-    futures_df, spot_df = parse_positions_to_df(no_positions_data)
-    print(futures_df, '\n', spot_df)
