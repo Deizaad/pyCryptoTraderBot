@@ -1,0 +1,126 @@
+<mxfile host="65bd71144e">
+    <diagram id="2hrEDhwtY0BgSdLxk32c" name="Page-1">
+        <mxGraphModel dx="1733" dy="1124" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="8" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="2" target="3">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="510" y="80"/>
+                            <mxPoint x="510" y="390"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="9" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="2" target="4">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="510" y="80"/>
+                            <mxPoint x="510" y="520"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="10" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="2" target="5">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="510" y="80"/>
+                            <mxPoint x="510" y="650"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="11" style="edgeStyle=orthogonalEdgeStyle;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#007FFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="2" target="6">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="840" y="770" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="510" y="80"/>
+                            <mxPoint x="510" y="780"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="12" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="2" target="7">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="510" y="80"/>
+                            <mxPoint x="510" y="910"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="2" value="&lt;font color=&quot;#007fff&quot;&gt;Start&lt;/font&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1000" y="40" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="constantly check for open positions" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;flipV=0;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="340" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="4" target="5">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="constantly fetch market data" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;flipV=0;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="470" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="5" target="6">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="constantly calculate indicators" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;flipV=0;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="600" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="6" target="17">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="6" target="29">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="constantly generate trading signals" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;flipV=0;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="730" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="Fetch user data for balance, trading pairs, ..." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;flipV=0;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="860" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="Parallel constant jobs" style="swimlane;whiteSpace=wrap;html=1;fontColor=#007FFF;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="260" width="250" height="730" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="Execute portfolio manager to allocate assets" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;" vertex="1" parent="1">
+                    <mxGeometry x="1010" y="340" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="17" target="18">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="Validate generated signals" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="730" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="Perform position sizing for valid signals" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;shadow=0;glass=0;" vertex="1" parent="1">
+                    <mxGeometry x="1027" y="730" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="Run order execution strategy to detemine order types, ..." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;shadow=0;glass=0;" vertex="1" parent="1">
+                    <mxGeometry x="1027" y="585" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="Execute the executioner or trader to send place orders on API" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;shadow=0;glass=0;" vertex="1" parent="1">
+                    <mxGeometry x="1340" y="485" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="constantly track detailed stats of each position / trade" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;" vertex="1" parent="1">
+                    <mxGeometry x="710" y="1020" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="Open trade workflow" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="947" y="910" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="Constantly adjust orders (stop-loss, ...)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;" vertex="1" parent="1">
+                    <mxGeometry x="880" y="1020" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="Live run portfolio tracker and manager" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;" vertex="1" parent="1">
+                    <mxGeometry x="1050" y="1020" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;" vertex="1" parent="1">
+                    <mxGeometry x="1220" y="1020" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="Store the position id of executed trades alomg with their strategy system" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;shadow=0;glass=0;" vertex="1" parent="1">
+                    <mxGeometry x="1520" y="485" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#007FFF;" edge="1" parent="1" source="29" target="19">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="Store generated signals along with their setup name" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontColor=#66FFFF;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="585" width="100" height="100" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
