@@ -704,6 +704,34 @@ class Account:
     # ____________________________________________________________________________ . . .
 
 
+    async def balance(self, client: httpx.AsyncClient, token: str, currency: str):
+        """
+        Fetches the balance of specific currency for user.
+
+        Parameters:
+            client (httpx.AsyncClient): HTTP client.
+            token (str): Client's API token.
+            currency (str): currency to get it's balance.
+
+        Returns ():
+        """
+        payload: dict = {'currency': currency}
+        headers: dict = {'Authorization': 'Token ' + token}
+
+        api = APIService()
+        data = await api.post(client   = client,
+                              url      = nb.URL.MAIN,
+                              endpoint = nb.Endpoint.BALANCE,
+                              timeout  = aconfig.Account.Balance.TIMEOUT,
+                              interval = nb.Endpoint.BALANCE_MI,
+                              tries    = aconfig.Account.Balance.TRIES,
+                              data     = payload,
+                              headers  = headers)
+
+        return data
+    # ____________________________________________________________________________ . . .
+
+
     async def info(self):
         pass
     # ____________________________________________________________________________ . . .
@@ -767,10 +795,20 @@ async def fetch_wallets_test():
 
     print(response)
 
+async def fetch_balance_test():
+    account = Account()
+
+    response = await account.balance(client   = httpx.AsyncClient(),
+                                     token    = nb.USER.API_KEY,
+                                     currency = 'rls')
+
+    print(response)
+
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
     # asyncio.run(fetch_positions_test())
     asyncio.run(fetch_wallets_test())
+    asyncio.run(fetch_balance_test())
 
     # market = Market(APIService(), httpx.AsyncClient())
     # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,

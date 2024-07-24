@@ -11,3 +11,7 @@ class Account:
     class Wallets:
         TRIES=5
         TIMEOUT=4
+
+    class Balance:
+        TRIES=5
+        TIMEOUT=4

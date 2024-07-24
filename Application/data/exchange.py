@@ -50,6 +50,11 @@ class Nobitex:
         WALLETS_RL: int = 20
         WALLETS_RP: int = 120
 
+        BALANCE: str = '/users/wallets/balance'
+        BALANCE_MI: float = 2.0
+        BALANCE_RL: int = 60
+        BALANCE_RP: int = 120
+
         class Order:
             class Place:
                 FUTURES = '/margin/orders/add'

@@ -107,6 +107,8 @@ class DataProcessor:
     # ____________________________________________________________________________ . . .
 
 
+
+
     async def _initiate_kline(self,
                               market: NB_API.Market,
                               symbol: str,
@@ -221,6 +223,8 @@ class DataProcessor:
     # ____________________________________________________________________________ . . .
 
 
+
+
     async def _awake_indicators(self, indicator_chief: IndicatorChief):
         indicator_chief.declare_indicators('Application.trading.signals.setup_functions',
                                            load(r'Application/configs/signal_config.json'))
@@ -236,6 +240,8 @@ class DataProcessor:
         except Exception as err:
             logging.error(f'Error while computing indicators: {err}')
     # ____________________________________________________________________________ . . .
+
+
 
 
     async def _awake_signals(self, signal_chief: SignalChief):
@@ -255,6 +261,8 @@ class DataProcessor:
         except Exception as err:
             logging.error(f'Inside "_generate_signal()" method of DataProcessor: {err}')
     # ____________________________________________________________________________ . . .
+
+
 
 
     async def _initiate_positions(self):

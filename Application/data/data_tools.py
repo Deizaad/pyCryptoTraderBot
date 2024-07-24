@@ -91,7 +91,6 @@ def parse_wallets_to_df(raw_wallets: dict, drop_void: bool = True) -> pd.DataFra
 # ____________________________________________________________________________ . . .
 
 
-
 def Tehran_timestamp():
     """
     This function returns the timestamp for current time in 'Asia/Tehran' timezone.
