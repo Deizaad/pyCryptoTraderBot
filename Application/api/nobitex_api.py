@@ -22,7 +22,7 @@ from Application.utils.event_channels import Event    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 from Application.data.exchange import Nobitex as nb    # noqa: E402
 # from Application.configs.config import MarketData as md    # noqa: E402
-from Application.data.data_tools import Tehran_timestamp, parse_positions    # noqa: E402
+from Application.data.data_tools import Tehran_timestamp, parse_positions, parse_wallets_to_df    # noqa: E402
 
 
 # =================================================================================================
@@ -669,16 +669,21 @@ class Order:
 # =================================================================================================
 class Account:
 
-    async def wallets(self, client: httpx.AsyncClient, token: str, environment: str) -> dict:
+    async def wallets(self,
+                      client: httpx.AsyncClient,
+                      token: str,
+                      environment: str,
+                      drop_void: bool = True) -> pd.DataFrame:
         """
         Fetches user's wallets for given market environment.
 
         Parameters:
             client (httpx.AsyncClient): HTTP client.
             token (str): Client's API token.
-            environment (str): Market environment. Most be eather "spot" or "futures".
+            environment (str): Market environment. Most be eather "spot" or "margin".
+            drop_void (bool): Excludes wallets with zero balance.
 
-        Returns (dict): Client's wallets data.
+        Returns (DataFrame): Client's wallets data.
         """
         payload: dict = {'type': environment}
         headers: dict = {'Authorization': 'Token ' + token}
@@ -693,7 +698,9 @@ class Account:
                              data           = payload,
                              headers        = headers)
 
-        return data
+        df = parse_wallets_to_df(raw_wallets=data, drop_void=drop_void)
+
+        return df
     # ____________________________________________________________________________ . . .
 
 
@@ -755,7 +762,8 @@ async def fetch_wallets_test():
 
     response = await account.wallets(client      = httpx.AsyncClient(),
                                      token       = nb.USER.API_KEY,
-                                     environment = 'futures')
+                                     environment = 'margin',
+                                     drop_void   = True)
 
     print(response)
 

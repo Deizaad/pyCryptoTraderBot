@@ -64,6 +64,34 @@ def parse_positions(raw_positions: dict) -> pd.DataFrame:
 # ____________________________________________________________________________ . . .
 
 
+def parse_wallets_to_df(raw_wallets: dict, drop_void: bool = True) -> pd.DataFrame:
+    """
+    Converts raw wallets data to a pandas DataFrame.
+    """
+    wallets = []
+    raw_wallets = raw_wallets.get('wallets', [])
+
+    for wallet in raw_wallets:
+        balance = float(wallet['balance'])
+        if not drop_void or balance != 0:
+            wallets.append({'currency'          : wallet['currency'].upper(),
+                            'id'                : wallet['id'],
+                            'balance'           : balance,
+                            'blocked'           : float(wallet['blockedBalance']),
+                            'active_balance'    : float(wallet['activeBalance']),
+                            'rial_balance'      : wallet['rialBalance'],
+                            'rial_balance_sell' : wallet['rialBalanceSell'],
+                            'deposit_address'   : wallet['depositAddress'],
+                            'deposit_tag'       : wallet['depositTag']})
+            
+    df = pd.DataFrame(wallets)
+    df.set_index('currency', inplace=True)
+
+    return df
+# ____________________________________________________________________________ . . .
+
+
+
 def Tehran_timestamp():
     """
     This function returns the timestamp for current time in 'Asia/Tehran' timezone.
