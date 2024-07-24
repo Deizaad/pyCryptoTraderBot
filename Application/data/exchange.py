@@ -45,6 +45,11 @@ class Nobitex:
         ORDERS_RL: int = 30
         ORDERS_RP: int = 60
 
+        WALLETS: str = '/v2/wallets'
+        WALLETS_MI: float = 5.0
+        WALLETS_RL: int = 12
+        WALLETS_RP: int = 60
+
         class Order:
             class Place:
                 FUTURES = '/margin/orders/add'

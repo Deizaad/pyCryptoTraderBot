@@ -518,18 +518,18 @@ class Order:
 
 
     async def fetch_positions(self,
-                        client     : httpx.AsyncClient,
-                        token      : str,
-                        environment: str,
-                        status     : str,
-                        srcCurrency: str | None = None,
-                        dstCurrency: str | None = None,
-                        page       : int | None = None):
+                              client     : httpx.AsyncClient,
+                              token      : str,
+                              environment: str,
+                              status     : str,
+                              srcCurrency: str | None = None,
+                              dstCurrency: str | None = None,
+                              page       : int | None = None):
         """
         Fetch list of user's positions.
 
         Parameters:
-            client (httpx.AsyncClient)
+            client (httpx.AsyncClient): HTTP client.
             token (str): User API token.
             environment (str): The environment of market. Eather "spot" or "futures".
             status (str): The status of positions. For "spot" market expects eather "all" | "open" | "done" | "close". For "futures" market expects eather "active" | "past".
@@ -668,6 +668,35 @@ class Order:
 
 # =================================================================================================
 class Account:
+
+    async def wallets(self, client: httpx.AsyncClient, token: str, environment: str) -> dict:
+        """
+        Fetches user's wallets for given market environment.
+
+        Parameters:
+            client (httpx.AsyncClient): HTTP client.
+            token (str): Client's API token.
+            environment (str): Market environment. Most be eather "spot" or "futures".
+
+        Returns (dict): Client's wallets data.
+        """
+        payload: dict = {'type': environment}
+        headers: dict = {'Authorization': 'Token ' + token}
+
+        api = APIService()
+        data = await api.get(client         = client,
+                             url            = nb.URL.MAIN,
+                             endpoint       = nb.Endpoint.WALLETS,
+                             timeout        = aconfig.Account.Wallets.TIMEOUT,
+                             tries_interval = nb.Endpoint.WALLETS_MI,
+                             tries          = aconfig.Account.Wallets.TRIES,
+                             data           = payload,
+                             headers        = headers)
+
+        return data
+    # ____________________________________________________________________________ . . .
+
+
     async def info(self):
         pass
     # ____________________________________________________________________________ . . .
@@ -721,10 +750,19 @@ async def fetch_positions_test():
                                                status      = 'active')
         print(response)
 
+async def fetch_wallets_test():
+    account = Account()
+
+    response = await account.wallets(client      = httpx.AsyncClient(),
+                                     token       = nb.USER.API_KEY,
+                                     environment = 'futures')
+
+    print(response)
 
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
-    asyncio.run(fetch_positions_test())
+    # asyncio.run(fetch_positions_test())
+    asyncio.run(fetch_wallets_test())
 
     # market = Market(APIService(), httpx.AsyncClient())
     # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,
