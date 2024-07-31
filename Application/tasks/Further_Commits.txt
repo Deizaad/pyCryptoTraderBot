@@ -150,3 +150,7 @@ asyncio.run(data_manager.initiate_kline_df())
 * In position sizing determine the minimum and maximum position size based on market condition, pair.
 
 * store stats of open position / trades in csv or sql database or caching them.
+
+* Configure the production Dockerfile to use anothr user other than root.
+
+* for production use .lock file instead of poetry.pyproject to install dependencies with the version that was working on development.
