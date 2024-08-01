@@ -1,0 +1,19 @@
+{
+    "active_times": 247,
+
+    "entry_signal_setup": {
+        "name": "supertrend_setupfunc",
+        "properties": {
+            "window": 14,
+            "factor": 3
+        }
+    },
+    
+    "take_profit_setup":{
+
+    },
+
+    "stop_loss_setup":{
+
+    }
+}
