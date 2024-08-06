@@ -35,7 +35,38 @@ def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
     }).set_index('time')
 
     return kline_df
-# ____________________________________________________________________________ . . .
+# ________________________________________________________________________________ . . .
+
+
+def parse_orders(raw_orders: dict) -> pd.DataFrame:
+    """
+    Converts raw orders data into a dataframe.
+
+    Parameters:
+        raw_orders (dict): Raw orders data received from exchange API.
+    
+    Returns (DataFrame): A dataframe containing orders data.
+    """
+    orders: list = []
+    orders.extend(raw_orders['orders'])
+    orders_df = pd.json_normalize(orders)
+    orders_df = orders_df.loc[:,['clientOrderId',
+                                 'tradeType',
+                                 'type',
+                                 'srcCurrency',
+                                 'dstCurrency',
+                                 'price',
+                                 'amount',
+                                 'totalPrice',
+                                 'leverage',
+                                 'totalOrderPrice',
+                                 'matchedAmount',
+                                 'unmatchedAmount',
+                                 'execution',
+                                 'side',
+                                 'isMyOrder']]
+    return orders_df
+# ________________________________________________________________________________ . . .
 
 
 def parse_positions(raw_positions: dict) -> pd.DataFrame:
@@ -43,7 +74,7 @@ def parse_positions(raw_positions: dict) -> pd.DataFrame:
     Converts raw positions data into a dataframe.
 
     Parameters:
-        raw_positions (dict): Raw positions data received from API.
+        raw_positions (dict): Raw positions data received from exchange API.
 
     Returns (DataFrame): A dataframe containing positions data.
     """
@@ -58,10 +89,10 @@ def parse_positions(raw_positions: dict) -> pd.DataFrame:
     if not positions_df.empty:
         if 'created_at' in positions_df.columns:
             positions_df.rename(columns={'created_at': 'createdAt'}, inplace=True)
-        positions_df.set_index('id', inplace=True)
+        # positions_df.set_index('id', inplace=True)
 
     return positions_df
-# ____________________________________________________________________________ . . .
+# ________________________________________________________________________________ . . .
 
 
 def parse_wallets_to_df(raw_wallets: dict, drop_void: bool = True) -> pd.DataFrame:
@@ -88,7 +119,7 @@ def parse_wallets_to_df(raw_wallets: dict, drop_void: bool = True) -> pd.DataFra
     df.set_index('currency', inplace=True)
 
     return df
-# ____________________________________________________________________________ . . .
+# ________________________________________________________________________________ . . .
 
 
 def Tehran_timestamp():
@@ -100,7 +131,7 @@ def Tehran_timestamp():
     timestamp = int(time.timestamp())
 
     return timestamp
-# ____________________________________________________________________________ . . .
+# ________________________________________________________________________________ . . .
 
 
 def update_dataframe(origin_df: pd.DataFrame, late_df: pd.DataFrame, size: int):
@@ -133,7 +164,7 @@ def update_dataframe(origin_df: pd.DataFrame, late_df: pd.DataFrame, size: int):
         updated_df = updated_df.sort_index(ascending=False).head(size).sort_index()
     
     return updated_df
-# ____________________________________________________________________________ . . .
+# ________________________________________________________________________________ . . .
 
 
 def df_has_news(origin_df: pd.DataFrame, late_df: pd.DataFrame):
@@ -158,7 +189,7 @@ def df_has_news(origin_df: pd.DataFrame, late_df: pd.DataFrame):
     
     # If no new rows or updated cells found
     return False
-# ____________________________________________________________________________ . . .
+# ________________________________________________________________________________ . . .
 
 
 def turn_Jalali_to_gregorian(series: pd.Series):
@@ -171,7 +202,7 @@ def turn_Jalali_to_gregorian(series: pd.Series):
         gregorian_index = series
 
     return gregorian_index
-# ____________________________________________________________________________ . . .
+# ________________________________________________________________________________ . . .
 
 
 def broadcast_open_positions_event(futures_poss_df: pd.DataFrame, spot_poss_df: pd.DataFrame):
@@ -207,4 +238,4 @@ def broadcast_open_positions_event(futures_poss_df: pd.DataFrame, spot_poss_df: 
         
         jarchi.emit(event=Event.OPEN_POSITIONS_spot,
                     spot_positions_df=spot_poss_df)
-# ____________________________________________________________________________ . . .
+# ________________________________________________________________________________ . . .
