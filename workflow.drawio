@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="2hrEDhwtY0BgSdLxk32c" name="Page-1">
-        <mxGraphModel dx="6271" dy="1185" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="5239" dy="1020" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -763,6 +763,9 @@
                 <mxCell id="714" value="&lt;font color=&quot;#66cc00&quot;&gt;multi_timeframe Live&lt;br&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="378" vertex="1">
                     <mxGeometry x="206.25" y="252.5" width="80" height="60" as="geometry"/>
                 </mxCell>
+                <mxCell id="728" value="&lt;font color=&quot;#66cc00&quot;&gt;Run Data Processor&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="378" vertex="1">
+                    <mxGeometry x="511.25" y="40" width="80" height="60" as="geometry"/>
+                </mxCell>
                 <mxCell id="363" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="725" source="364" target="378" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="1215" y="160" as="targetPoint"/>
@@ -830,6 +833,9 @@
                 <mxCell id="441" value="&lt;font color=&quot;#66cc00&quot;&gt;Attach listener functions to start of active time event&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
                     <mxGeometry x="134.71" y="132.5" width="80" height="60" as="geometry"/>
                 </mxCell>
+                <mxCell id="731" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="435" source="442" target="730" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
                 <mxCell id="442" value="&lt;font color=&quot;#66cc00&quot;&gt;Attach listener functions to end of active times event&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
                     <mxGeometry x="656.9" y="132.5" width="80" height="60" as="geometry"/>
                 </mxCell>
@@ -883,6 +889,9 @@
                 </mxCell>
                 <mxCell id="538" value="Start orders engine" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
                     <mxGeometry x="226.34" y="232.5" width="80" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="730" value="&lt;font color=&quot;#66cc00&quot;&gt;Run reporter&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
+                    <mxGeometry x="656.9000000000001" y="232.5" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="444" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;fontColor=#00CC00;" parent="725" source="433" target="435" edge="1">
                     <mxGeometry relative="1" as="geometry">
@@ -1143,6 +1152,9 @@
                 <mxCell id="710" value="Run order-engine" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="571" vertex="1">
                     <mxGeometry x="27.5" y="40" width="80" height="60" as="geometry"/>
                 </mxCell>
+                <mxCell id="732" value="&lt;font color=&quot;#66cc00&quot;&gt;fetch open positions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="571" vertex="1">
+                    <mxGeometry x="216.25" y="40" width="80" height="60" as="geometry"/>
+                </mxCell>
                 <mxCell id="598" value="trading/strategy/risk_functions.py" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=12 12;" parent="725" vertex="1">
                     <mxGeometry x="350" y="1090" width="410" height="280" as="geometry">
                         <mxRectangle x="-740" y="-70" width="80" height="30" as="alternateBounds"/>
@@ -1299,6 +1311,12 @@
                 </mxCell>
                 <mxCell id="529" value="On call to calculate the allowed exposure:&lt;br&gt;It declares the remaining asset's volume that can be engaged in market (later this number gonna be compared to calculated position margin)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="725" vertex="1">
                     <mxGeometry x="2147.5" y="1555" width="180" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="733" value="&lt;font color=&quot;#66cc00&quot;&gt;fetch open orders&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="725" vertex="1">
+                    <mxGeometry x="1372.5" y="898.75" width="80" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="734" value="&lt;font color=&quot;#66cc00&quot;&gt;Check for [untracked open orders] and [untracked, unmanaged open positions] to handle them properly before starting to trade&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" vertex="1" parent="725">
+                    <mxGeometry x="1140" y="767.5" width="250" height="60" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
