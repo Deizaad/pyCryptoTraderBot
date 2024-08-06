@@ -1,12 +1,9 @@
-import os
 import sys
 import numpy as np
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
-load_dotenv('project_path.env')
-path = os.getenv('PYTHONPATH')
-if path:
-    sys.path.append(path)
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
 
 from Application.configs.config import Order  # noqa: E402
 
@@ -15,11 +12,6 @@ from Application.configs.config import Order  # noqa: E402
 
 
 class Nobitex:
-    class USER:
-        load_dotenv('.env')
-        noneTOKEN_str = "Token is not configured"
-        API_KEY = os.getenv('MAIN_TOKEN', noneTOKEN_str)    # DONE NO-001
-
     class URL:
         MAIN = 'https://api.nobitex.ir'
         TEST = 'https://testnetapi.nobitex.ir'
@@ -68,13 +60,10 @@ class Nobitex:
                 SPOT_RP: int = 600  # Rate period = 600 second
 
                 _conds = [Order.CATEGORY == 'futures',
-                         Order.CATEGORY == 'spot']
+                          Order.CATEGORY == 'spot']
                 _choices = [FUTURES,
-                           SPOT]
+                            SPOT]
                 endpoint = np.select(_conds, _choices)
 
     # class Symbol:
     #     USDTIRT = 'USDTIRT'
-
-if __name__ == '__main__':
-    print(Nobitex.USER.API_KEY)
