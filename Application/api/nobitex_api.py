@@ -6,6 +6,7 @@ import logging
 import asyncio
 import numpy as np
 import pandas as pd
+from typing import Any
 from dotenv import load_dotenv
 from pydispatch import dispatcher    # type: ignore
 from aiolimiter import AsyncLimiter
@@ -16,13 +17,18 @@ path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
+from Application.data.user import User    # noqa: E402
 from Application.api.utils import wait_time    # noqa: E402
 import Application.configs.admin_config as aconfig    # noqa: E402
 from Application.utils.event_channels import Event    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 from Application.data.exchange import Nobitex as nb    # noqa: E402
 # from Application.configs.config import MarketData as md    # noqa: E402
-from Application.data.data_tools import Tehran_timestamp, parse_positions, parse_wallets_to_df    # noqa: E402
+from Application.data.data_tools import parse_orders,\
+                                        parse_positions,\
+                                        Tehran_timestamp,\
+                                        parse_wallets_to_df    # noqa: E402
+
 
 
 # =================================================================================================
@@ -409,31 +415,31 @@ class Market:
 
 
 # =================================================================================================
-class Order:
+class Trade:
     def __init__(self, api_service: APIService):
         self.service = api_service
     # ____________________________________________________________________________ . . .
 
 
-    async def place(self,
-                    client: httpx.AsyncClient,
-                    type : str,
-                    execution : str,
-                    price : float,
-                    srcCurrency : str,
-                    dstCurrency : str,
-                    amount : float,
-                    *,
-                    timeout: float,
-                    try_interval: float,
-                    tries: int,
-                    token: str = nb.USER.API_KEY,
-                    url: str = nb.URL.MAIN,
-                    mode : str | None = None,
-                    stopPrice : float = np.nan,
-                    stopLimitPrice : float = np.nan,
-                    leverage : float = np.nan,
-                    clientOrderId : str = 'null'):
+    async def place_order(self,
+                          client: httpx.AsyncClient,
+                          type : str,
+                          execution : str,
+                          price : float,
+                          srcCurrency : str,
+                          dstCurrency : str,
+                          amount : float,
+                          *,
+                          timeout: float,
+                          try_interval: float,
+                          tries: int,
+                          token: str = User.MAIN_TOKEN,    # type: ignore
+                          url: str = nb.URL.MAIN,
+                          mode : str | None = None,
+                          stopPrice : float = np.nan,
+                          stopLimitPrice : float = np.nan,
+                          leverage : float = np.nan,
+                          clientOrderId : str = 'null'):
         """
         Parameters:
             type (str): Trade direction.
@@ -517,64 +523,83 @@ class Order:
     # ____________________________________________________________________________ . . .
 
 
+    async def fetch_orders(self,
+                           client       : httpx.AsyncClient,
+                           token        : str,
+                           page         : int,
+                           status       : str = 'all',
+                           src_currency : str | None = None,
+                           dst_currency : str | None = None):
+        """
+        Fetches list of user's orders.
+
+        Parameters:
+            client (httpx.AsyncClient): HTTP client.
+            token (str): User's API token.
+            page (int): To request a specific page of responses in case "hasNext" flag is "True".
+            status (str): The status of orders. Expects eather "all" | "open" | "done" | "close".
+            src_currency (str): Source currency.
+            dst_currency (str): Destination currency is eather "rls" | "usdt".
+
+        Returns: A dictionary containing 3 elements: -request status, -orders, and -hasNext flag
+        """
+        payload: dict[str, str] = {'status'  : status,
+                                   'details' : '2',
+                                   'page'    : str(page),
+                                   'pageSize': '100'}
+        
+        if src_currency and dst_currency:
+            payload['dstCurrency'] = dst_currency
+            payload['srcCurrency'] = src_currency
+
+        headers = {'Authorization': 'Token ' + token}
+
+        data = await self.service.get(client         = client,
+                                      url            = nb.URL.TEST,
+                                      endpoint       = nb.Endpoint.ORDERS,
+                                      timeout        = aconfig.Trade.Fetch.Orders.TIMEOUT,
+                                      tries_interval = nb.Endpoint.ORDERS_MI,
+                                      tries          = aconfig.Trade.Fetch.Orders.TRIES,
+                                      data           = payload,
+                                      headers        = headers)
+
+        return data
+    # ____________________________________________________________________________ . . .
+
+
     async def fetch_positions(self,
                               client     : httpx.AsyncClient,
                               token      : str,
-                              environment: str,
                               status     : str,
+                              page       : int,
                               srcCurrency: str | None = None,
-                              dstCurrency: str | None = None,
-                              page       : int | None = None):
+                              dstCurrency: str | None = None):
         """
         Fetch list of user's positions.
 
         Parameters:
             client (httpx.AsyncClient): HTTP client.
             token (str): User API token.
-            environment (str): The environment of market. Eather "spot" or "futures".
-            status (str): The status of positions. For "spot" market expects eather "all" | "open" | "done" | "close". For "futures" market expects eather "active" | "past".
+            status (str): The status of positions. Expects eather "active" | "past".
+            page (int): To request a specific page of responses in case "hasNext" flag is "True".
             srcCurrency (str): Source currency.
             dstCurrency (str): Destination currency is eather "rls" | "usdt".
-            page (int): Requests specific page of response in case "hasNext" flag is "True".
 
-        Raises:
-            ValueError()
-
-        Returns: A dictionary containing 3 elements: -request status, -positions, and -hasNext bool
+        Returns: A dictionary containing 3 elements: -request status, -positions, and -hasNext flag
         """
-        if (environment != 'spot') and (environment != 'futures'):
-            raise ValueError(f'Wrong environment "{environment}" is provided. It most be eather'\
-                             '"spot" or "futures".')
-        
-        elif environment == 'spot':
-            # 'status' = 'all' | 'open' | 'close' | 'done'
-            payload: dict[str, str] = {'status'  : status,
-                                       'details' : '2',
-                                       'page'    : str(page),
-                                       'pageSize': '100'}
-
-            endpoint: str = nb.Endpoint.ORDERS
-            tries_interval: float = nb.Endpoint.ORDERS_MI
-
-        elif environment == 'futures':
-            # 'status' = 'active' | 'past'
-            payload = {'status': status, 'page': str(page), 'pageSize': '100'}
-            endpoint = nb.Endpoint.POSITIONS
-            tries_interval = nb.Endpoint.POSITIONS_MI
-
+        payload = {'status': status, 'page': str(page), 'pageSize': '100'}
         if srcCurrency and dstCurrency:
             payload['dstCurrency'] = dstCurrency
             payload['srcCurrency'] = srcCurrency
 
-
         headers = {'Authorization': 'Token ' + token}
 
         data = await self.service.get(client         = client,
-                                      url            = nb.URL.MAIN,
-                                      endpoint       = endpoint,
-                                      timeout        = aconfig.Order.Positions.TIMEOUT,
-                                      tries_interval = tries_interval,
-                                      tries          = aconfig.Order.Positions.TRIES,
+                                      url            = nb.URL.TEST,
+                                      endpoint       = nb.Endpoint.POSITIONS,
+                                      timeout        = aconfig.Trade.Fetch.Positions.TIMEOUT,
+                                      tries_interval = nb.Endpoint.POSITIONS_MI,
+                                      tries          = aconfig.Trade.Fetch.Positions.TRIES,
                                       data           = payload,
                                       headers        = headers)
 
@@ -585,7 +610,6 @@ class Order:
     async def fetch_open_positions(self,
                                    client      : httpx.AsyncClient,
                                    token       : str,
-                                   environment : str,
                                    req_interval: float,
                                    max_rate    : int,
                                    rate_period : int):
@@ -595,27 +619,17 @@ class Order:
         Parameters:
             client (httpx.AsyncClient): HTTP client.
             token (str): Client's API token.
-            environment (str): Market environment. Most be eather "spot" or "futures".
             req_interval (float): Interval between requests in seconds.
             max_rate (int): Maximum number of requests.
             rate_period (int): Period in seconds for rate limiting.
 
-        Raises:
-            ValueError
-
         Yields:
             pd.DataFrame: A dataframe containing positions data.
         """
-        if environment not in ['spot', 'futures']:
-            raise ValueError(f'Wrong environment "{environment}" is provided. It most be eather'\
-                             '"spot" or "futures".')
-
+        last_fetch_time: float = 0.0
         params: dict = {'client'     : client,
                         'token'      : token,
-                        'environment': environment,
-                        'status'     : 'active' if environment=='futures' else 'open'}
-
-        last_fetch_time: float = 0.0
+                        'status'     : 'active'}
 
         async with client:
             limiter = AsyncLimiter(max_rate, rate_period)
@@ -624,10 +638,9 @@ class Order:
                 wait = wait_time(req_interval, time.time(), last_fetch_time)
                 await asyncio.sleep(wait) if (wait > 0) else None
 
-                data = await self.fetch_positions(**params)
+                data = await self.fetch_positions(**params, page=1)
 
                 last_fetch_time = time.time()
-
                 positions_df = parse_positions(data)
                 has_next: bool = data['hasNext']
                 page: int = 2
@@ -758,38 +771,50 @@ class Transaction:
 
 async def oredr_test():
     service = APIService()
-    order = Order(service)
+    trade = Trade(service)
 
-    async with httpx.AsyncClient() as client:
-        response = await order.place(client,
-                                     'sell',
-                                     'limit',
-                                     38800,
-                                     'btc',
-                                     'usdt',
-                                     0.0016,
-                                     timeout=3,
-                                     try_interval=nb.Endpoint.Order.Place.FUTURES_MI,
-                                     tries=1)
-        
-        print(response)
+    response = await trade.place_order(httpx.AsyncClient(),
+                                       'sell',
+                                       'limit',
+                                       38800,
+                                       'btc',
+                                       'usdt',
+                                       0.0016,
+                                       timeout=3,
+                                       try_interval=nb.Endpoint.Order.Place.FUTURES_MI,
+                                       tries=1)
+
+    print(response)
+
+async def fetch_orders_test():
+    service = APIService()
+    trade   = Trade(service)
+
+    response = await trade.fetch_orders(client = httpx.AsyncClient(),
+                                        token  = User.TEST_TOKEN,     # type: ignore
+                                        page   = 1,
+                                        status = 'all')
+
+    print(response)
+
+    orders_df = parse_orders(response)
+    print(orders_df)
 
 async def fetch_positions_test():
     service = APIService()
-    order   = Order(service)
+    trade   = Trade(service)
 
-    async with httpx.AsyncClient() as client:
-        response = await order.fetch_positions(client      = client,
-                                               token       = nb.USER.API_KEY,
-                                               environment = 'futures',
-                                               status      = 'active')
-        print(response)
+    response = await trade.fetch_positions(client      = httpx.AsyncClient(),
+                                           token       = User.TEST_TOKEN,    # type: ignore
+                                           status      = 'active',
+                                           page        = 1)
+    print(response)
 
 async def fetch_wallets_test():
     account = Account()
 
     response = await account.wallets(client      = httpx.AsyncClient(),
-                                     token       = nb.USER.API_KEY,
+                                     token       = User.TEST_TOKEN,    # type: ignore
                                      environment = 'margin',
                                      drop_void   = True)
 
@@ -799,16 +824,17 @@ async def fetch_balance_test():
     account = Account()
 
     response = await account.balance(client   = httpx.AsyncClient(),
-                                     token    = nb.USER.API_KEY,
+                                     token    = User.TEST_TOKEN,    # type: ignore
                                      currency = 'rls')
 
     print(response)
 
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
+    asyncio.run(fetch_orders_test())
     # asyncio.run(fetch_positions_test())
-    asyncio.run(fetch_wallets_test())
-    asyncio.run(fetch_balance_test())
+    # asyncio.run(fetch_wallets_test())
+    # asyncio.run(fetch_balance_test())
 
     # market = Market(APIService(), httpx.AsyncClient())
     # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,
