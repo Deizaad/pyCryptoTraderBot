@@ -6,7 +6,6 @@ import logging
 import asyncio
 import numpy as np
 import pandas as pd
-from typing import Any
 from dotenv import load_dotenv
 from pydispatch import dispatcher    # type: ignore
 from aiolimiter import AsyncLimiter
@@ -526,7 +525,10 @@ class Trade:
     async def fetch_orders(self,
                            client       : httpx.AsyncClient,
                            token        : str,
-                           page         : int,
+                           *,
+                           req_interval: float,
+                           max_rate    : int,
+                           rate_period : int,
                            status       : str = 'all',
                            src_currency : str | None = None,
                            dst_currency : str | None = None):
@@ -536,34 +538,69 @@ class Trade:
         Parameters:
             client (httpx.AsyncClient): HTTP client.
             token (str): User's API token.
-            page (int): To request a specific page of responses in case "hasNext" flag is "True".
+            req_interval (float): Interval between requests in seconds.
+            max_rate (int): Maximum number of requests.
+            rate_period (int): Period in seconds for rate limiting.
             status (str): The status of orders. Expects eather "all" | "open" | "done" | "close".
             src_currency (str): Source currency.
             dst_currency (str): Destination currency is eather "rls" | "usdt".
 
-        Returns: A dictionary containing 3 elements: -request status, -orders, and -hasNext flag
+        Yields: A DataFrame containing orders data.
         """
+        last_fetch_time: float = 0.0
+
+        headers = {'Authorization': 'Token ' + token}
         payload: dict[str, str] = {'status'  : status,
                                    'details' : '2',
-                                   'page'    : str(page),
+                                   'page'    : str(1),
                                    'pageSize': '100'}
-        
+
         if src_currency and dst_currency:
             payload['dstCurrency'] = dst_currency
             payload['srcCurrency'] = src_currency
 
-        headers = {'Authorization': 'Token ' + token}
+        params: dict = {'url'            : nb.URL.TEST,
+                        'endpoint'       : nb.Endpoint.ORDERS,
+                        'timeout'        : aconfig.Trade.Fetch.Orders.TIMEOUT,
+                        'tries_interval' : nb.Endpoint.ORDERS_MI,
+                        'tries'          : aconfig.Trade.Fetch.Orders.TRIES,
+                        'data'           : payload,
+                        'headers'        : headers}
 
-        data = await self.service.get(client         = client,
-                                      url            = nb.URL.TEST,
-                                      endpoint       = nb.Endpoint.ORDERS,
-                                      timeout        = aconfig.Trade.Fetch.Orders.TIMEOUT,
-                                      tries_interval = nb.Endpoint.ORDERS_MI,
-                                      tries          = aconfig.Trade.Fetch.Orders.TRIES,
-                                      data           = payload,
-                                      headers        = headers)
+        async with client:
+            limiter = AsyncLimiter(max_rate, rate_period)
+            while True:
+                await limiter.acquire()
+                wait = wait_time(req_interval, time.time(), last_fetch_time)
+                await asyncio.sleep(wait) if (wait > 0) else None
 
-        return data
+                data = await self.service.get(**params, client=client)
+
+                last_fetch_time = time.time()
+                orders_df = parse_orders(data)
+                has_next: bool = data['hasNext']
+                payload['page']= str(2)
+
+                while has_next:
+                    await limiter.acquire()
+                    wait = wait_time(req_interval, time.time(), last_fetch_time)
+                    await asyncio.sleep(wait) if (wait > 0) else None
+
+                    new_data = await self.service.get(**params, client=client)
+
+                    last_fetch_time = time.time()
+                    has_next = new_data['hasNext']
+                    payload['page'] = str(int(payload['page']) + 1)
+
+                    new_orders_df = parse_orders(new_data)
+                    orders_df = pd.concat([orders_df, new_orders_df])
+                
+                yield orders_df
+    # ____________________________________________________________________________ . . .
+
+
+    async def fetch_nofile_orders(self):
+        pass
     # ____________________________________________________________________________ . . .
 
 
@@ -627,9 +664,9 @@ class Trade:
             pd.DataFrame: A dataframe containing positions data.
         """
         last_fetch_time: float = 0.0
-        params: dict = {'client'     : client,
-                        'token'      : token,
-                        'status'     : 'active'}
+        params: dict = {'client': client,
+                        'token' : token,
+                        'status': 'active'}
 
         async with client:
             limiter = AsyncLimiter(max_rate, rate_period)
@@ -792,7 +829,6 @@ async def fetch_orders_test():
 
     response = await trade.fetch_orders(client = httpx.AsyncClient(),
                                         token  = User.TEST_TOKEN,     # type: ignore
-                                        page   = 1,
                                         status = 'all')
 
     print(response)
