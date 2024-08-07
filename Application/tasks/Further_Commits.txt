@@ -154,3 +154,11 @@ asyncio.run(data_manager.initiate_kline_df())
 * Configure the production Dockerfile to use anothr user other than root.
 
 * for production use .lock file instead of poetry.pyproject to install dependencies with the version that was working on development.
+
+* Modify Jarchi to be able to accept the supplies when registering events optionally (not mandatory)
+
+* Modify Jarchi to also raise exception for when user passes a supply that hasn't been registered along with the event.
+
+* Confirm the implementation of trade_engine.fetch_gadabouts() function for the part that it: "# In case of remaining positions, check whether available orders are valid for them or not" (Validating the position size coverage)
+
+* Move the Implementation of fetch_gadabouts() function from disaster actions to data_processor
