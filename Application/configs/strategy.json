@@ -1,19 +1,32 @@
 {
     "active_times": 247,
 
-    "entry_signal_setup": {
-        "name": "supertrend_setupfunc",
-        "properties": {
-            "window": 14,
-            "factor": 3
+    "entry_signal_setups": [
+        {
+            "name": "supertrend_setupfunc",
+            "properties": {
+                "window": 14,
+                "factor": 3
+            }
         }
-    },
+    ],
     
-    "take_profit_setup":{
+    "take_profit_setups":[
+        
+    ],
 
-    },
+    "stop_loss_setups":[
 
-    "stop_loss_setup":{
+    ],
 
-    }
+    "recovery_mechanisms":[
+        {
+            "name": "close_all_positions",
+            "properties": {}
+        },
+        {
+            "name": "omit_all_orders",
+            "properties": {}
+        }
+    ]
 }
