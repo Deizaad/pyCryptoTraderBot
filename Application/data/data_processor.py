@@ -12,6 +12,7 @@ path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
+from Application.data.user import User    # noqa: E402
 from Application.configs import config    # noqa: E402
 from Application.utils.load_json import load    # noqa: E402
 from Application.data.exchange import Nobitex    # noqa: E402
@@ -23,8 +24,7 @@ from Application.api.api_service import APIService    # noqa: E402
 from Application.utils.botlogger import initialize_logger    # noqa: E402 # Developement-temporary
 from Application.data.data_tools import df_has_news,\
                                         update_dataframe,\
-                                        parse_kline_to_df,\
-                                        broadcast_open_positions_event    # noqa: E402
+                                        parse_kline_to_df    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 from Application.trading.signals.signal_supervisor import SignalChief    # noqa: E402
 from Application.trading.analysis.indicator_supervisor import IndicatorChief    # noqa: E402
@@ -50,8 +50,7 @@ class DataProcessor:
     def __init__(self) -> None:
         self.jarchi = EventHandler()
         self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df', 'indicator_df'])
-        self.jarchi.register_event(Event.OPEN_POSITIONS_futures, ['futures_positions_df'])
-        self.jarchi.register_event(Event.OPEN_POSITIONS_spot, ['spot_positions_df'])
+        self.jarchi.register_event(Event.OPEN_POSITIONS_EXIST, ['positions_df'])
     # ____________________________________________________________________________ . . .
 
 
@@ -86,7 +85,7 @@ class DataProcessor:
             self.signal = SignalChief()
             signal_task = self._awake_signals(self.signal)
 
-            self.order = NB_API.Order(APIService())
+            self.trade = NB_API.Trade(APIService())
             positions_task = self._initiate_positions()
 
             await asyncio.gather(positions_task, kline_task, indicator_task, signal_task)
@@ -271,30 +270,20 @@ class DataProcessor:
         """
         logging.info('Initiating "positions_df" ...')
 
-        futures_coroutine = anext(self.order.fetch_open_positions(
+        self.positions_df = await anext(self.trade.fetch_open_positions(
             client       = httpx.AsyncClient(),
-            token        = Nobitex.USER.API_KEY,
-            environment  = 'futures',
+            token        = User.MAIN_TOKEN,    # type: ignore
             req_interval = Nobitex.Endpoint.POSITIONS_MI,
             max_rate     = Nobitex.Endpoint.POSITIONS_RL,
             rate_period  = Nobitex.Endpoint.POSITIONS_RP
         ))
 
-        spot_coroutine = anext(self.order.fetch_open_positions(
-            client       = httpx.AsyncClient(),
-            token        = Nobitex.USER.API_KEY,
-            environment  = 'spot',
-            req_interval = Nobitex.Endpoint.ORDERS_MI,
-            max_rate     = Nobitex.Endpoint.ORDERS_RL,
-            rate_period  = Nobitex.Endpoint.ORDERS_RP
-        ))
-
-        results = await asyncio.gather(futures_coroutine, spot_coroutine)
-        self.futures_positions_df, self.spot_positions_df = results
-
-        # broadcast OPEN_POSITION event in case there are any open positions
-        broadcast_open_positions_event(futures_poss_df=self.futures_positions_df,
-                                       spot_poss_df=self.spot_positions_df)
+        # broadcast OPEN_POSITIONS_EXIST event in case there are any open positions
+        if not self.positions_df.empty:
+            logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_EXIST}" event from '\
+                         '"DataProcessor._initiate_positions()" method.')
+            
+            self.jarchi.emit(event=Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
     # ____________________________________________________________________________ . . .
 
 
@@ -302,47 +291,22 @@ class DataProcessor:
         """
         Constantly updates positions dataframe with new data.
         """
-        async def futures_task():
-            async for new_futures_positions in self.order.fetch_open_positions(
-                client       = httpx.AsyncClient(),
-                token        = Nobitex.USER.API_KEY,
-                environment  = 'futures',
-                req_interval = Nobitex.Endpoint.POSITIONS_MI,
-                max_rate     = Nobitex.Endpoint.POSITIONS_RL,
-                rate_period  = Nobitex.Endpoint.POSITIONS_RP
+        async for new_positions in self.trade.fetch_open_positions(
+            client       = httpx.AsyncClient(),
+            token        = User.MAIN_TOKEN,    # type: ignore
+            req_interval = Nobitex.Endpoint.POSITIONS_MI,
+            max_rate     = Nobitex.Endpoint.POSITIONS_RL,
+            rate_period  = Nobitex.Endpoint.POSITIONS_RP
+        ):
+            if not new_positions.equals(self.positions_df) and df_has_news(
+                self.positions_df, new_positions
             ):
-                if not new_futures_positions.equals(
-                    self.futures_positions_df
-                ) and df_has_news(self.futures_positions_df, new_futures_positions):
-                    self.futures_positions_df = new_futures_positions
+                self.positions_df = new_positions
 
-                    logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_futures}" event from'\
-                                 'DataProcessor._live_positions() method.')
+                logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_EXIST}" event from'\
+                             '"DataProcessor._live_positions()" method.')
 
-                    self.jarchi.emit(Event.OPEN_POSITIONS_futures,
-                                     futures_positions_df=self.futures_positions_df)
-
-        async def spot_task():
-            async for new_spot_positions in self.order.fetch_open_positions(
-                client       = httpx.AsyncClient(),
-                token        = Nobitex.USER.API_KEY,
-                environment  = 'spot',
-                req_interval = Nobitex.Endpoint.ORDERS_MI,
-                max_rate     = Nobitex.Endpoint.ORDERS_RL,
-                rate_period  = Nobitex.Endpoint.ORDERS_RP
-            ):
-                if not new_spot_positions.equals(
-                    self.spot_positions_df
-                ) and df_has_news(self.spot_positions_df, new_spot_positions):
-                    self.spot_positions_df = new_spot_positions
-
-                    logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_spot}" event from'\
-                                 'DataProcessor._live_positions() method.')
-
-                    self.jarchi.emit(Event.OPEN_POSITIONS_spot,
-                                     spot_positions_df=self.spot_positions_df)
-        
-        asyncio.gather(futures_task(), spot_task())
+                self.jarchi.emit(Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
 # =================================================================================================
 
 
