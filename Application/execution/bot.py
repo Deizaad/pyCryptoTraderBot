@@ -1,5 +1,6 @@
 import sys
 import asyncio
+import logging
 import importlib
 from dotenv import dotenv_values
 
@@ -11,12 +12,27 @@ from Application.utils.botlogger import initialize_logger    # noqa: E402
 
 
 
-initialize_logger()
+async def main():
+    try:
+        initialize_logger()
+
+        # import the profile module:
+        prf_path = f'Application.execution.profiles.{Profile.MODE}'
+        prf_module = importlib.import_module(prf_path)
+
+        # run the profile:
+        await prf_module.run()
+
+    except RuntimeError as err:
+        logging.error(f'RuntimeError occurred in "bot.py" module: {err}')
+    except Exception as err:
+        logging.error(f'Exception occurred in "bot.py" module: {err}')
+# ________________________________________________________________________________ . . .
 
 
-# import the profile module:
-prf_path: str = f'Application.execution.profiles.{Profile.MODE}'
-prf_module = importlib.import_module(prf_path)
-
-# run the profile:
-asyncio.run(prf_module.run())
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+        asyncio.ensure_future(main())
+    else:
+        loop.run_until_complete(main())
