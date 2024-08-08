@@ -6,7 +6,6 @@ import asyncio
 import numpy as np
 import pandas as pd
 from dotenv import dotenv_values
-from pydispatch import dispatcher    # type: ignore
 from aiolimiter import AsyncLimiter
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
@@ -16,7 +15,6 @@ sys.path.append(path) if path else None
 from Application.data.user import User    # noqa: E402
 from Application.api.utils import wait_time    # noqa: E402
 import Application.configs.admin_config as aconfig    # noqa: E402
-from Application.utils.event_channels import Event    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 from Application.data.exchange import Nobitex as nb    # noqa: E402
 # from Application.configs.config import MarketData as md    # noqa: E402
@@ -289,123 +287,6 @@ class Market:
             last_timestamp  = int(last_timestamp)
 
         return last_timestamp
-    # ____________________________________________________________________________ . . .
-
-
-    async def live_kline(self,
-                         symbol: str,
-                         resolution: str,
-                         required_candles: int,
-                         timeout: float,
-                         tries_interval: float,
-                         tries: int,
-                         max_interval: float,
-                         max_rate: int,
-                         rate_period: int):
-        """
-        Continuously fetches kline data for the last given candles.
-
-        Parameters:
-            
-        Returns:
-        """
-        # Sender constant for PyDispatcher:
-        LIVE_KLINE = 'Live kline'
-
-        last_fetch_time: float = 0.0
-        wait: float = 0.0
-
-        async with  self.client:
-            async with AsyncLimiter(max_rate, rate_period):
-                while True:
-                    await asyncio.sleep(wait) if wait > 0 else None
-
-                    try:
-                        data = await self.kline(symbol, 
-                                                resolution, 
-                                                Tehran_timestamp(),
-                                                timeout,
-                                                tries_interval,
-                                                tries,
-                                                countback=required_candles)
-                        
-                        dispatcher.send(Event.SUCCESS_FETCH, LIVE_KLINE, kline=data)
-                    except httpx.RequestError as err:
-                        print(f"Request failed: {err}.")
-
-                    last_fetch_time = time.time()
-                    wait = wait_time(max_interval, time.time(), last_fetch_time)
-    # ____________________________________________________________________________ . . .
-
-
-    async def mock_kline(self,
-                         symbol: str,
-                         resolution: str,
-                         countback: int,
-                         max_retries,
-                         timeout: float,
-                         tries_interval: float,
-                         tries: int,
-                         max_interval: float,
-                         max_rate: int,
-                         rate_period: int = 60):
-        """
-        Continuously fetches kline data for the last given candles.
-
-        Parameters:
-            
-        Returns:
-        """
-        # Sender constant for PyDispatcher:
-        LIVE_KLINE = 'Live kline'
-
-        request_count = 0
-        start_time = time.time()
-
-        last_fetch_time: float = 0.0
-        wait: float = 0.0
-
-        async with  self.client:
-            async with AsyncLimiter(max_rate, rate_period):
-                while True:
-                    await asyncio.sleep(wait) if wait > 0 else None
-
-                    success = False
-                    retry_count = 0
-
-                    while not success and retry_count < max_retries:
-                        try:
-                            data = await self.kline(symbol,
-                                                    resolution,
-                                                    int(time.time()),
-                                                    timeout,
-                                                    tries_interval,
-                                                    tries,
-                                                    countback=countback)
-                            
-                            dispatcher.send(Event.SUCCESS_FETCH, LIVE_KLINE, kline=data)
-                            success = True
-                        except httpx.RequestError as err:
-                            retry_count += 1
-                            print(f"Request failed: {err}. Retrying {retry_count}/{max_retries}..")
-                            await asyncio.sleep(0.1)  # Short delay before retrying
-
-                    if not success:
-                        print("Max retries reached. Skipping this request.")
-                        continue
-
-                    last_fetch_time = time.time()
-                    wait = wait_time(max_interval, time.time(), last_fetch_time)
-
-                    request_count += 1
-                    elapsed_time = time.time() - start_time
-                    print(f"Request #{request_count} at {elapsed_time:.2f}s: {data}")
-
-                    if elapsed_time >= 60:
-                        print(f"Total requests in the last 60 seconds: {request_count}")
-                        await asyncio.sleep(3)
-                        start_time = time.time()
-                        request_count = 0
 # =================================================================================================
 
 
@@ -910,25 +791,3 @@ if __name__ == '__main__':
     # asyncio.run(fetch_wallets_test())
     # asyncio.run(fetch_balance_test())
     asyncio.run(cancel_all_orders_test())
-
-    # market = Market(APIService(), httpx.AsyncClient())
-    # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,
-    #                               md.OHLC.RESOLUTION,
-    #                               500,
-    #                               3,
-    #                               5.0,
-    #                               nb.Endpoint.OHLC_MI,
-    #                               3,
-    #                               nb.Endpoint.OHLC_MI,
-    #                               nb.Endpoint.OHLC_RL,
-    #                               nb.Endpoint.OHLC_RP))
-    
-    # asyncio.run(market.live_kline(symbol=md.OHLC.SYMBOL,
-    #                               resolution=md.OHLC.RESOLUTION,
-    #                               required_candles=md.OHLC.SIZE,
-    #                               timeout=5.0,
-    #                               tries_interval=nb.Endpoint.OHLC_MI,
-    #                               tries=3,
-    #                               max_interval=nb.Endpoint.OHLC_MI,
-    #                               max_rate=nb.Endpoint.OHLC_RL,
-    #                               rate_period=nb.Endpoint.OHLC_RP))
