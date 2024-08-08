@@ -1,4 +1,3 @@
-import os
 import sys
 import time
 import httpx
@@ -6,15 +5,13 @@ import logging
 import asyncio
 import numpy as np
 import pandas as pd
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 from pydispatch import dispatcher    # type: ignore
 from aiolimiter import AsyncLimiter
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
-load_dotenv('project_path.env')
-path = os.getenv('PYTHONPATH')
-if path:
-    sys.path.append(path)
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
 
 from Application.data.user import User    # noqa: E402
 from Application.api.utils import wait_time    # noqa: E402
@@ -705,12 +702,45 @@ class Trade:
     # ____________________________________________________________________________ . . .
 
 
-    async def cancel(self):
-        pass
+    async def cancel_all_orders(self,
+                                client       : httpx.AsyncClient,
+                                token        : str,
+                                execution    : str = 'market',
+                                environment  : str | None = None,
+                                src_currency : str | None = None,
+                                dst_currency : str | None = None):
+        """
+        
+        """
+        headers = {'Authorization': 'Token ' + token}
+        payload = {'execution': execution}
+
+        if src_currency and dst_currency:
+            payload['srcCurrency'] = src_currency
+            payload['dstCurrency'] = dst_currency
+        
+        if environment:
+            payload['tradeType'] = environment
+
+        response = await self.service.post(
+            client         = client,
+            url            = nb.URL.TEST,
+            endpoint       = nb.Endpoint.CANCEL_ORDERS,
+            timeout        = aconfig.Trade.Place.CancelOrders.TIMEOUT,
+            tries_interval = nb.Endpoint.CANCEL_ORDERS_MI,
+            tries          = aconfig.Trade.Place.CancelOrders.TRIES,
+            data           = payload,
+            headers        = headers
+        )
+
+        return response
     # ____________________________________________________________________________ . . .
 
 
-    async def close_all(self):
+    async def close_all_positions(self):
+        """
+        
+        """
         pass
 # =================================================================================================
 
@@ -827,14 +857,14 @@ async def fetch_orders_test():
     service = APIService()
     trade   = Trade(service)
 
-    response = await trade.fetch_orders(client = httpx.AsyncClient(),
+    data = await anext(trade.fetch_orders(client = httpx.AsyncClient(),
                                         token  = User.TEST_TOKEN,     # type: ignore
-                                        status = 'all')
+                                        req_interval = nb.Endpoint.ORDERS_MI,
+                                        max_rate = nb.Endpoint.ORDERS_RL,
+                                        rate_period=nb.Endpoint.ORDERS_RP,
+                                        status = 'all'))
 
-    print(response)
-
-    orders_df = parse_orders(response)
-    print(orders_df)
+    print(data)
 
 async def fetch_positions_test():
     service = APIService()
@@ -865,12 +895,21 @@ async def fetch_balance_test():
 
     print(response)
 
+async def cancel_all_orders_test():
+    trade = Trade(APIService())
+
+    response = await trade.cancel_all_orders(client      = httpx.AsyncClient(),
+                                             token       = User.TEST_TOKEN)
+
+    print(response)
+
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
-    asyncio.run(fetch_orders_test())
+    # asyncio.run(fetch_orders_test())
     # asyncio.run(fetch_positions_test())
     # asyncio.run(fetch_wallets_test())
     # asyncio.run(fetch_balance_test())
+    asyncio.run(cancel_all_orders_test())
 
     # market = Market(APIService(), httpx.AsyncClient())
     # asyncio.run(market.mock_kline(md.OHLC.SYMBOL,

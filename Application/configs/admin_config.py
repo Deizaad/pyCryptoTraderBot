@@ -13,7 +13,9 @@ class Trade:
             TIMEOUT=4.0
     
     class Place:
-        pass
+        class CancelOrders:
+            TRIES=3
+            TIMEOUT=3.5
 
 class Account:
     class Wallets:

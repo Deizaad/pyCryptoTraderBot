@@ -47,6 +47,11 @@ class Nobitex:
         BALANCE_RL: int = 60
         BALANCE_RP: int = 120
 
+        CANCEL_ORDERS: str = '/market/orders/cancel-old'
+        CANCEL_ORDERS_MI: float = 6.0
+        CANCEL_ORDERS_RL: int = 10
+        CANCEL_ORDERS_RP: int = 60
+
         class Order:
             class Place:
                 FUTURES = '/margin/orders/add'
