@@ -10,5 +10,8 @@ from Application.execution.actions.disaster_actions import recovery_mechanism   
 
 # =================================================================================================
 async def start_trade_engine():
+    """
+    
+    """
     await recovery_mechanism()
 # =================================================================================================
