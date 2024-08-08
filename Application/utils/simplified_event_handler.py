@@ -77,7 +77,7 @@ class EventHandler:
     # ____________________________________________________________________________ . . .
 
     
-    def emit(self, event: str, **kwargs):
+    async def emit(self, event: str, **kwargs):
         """
         Broadcasting an event channel for all it's listeners to be executed asynchronously.
 
@@ -99,7 +99,8 @@ class EventHandler:
         # Check if the event loop is already running
         if loop.is_running():
             # Use asyncio.gather to run tasks if the loop is already running
-            asyncio.ensure_future(asyncio.gather(*tasks))
+            await asyncio.gather(*tasks)
+
         else:
             loop.run_until_complete(asyncio.gather(*tasks))
     # ____________________________________________________________________________ . . .
@@ -119,7 +120,7 @@ class EventHandler:
     # ____________________________________________________________________________ . . .
 
 
-    def bulk_emit(self, *events: Tuple[str, Dict[str, Any]]):
+    async def bulk_emit(self, *events: Tuple[str, Dict[str, Any]]):
         """
         Broadcasting multiple event channels for all their listeners to be executed asynchronously
 
@@ -128,7 +129,10 @@ class EventHandler:
                 Variable length tuple where each item is a tuple containing:
                 - event (str): The event channel name.
                 - kwargs (dict): Keyword arguments to pass to the listener.
-        """        
+        """
+        tasks = []
+        loop = asyncio.get_event_loop()
+
         for event, kwargs in events:
             if event not in self._event_supplies:
                 raise ValueError(f'Event {event} is not registered.')
@@ -138,13 +142,11 @@ class EventHandler:
                 if supply not in kwargs:
                     raise ValueError(f'Missing supply parameter "{supply}" for event "{event}".')
             
-            tasks = [
-                self.__invoke_listener(listener, **kwargs) for listener in self._listeners[event]
-            ]
-            loop = asyncio.get_event_loop()
+            tasks.extend([self.__invoke_listener(listener, **kwargs)
+                          for listener in self._listeners[event]])
 
         if loop.is_running():
-            asyncio.ensure_future(asyncio.gather(*tasks))
+            asyncio.gather(*tasks)
         else:
             loop.run_until_complete(asyncio.gather(*tasks))
 # =================================================================================================

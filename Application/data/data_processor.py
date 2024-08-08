@@ -21,16 +21,12 @@ from Application.utils.event_channels import Event    # noqa: E402
 import Application.configs.admin_config as Aconfig    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 # from Application.data.validator import is_consistent    # noqa: E402
-from Application.utils.botlogger import initialize_logger    # noqa: E402 # Developement-temporary
 from Application.data.data_tools import df_has_news,\
                                         update_dataframe,\
                                         parse_kline_to_df    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 from Application.trading.signals.signal_supervisor import SignalChief    # noqa: E402
 from Application.trading.analysis.indicator_supervisor import IndicatorChief    # noqa: E402
-
-
-initialize_logger()    # Developement-temporary
 
 
 
@@ -58,8 +54,7 @@ class DataProcessor:
         self.kline_df     = pd.DataFrame()
         self.indicator_df = pd.DataFrame()
         self.signal_df    = pd.DataFrame()
-        self.futures_positions_df = pd.DataFrame()
-        self.spot_positions_df    = pd.DataFrame()
+        self.positions_df = pd.DataFrame()
         
         logging.info('DataProcessor initialized data with empty DataFrames!')
     # ____________________________________________________________________________ . . .
@@ -155,7 +150,7 @@ class DataProcessor:
             func_name=self._initiate_kline.__qualname__
             event_channel=Event.NEW_KLINE_DATA
             logging.info(f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...')
-            self.jarchi.emit(Event.NEW_KLINE_DATA,
+            await self.jarchi.emit(Event.NEW_KLINE_DATA,
                              kline_df=self.kline_df,
                              indicator_df=self.indicator_df)
         # ________________________________________________________________________ . . .
@@ -194,7 +189,7 @@ class DataProcessor:
                     f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...'
                 )
 
-                self.jarchi.emit(Event.NEW_KLINE_DATA,
+                await self.jarchi.emit(Event.NEW_KLINE_DATA,
                                  kline_df=self.kline_df,
                                  indicator_df=self.indicator_df)
 
@@ -228,7 +223,7 @@ class DataProcessor:
                     func_name=self._live_kline.__qualname__
                     event_channel=Event.NEW_KLINE_DATA
                     logging.info(f'Sending "{event_channel}" event from "{func_name}" ...')
-                    self.jarchi.emit(Event.NEW_KLINE_DATA,
+                    await self.jarchi.emit(Event.NEW_KLINE_DATA,
                                      kline_df=self.kline_df,
                                      indicator_df=self.indicator_df)
 
@@ -301,7 +296,7 @@ class DataProcessor:
             logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_EXIST}" event from '\
                          '"DataProcessor._initiate_positions()" method.')
             
-            self.jarchi.emit(event=Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
+            await self.jarchi.emit(event=Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
     # ____________________________________________________________________________ . . .
 
 
@@ -324,7 +319,7 @@ class DataProcessor:
                 logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_EXIST}" event from'\
                              '"DataProcessor._live_positions()" method.')
 
-                self.jarchi.emit(Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
+                await self.jarchi.emit(Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
 # =================================================================================================
 
 

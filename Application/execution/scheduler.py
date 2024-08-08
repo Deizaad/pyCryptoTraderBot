@@ -21,7 +21,7 @@ def register_activity_events():
 # ________________________________________________________________________________ . . .
 
 
-def watch_transitions():
+async def watch_transitions():
     """
     
     """
@@ -32,7 +32,7 @@ def watch_transitions():
         logging.info(f'Broadcasting "{Event.START_ACTIVITY}" event from'\
                      ' scheduler.watch_transitions() function')
 
-        jarchi.emit(Event.START_ACTIVITY)
+        await jarchi.emit(Event.START_ACTIVITY)
     else:
         raise NotImplementedError('There is no code implementation for handling of active times'\
                                   'other than the 247')
