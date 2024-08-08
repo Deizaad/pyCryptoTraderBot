@@ -35,13 +35,12 @@ async def recovery_mechanism() -> None:
                 mechanism['name']))
             
         # Execute functions synchronously
-        for func in funcs_set:
-            await func()
+        # for func in funcs_set:
+        #     await func()
 
         # Execute functions asynchronously
-        # coroutines: list = [func() for func in funcs_set]
-        # print(coroutines)
-        # await asyncio.gather(*coroutines)
+        coroutines: list = [func() for func in funcs_set]
+        await asyncio.gather(*coroutines)
 
     except asyncio.CancelledError as err:
         logging.error('asyncio.CancelledError occurred inside recovery_mechanism() function: ',err)
