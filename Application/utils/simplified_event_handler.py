@@ -38,11 +38,11 @@ class EventHandler:
             event (str): The event channel name.
         """
         if event not in self._event_supplies:
-            raise ValueError(f"""Event "{event}" is not registered. Register the event before 
-                             attaching listeners""")
+            raise ValueError(f'Event "{event}" is not registered. Register the event before '\
+                             'attaching listeners')
         
         self._listeners[event].append(listener)
-        logging.info(f'Listener \'{listener.__name__}\' attached to event chanel \'{event}\'.')
+        logging.info(f'Listener \'{listener.__name__}\' attached to event channel \'{event}\'.')
     # ____________________________________________________________________________ . . .
     
     
@@ -60,7 +60,7 @@ class EventHandler:
             if not self._listeners[event]:
                 del self._listeners[event]
 
-        logging.info(f'Listener \'{listener.__name__}\' detached from event chanel \'{event}\'.')
+        logging.info(f'Listener \'{listener.__name__}\' detached from event channel \'{event}\'.')
     # ____________________________________________________________________________ . . .
 
 
@@ -73,6 +73,7 @@ class EventHandler:
             event_supplies (List[str]): The list of supply parameters for event channel.
         """
         self._event_supplies[event] = event_supplies
+        logging.info(f'Event "{event}" has been registered with "{event_supplies}" as supplies.')
     # ____________________________________________________________________________ . . .
 
     
@@ -92,8 +93,8 @@ class EventHandler:
             if supply not in kwargs:
                 raise ValueError(f'Missing supply parameter "{supply}" for event "{event}".')
 
-        loop = asyncio.get_event_loop()
         tasks = [self.__invoke_listener(listener, **kwargs) for listener in self._listeners[event]]
+        loop = asyncio.get_event_loop()
 
         # Check if the event loop is already running
         if loop.is_running():
@@ -104,7 +105,7 @@ class EventHandler:
     # ____________________________________________________________________________ . . .
 
 
-    def __invoke_listener(self, listener: Listener, **kwargs):
+    async def __invoke_listener(self, listener: Listener, **kwargs):
         # Get the signature of listener
         signature = inspect.signature(listener)
         
@@ -112,9 +113,9 @@ class EventHandler:
         listener_kwargs = {k: v for k, v in kwargs.items() if k in signature.parameters}
 
         if inspect.iscoroutinefunction(listener):
-            return listener(**listener_kwargs)
+            return await listener(**listener_kwargs)
         else:
-            return asyncio.to_thread(listener, **listener_kwargs)
+            return await asyncio.to_thread(listener, **listener_kwargs)
     # ____________________________________________________________________________ . . .
 
 
@@ -137,10 +138,10 @@ class EventHandler:
                 if supply not in kwargs:
                     raise ValueError(f'Missing supply parameter "{supply}" for event "{event}".')
             
-            loop = asyncio.get_event_loop()
             tasks = [
                 self.__invoke_listener(listener, **kwargs) for listener in self._listeners[event]
             ]
+            loop = asyncio.get_event_loop()
 
         if loop.is_running():
             asyncio.ensure_future(asyncio.gather(*tasks))
