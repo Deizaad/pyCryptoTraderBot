@@ -86,9 +86,9 @@ class DataProcessor:
             signal_task = self._awake_signals(self.signal)
 
             self.trade = NB_API.Trade(APIService())
-            positions_task = self._initiate_positions()
+            # positions_task = self._initiate_positions()
 
-            await asyncio.gather(positions_task, kline_task, indicator_task, signal_task)
+            await asyncio.gather( kline_task, indicator_task, signal_task)# include positions_task to first
 
         except Exception as err:
             logging.error(f'Error while initiating data: {err}')
@@ -98,14 +98,29 @@ class DataProcessor:
     async def live(self):
         try:
             kline_coroutine     = self._live_kline()
-            positions_coroutine = self._live_positions()
+            # positions_coroutine = self._live_positions()
 
-            await asyncio.gather(positions_coroutine, kline_coroutine)
+            await asyncio.gather( kline_coroutine)# include positions_coroutine to first
         except Exception as err:
             logging.error(f'Error in live data processing: {err}')
     # ____________________________________________________________________________ . . .
 
 
+
+
+
+    async def start_fetching_kline(self):
+        self.market = NB_API.Market(APIService(), AsyncClient())
+        await self._initiate_kline(self.market,
+                                   config.MarketData.OHLC.SYMBOL,
+                                   config.MarketData.OHLC.RESOLUTION,
+                                   config.MarketData.OHLC.SIZE,
+                                   Aconfig.OHLC.TIMEOUT,
+                                   Nobitex.Endpoint.OHLC_MI,
+                                   Aconfig.OHLC.TRIES)
+
+        await self._live_kline()
+    # ____________________________________________________________________________ . . .
 
 
     async def _initiate_kline(self,
@@ -216,10 +231,11 @@ class DataProcessor:
                     self.jarchi.emit(Event.NEW_KLINE_DATA,
                                      kline_df=self.kline_df,
                                      indicator_df=self.indicator_df)
-                    
+
         except Exception as err:
             logging.error(f'Error during live kline fetching: {err}')
     # ____________________________________________________________________________ . . .
+
 
 
 
@@ -243,6 +259,7 @@ class DataProcessor:
 
 
 
+
     async def _awake_signals(self, signal_chief: SignalChief):
         signal_chief.declare_setups('Application.trading.signals.setup_functions',
                                     load(r'Application/configs/signal_config.json'))
@@ -260,6 +277,7 @@ class DataProcessor:
         except Exception as err:
             logging.error(f'Inside "_generate_signal()" method of DataProcessor: {err}')
     # ____________________________________________________________________________ . . .
+
 
 
 
@@ -313,8 +331,9 @@ class DataProcessor:
 
 async def main():
     data = DataProcessor()
-    await data.initiate()
-    await data.live()
+    # await data.initiate()
+    # await data.live()
+    await data.start_fetching_kline()
 
 if __name__ == "__main__":
     try:
