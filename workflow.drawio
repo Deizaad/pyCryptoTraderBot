@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="2hrEDhwtY0BgSdLxk32c" name="Page-1">
-        <mxGraphModel dx="5509" dy="1119" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="6021" dy="1599" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -785,10 +785,10 @@
                 <mxCell id="591" value="&lt;font color=&quot;#66cc00&quot;&gt;Run trade engine&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="393" vertex="1">
                     <mxGeometry x="121" y="45" width="80" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="737" value="&lt;font color=&quot;#66cc00&quot;&gt;Start pinging the exchange&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" vertex="1" parent="393">
+                <mxCell id="737" value="&lt;font color=&quot;#66cc00&quot;&gt;Start pinging the exchange&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="393" vertex="1">
                     <mxGeometry x="319" y="45" width="80" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="748" value="&lt;font color=&quot;#66cc00&quot;&gt;Start data processor&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" vertex="1" parent="393">
+                <mxCell id="748" value="&lt;font color=&quot;#66cc00&quot;&gt;Start data processor&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="393" vertex="1">
                     <mxGeometry x="417.5" y="45" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="412" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;fontColor=#00CC00;" parent="725" source="383" target="393" edge="1">
@@ -833,7 +833,7 @@
                 <mxCell id="541" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="435" source="441" target="501" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="441" value="&lt;font color=&quot;#66cc00&quot;&gt;Attach listener functions to start of active time event&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
+                <mxCell id="441" value="&lt;font color=&quot;#66cc00&quot;&gt;Attach listener functions to start of active time event&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="435" vertex="1">
                     <mxGeometry x="139.92000000000002" y="132.5" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="731" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="435" source="442" target="730" edge="1">
@@ -855,13 +855,13 @@
                 <mxCell id="519" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="435" source="443" target="487" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="443" value="&lt;font color=&quot;#66cc00&quot;&gt;register events&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
+                <mxCell id="443" value="&lt;font color=&quot;#66cc00&quot;&gt;register events&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="435" vertex="1">
                     <mxGeometry x="350" y="35" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="521" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;curved=1;dashed=1;fillColor=#1ba1e2;strokeColor=#006EAF;" parent="435" source="445" target="484" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="445" value="&lt;font color=&quot;#66cc00&quot;&gt;Start fetching live market data&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
+                <mxCell id="445" value="&lt;font color=&quot;#66cc00&quot;&gt;Start fetching live market data&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="435" vertex="1">
                     <mxGeometry x="94.05" y="232.5" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="446" value="&lt;font color=&quot;#66cc00&quot;&gt;start fetching market data&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
@@ -884,7 +884,7 @@
                 <mxCell id="486" value="&lt;font color=&quot;#66cc00&quot;&gt;run market-validator&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
                     <mxGeometry x="323.76" y="232.5" width="80" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="501" value="Start trade engine" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="435" vertex="1">
+                <mxCell id="501" value="Start trade engine" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="435" vertex="1">
                     <mxGeometry x="185.8" y="232.5" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="489" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="435" source="484" target="486" edge="1">
@@ -1102,13 +1102,13 @@
                 <mxCell id="710" value="Run order-engine" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="571" vertex="1">
                     <mxGeometry x="65" y="40" width="80" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="741" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="571" source="738" target="740">
+                <mxCell id="741" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="571" source="738" target="740" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="738" value="&lt;font color=&quot;#66cc00&quot;&gt;Run recovery mechanism&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" vertex="1" parent="571">
+                <mxCell id="738" value="&lt;font color=&quot;#66cc00&quot;&gt;Run recovery mechanism&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="571" vertex="1">
                     <mxGeometry x="170" y="40" width="80" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="740" value="&lt;font color=&quot;#66cc00&quot;&gt;Attach the signal engine to&amp;nbsp;&lt;/font&gt;&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;&quot;no gadabouts&quot; event&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" vertex="1" parent="571">
+                <mxCell id="740" value="&lt;font color=&quot;#66cc00&quot;&gt;Attach the signal engine to&amp;nbsp;&lt;/font&gt;&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;&quot;no gadabouts&quot; event&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="571" vertex="1">
                     <mxGeometry x="163.33" y="130" width="93.33" height="70" as="geometry"/>
                 </mxCell>
                 <mxCell id="598" value="trading/strategy/risk_functions.py" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=12 12;" parent="725" vertex="1">
@@ -1268,12 +1268,12 @@
                 <mxCell id="529" value="On call to calculate the allowed exposure:&lt;br&gt;It declares the remaining asset's volume that can be engaged in market (later this number gonna be compared to calculated position margin)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="725" vertex="1">
                     <mxGeometry x="2147.5" y="1555" width="180" height="150" as="geometry"/>
                 </mxCell>
-                <mxCell id="742" value="disaster_actions.py -&amp;gt; recovery_mechanism" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=12 12;" vertex="1" parent="725">
+                <mxCell id="742" value="disaster_actions.py -&amp;gt; recovery_mechanism" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=12 12;" parent="725" vertex="1">
                     <mxGeometry x="1057.5" y="1160" width="315" height="230" as="geometry">
                         <mxRectangle x="-1050" y="500" width="80" height="30" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="747" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Check for [untracked open orders] and [untracked, unmanaged open positions] to handle them properly before starting to trade&lt;br&gt;&lt;/span&gt;" style="verticalLabelPosition=middle;verticalAlign=middle;html=1;shape=mxgraph.basic.diag_snip_rect;dx=6;whiteSpace=wrap;labelPosition=center;align=center;" vertex="1" parent="742">
+                <mxCell id="747" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Check for [untracked open orders] and [untracked, unmanaged open positions] to handle them properly before starting to trade&lt;br&gt;&lt;/span&gt;" style="verticalLabelPosition=middle;verticalAlign=middle;html=1;shape=mxgraph.basic.diag_snip_rect;dx=6;whiteSpace=wrap;labelPosition=center;align=center;" parent="742" vertex="1">
                     <mxGeometry x="61.5" y="70" width="192" height="60" as="geometry"/>
                 </mxCell>
             </root>
