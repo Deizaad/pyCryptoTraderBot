@@ -1,27 +1,30 @@
-import os
 import sys
 import logging
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
-load_dotenv('project_path.env')
-path = os.getenv('PYTHONPATH')
-if path:
-    sys.path.append(path)
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
 
 from Application.utils.load_json import load    # noqa: E402
 from Application.utils.event_channels import Event    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 
-
-
-# Register events
 jarchi = EventHandler()
-jarchi.register_event(Event.START_ACTIVITY, [])
-jarchi.register_event(Event.END_ACTIVITY, [])
 
+
+def register_activity_events():
+    """
+    
+    """
+    jarchi.register_event(Event.START_ACTIVITY, [])
+    jarchi.register_event(Event.END_ACTIVITY, [])
+# ________________________________________________________________________________ . . .
 
 
 def watch_transitions():
+    """
+    
+    """
     strategy_cfg = load(r'Application/configs/strategy.json')
     activity_setup = strategy_cfg['active_times']
 
@@ -33,3 +36,4 @@ def watch_transitions():
     else:
         raise NotImplementedError('There is no code implementation for handling of active times'\
                                   'other than the 247')
+# ________________________________________________________________________________ . . .
