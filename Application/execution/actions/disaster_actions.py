@@ -1,6 +1,7 @@
 import sys
 import httpx
 import asyncio
+import logging
 import importlib
 import pandas as pd
 from dotenv import dotenv_values
@@ -17,36 +18,45 @@ from Application.data.exchange import Nobitex as nb    # noqa: E402
 
 
 # =================================================================================================
-async def recovery_mechanism():
+async def recovery_mechanism() -> None:
     """
     
     """
-    # Extract function names from strategy.json file
-    strategy_cfg = load(r'Application/configs/strategy.json')
-    strategy_mechanisms = strategy_cfg['recovery_mechanisms']
+    try:
+        # Extract function names from strategy.json file
+        strategy_cfg = load(r'Application/configs/strategy.json')
+        strategy_mechanisms = strategy_cfg['recovery_mechanisms']
 
-    # Extract function objects from disaster_actions.py module
-    funcs_set = set()
-    for mechanism in strategy_mechanisms:
-        funcs_set.add(getattr(
-            importlib.import_module('Application.execution.actions.disaster_actions'),
-            mechanism['name']))
+        # Extract function objects from disaster_actions.py module
+        funcs_set = set()
+        for mechanism in strategy_mechanisms:
+            funcs_set.add(getattr(
+                importlib.import_module('Application.execution.actions.disaster_actions'),
+                mechanism['name']))
+            
+        # Execute functions synchronously
+        for func in funcs_set:
+            await func()
 
-    # Execute functions asynchrnously
-    coroutines = [func() for func in funcs_set]
-    await asyncio.gather(*coroutines)
+        # Execute functions asynchronously
+        # coroutines: list = [func() for func in funcs_set]
+        # print(coroutines)
+        # await asyncio.gather(*coroutines)
+
+    except asyncio.CancelledError as err:
+        logging.error('asyncio.CancelledError occurred inside recovery_mechanism() function: ',err)
+    except Exception as err:
+        logging.error(f'Inside recovery_mechanism() function: {err}')
 # ________________________________________________________________________________ . . .
 
 
 async def close_all_positions():
     print('"close_all_positions()" function is executed')
-    pass
 # ________________________________________________________________________________ . . .
 
 
 async def omit_all_orders():
     print('"omit_all_orders()" function is executed')
-    pass
 # ________________________________________________________________________________ . . .
 
 
