@@ -19,9 +19,9 @@ class APIService:
                        tries_interval : float,
                        tries          : int,
                        *,
-                       params         : dict[str, str] = None, 
-                       data           : dict[str, str] = None, 
-                       headers        : dict[str, str] = None) -> dict:
+                       params         : dict[str, str] | None = None, 
+                       data           : dict[str, str] | None = None, 
+                       headers        : dict[str, str] | None = None) -> dict:
         
         for attempt in range(tries):
             try:
@@ -85,8 +85,8 @@ class APIService:
                    tries_interval : float,
                    tries          : int,
                    *,
-                   data           : dict[str, str],
-                   headers        : dict[str, str]):
+                   data           : dict[str, str] | None = None,
+                   headers        : dict[str, str] | None = None):
         
         return await self._request(client         = client,
                                    method         = "POST",
@@ -108,7 +108,7 @@ class APIService:
                   tries_interval : float,
                   tries          : int,
                   *,
-                  data           : dict[str, str] = None):
+                  data           : dict[str, str] | None = None):
         
         return await self._request(
             client, "POST", url, endpoint, timeout, tries_interval, tries, data=data
@@ -124,7 +124,7 @@ class APIService:
                      tries_interval : float,
                      tries          : int,
                      *,
-                     data           : dict[str, str]=None
+                     data           : dict[str, str] | None = None
             ):
         
         return await self._request(
