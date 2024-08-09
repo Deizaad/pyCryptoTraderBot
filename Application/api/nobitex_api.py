@@ -729,11 +729,64 @@ class Trade:
     # ____________________________________________________________________________ . . .
 
 
-    async def close_all_positions(self):
+    async def close_all_positions(self,
+                                  http_agent: httpx.AsyncClient,
+                                  token: str):
         """
         Closes all active positions by market price.
+
+        Parameters:
+            http_agent (AsyncClient): The HTTP agent.
+            token (str): User's API token.
+
+        Returns:
+            list (dict): A list of dictionaries containing the results of each close operation.
         """
-        pass
+        # fetching all active positions
+        positions_df = await anext(self.fetch_open_positions(client=http_agent,
+                                                             token=token,
+                                                             req_interval=nb.Endpoint.POSITIONS_MI,
+                                                             max_rate=nb.Endpoint.POSITIONS_RL,
+                                                             rate_period=nb.Endpoint.POSITIONS_RP))
+        
+        if positions_df.empty:
+            logging.info('There are no active positions to be closed!')
+            return []
+
+        required_specs = {'id', 'amount', 'src_currecy', 'dst_currency'}
+        if not required_specs.issubset(positions_df.columns):
+            raise ValueError(f'positions DataFrame must contain columns: {required_specs}')
+
+        coroutines = []
+        for _, position in positions_df.iterrows():
+            try:
+                coroutines.append(self.close_position(http_agent   = http_agent,
+                                                      token        = token,
+                                                      id           = position['id'],
+                                                      execution    = 'market',
+                                                      amount       = position['amount'],
+                                                      src_currecy  = position.get('src_currecy'),
+                                                      dst_currency = position.get('dst_currency')))
+        
+            except Exception as err:
+                logging.error(f'Failed to prepare coroutine for close position {position['id']}: {str(err)}')
+        
+        try:
+            results = await asyncio.gather(*coroutines, return_exceptions=True)
+        except Exception as err:
+            logging.error(f'Error while executing close position coroutines: {str(err)}')
+            return []
+        
+        # Process results and handle any exceptions
+        close_results = []
+        for position, result in zip(positions_df.to_dict('records'), results):
+            if isinstance(result, Exception):
+                logging.error(f'Failed to close position {position["id"]}: {str(result)}')
+                close_results.append({'id': position['id'], 'status': 'failed', 'error': str(result)})
+            else:
+                close_results.append({'id': position['id'], 'status': 'success', 'response': result})
+        
+        return close_results
 # =================================================================================================
 
 
