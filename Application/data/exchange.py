@@ -47,6 +47,11 @@ class Nobitex:
         BALANCE_RL: int = 60
         BALANCE_RP: int = 120
 
+        UPDATE_STATUS: str = '/market/orders/update-status'
+        UPDATE_STATUS_MI: float = 1.0
+        UPDATE_STATUS_RL: int = 60
+        UPDATE_STATUS_RP: int = 60
+
         CANCEL_ORDERS: str = '/market/orders/cancel-old'
         CANCEL_ORDERS_MI: float = 6.0
         CANCEL_ORDERS_RL: int = 10

@@ -299,24 +299,24 @@ class Trade:
 
 
     async def place_order(self,
-                          client: httpx.AsyncClient,
-                          type : str,
-                          execution : str,
-                          price : float,
-                          srcCurrency : str,
-                          dstCurrency : str,
-                          amount : float,
+                          client         : httpx.AsyncClient,
+                          type           : str,
+                          execution      : str,
+                          price          : float,
+                          srcCurrency    : str,
+                          dstCurrency    : str,
+                          amount         : float,
                           *,
-                          timeout: float,
-                          try_interval: float,
-                          tries: int,
-                          token: str = User.MAIN_TOKEN,    # type: ignore
-                          url: str = nb.URL.MAIN,
-                          mode : str | None = None,
-                          stopPrice : float = np.nan,
+                          timeout        : float,
+                          try_interval   : float,
+                          tries          : int,
+                          token          : str = User.MAIN_TOKEN,    # type: ignore
+                          url            : str = nb.URL.MAIN,
+                          mode           : str | None = None,
+                          stopPrice      : float = np.nan,
                           stopLimitPrice : float = np.nan,
-                          leverage : float = np.nan,
-                          clientOrderId : str = 'null'):
+                          leverage       : float = np.nan,
+                          clientOrderId  : str = 'null'):
         """
         Parameters:
             type (str): Trade direction.
@@ -354,17 +354,17 @@ class Trade:
         endpoint = nb.Endpoint.Order.Place.endpoint
 
         payload = {
-            'execution': execution,
-            'mode': mode,
-            'srcCurrency': srcCurrency,
-            'dstCurrency': dstCurrency,
-            'type': type,
-            'leverage': leverage,
-            'amount': amount,
-            'price': price,
-            'stopPrice': stopPrice,
-            'stopLimitPrice': stopLimitPrice,
-            'clientOrderId': clientOrderId
+            'execution'     : execution,
+            'mode'          : mode,
+            'srcCurrency'   : srcCurrency,
+            'dstCurrency'   : dstCurrency,
+            'type'          : type,
+            'leverage'      : str(leverage),
+            'amount'        : str(amount),
+            'price'         : str(price),
+            'stopPrice'     : str(stopPrice),
+            'stopLimitPrice': str(stopLimitPrice),
+            'clientOrderId' : clientOrderId
         }
 
         def is_valid_key_value(key, value):
@@ -392,8 +392,8 @@ class Trade:
         payload = {key: value for key, value in payload.items() if is_valid_key_value(key, value)}
         headers = {'Authorization': 'Token ' + token}
         
-        response = await self.service.post(
-            client, url, endpoint, timeout, try_interval, tries, data=payload, headers=headers
+        response = await self.service.post(    # TEMPORARY DEVELOPMENT
+            client, url, endpoint, timeout, try_interval, tries, data=payload, headers=headers # type: ignore
             )
 
         return response
@@ -493,7 +493,7 @@ class Trade:
         Fetch list of user's positions.
 
         Parameters:
-            client (httpx.AsyncClient): HTTP client.
+            client (httpx.AsyncClient): The HTTP client.
             token (str): User API token.
             status (str): The status of positions. Expects eather "active" | "past".
             page (int): To request a specific page of responses in case "hasNext" flag is "True".
@@ -580,6 +580,59 @@ class Trade:
 
     async def status(self):
         pass
+    # ____________________________________________________________________________ . . .
+
+
+    async def cancel_pending_order(self,
+                                   http_agent : httpx.AsyncClient,
+                                   *,
+                                   token      : str,
+                                   id         : str | None = None,
+                                   client_id  : str | None = None):
+        """
+        Cancels a specific pending order.
+
+        Parameters:
+            http_agent (AsyncClient): The HTTP agent.
+            token (str): User API token.
+            id (str): The order id provided by exchange.
+            client_id (str): The order id defined by bot.
+
+        Raises:
+            ValueError:
+
+        Returns:
+            requset_response (dict): A dictionary containing response of request or an empty
+            dictionary.
+        """
+        try:
+            headers = {'Authorization': 'Token ' + token}
+
+            payload = {'status': 'canceled'}
+            if id:
+                payload['order'] = id
+            elif client_id:
+                payload['clientOrderId'] = client_id
+            else:
+                raise ValueError('One of "id" parameters ("id" or "client_id") is mandatory.')
+
+            response = self.service.post(client         = http_agent,
+                                         url            = nb.URL.TEST,
+                                         endpoint       = nb.Endpoint.UPDATE_STATUS,
+                                         timeout        = aconfig.Trade.Place.CancelOrders.TIMEOUT,
+                                         tries_interval = nb.Endpoint.UPDATE_STATUS_MI,
+                                         tries          = aconfig.Trade.Place.CancelOrders.TRIES,
+                                         data           = payload,
+                                         headers        = headers)
+
+            return response
+
+        except ValueError as err:
+            logging.error(f'Missing parameter for "cancel_pending_order()" method: {err}')
+            return {}
+        except Exception as err:
+            logging.error(f'Inside "nobitex_api.Trade.cancel_pending_order()" method: {err}')
+            return {}
     # ____________________________________________________________________________ . . .
 
 
@@ -680,14 +733,14 @@ class Account:
         headers: dict = {'Authorization': 'Token ' + token}
 
         api = APIService()
-        data = await api.post(client   = client,
-                              url      = nb.URL.MAIN,
-                              endpoint = nb.Endpoint.BALANCE,
-                              timeout  = aconfig.Account.Balance.TIMEOUT,
-                              interval = nb.Endpoint.BALANCE_MI,
-                              tries    = aconfig.Account.Balance.TRIES,
-                              data     = payload,
-                              headers  = headers)
+        data = await api.post(client         = client,
+                              url            = nb.URL.MAIN,
+                              endpoint       = nb.Endpoint.BALANCE,
+                              timeout        = aconfig.Account.Balance.TIMEOUT,
+                              tries_interval = nb.Endpoint.BALANCE_MI,
+                              tries          = aconfig.Account.Balance.TRIES,
+                              data           = payload,
+                              headers        = headers)
 
         return data
     # ____________________________________________________________________________ . . .
@@ -779,8 +832,8 @@ async def fetch_balance_test():
 async def cancel_all_orders_test():
     trade = Trade(APIService())
 
-    response = await trade.cancel_all_orders(client      = httpx.AsyncClient(),
-                                             token       = User.TEST_TOKEN)
+    response = await trade.cancel_all_orders(client = httpx.AsyncClient(),
+                                             token  = User.TEST_TOKEN)    # type: ignore
 
     print(response)
 
