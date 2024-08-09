@@ -637,24 +637,19 @@ class Trade:
 
 
     async def cancel_all_orders(self,
-                                client       : httpx.AsyncClient,
-                                token        : str,
-                                execution    : str = 'market',
-                                environment  : str | None = None,
-                                src_currency : str | None = None,
-                                dst_currency : str | None = None):
+                                client : httpx.AsyncClient,
+                                token  : str):
         """
+        Cancels all pending orders.
+
+        Parameters:
+            client (AsyncClient): The HTTP agent.
+            token (str): User API token.
         
+        Returns:
+            request_response(dict): A dictionary containing requst response.
         """
         headers = {'Authorization': 'Token ' + token}
-        payload = {'execution': execution}
-
-        if src_currency and dst_currency:
-            payload['srcCurrency'] = src_currency
-            payload['dstCurrency'] = dst_currency
-        
-        if environment:
-            payload['tradeType'] = environment
 
         response = await self.service.post(
             client         = client,
@@ -663,7 +658,6 @@ class Trade:
             timeout        = aconfig.Trade.Place.CancelOrders.TIMEOUT,
             tries_interval = nb.Endpoint.CANCEL_ORDERS_MI,
             tries          = aconfig.Trade.Place.CancelOrders.TRIES,
-            data           = payload,
             headers        = headers
         )
 
@@ -671,9 +665,73 @@ class Trade:
     # ____________________________________________________________________________ . . .
 
 
+    async def close_position(self,
+                             http_agent   : httpx.AsyncClient,
+                             token        : str,
+                             id           : str,
+                             execution    : str,
+                             amount       : float,
+                             src_currecy  : str | None = None,
+                             dst_currency : str | None = None,
+                             price        : float | None = None, # CAN BE 'market' FOR MARKET ORDER EXECUTIONS?
+                             stop_price   : float | None = None):
+        """
+        Close a position.
+
+        Parameters:
+            http_agent (AsyncClient): The HTTP agent.
+            token (str): User API token.
+            id (str): The position id provided by exchange.
+            execution (str): The order execution method. Expects eather 'market' | 'limet' | 'stop_market' | 'stop_limit'.
+            amount (float): The asset amount from total position's amount that you want to close.
+            src_currecy (str - optional): Source currency.
+            dst_currency (str - optional): Destination currency is eather 'usdt' | 'rls'.
+            price (float): It's the current market price for 'merket' order executions, or the limit closing price for 'limit' order executions.
+            stop_price (float): The price that activates 'stop' orders.
+
+        Raises:
+            ValueError:
+
+        Returns:
+            request_response(dict): A dictionary containing requst response.
+        """
+        try:
+            endpoint = f'/positions/{id}/close'
+            headers  = {'Authorization': 'Token ' + token}
+            payload  = {'execution' : execution,
+                        'amount'    : str(amount),
+                        'price'     : str(price)}
+
+            if ((execution=='stop_limit') or (execution=='stop_market') and stop_price):
+                payload['stopPrice'] = str(stop_price)
+
+            elif ((execution=='stop_limit') or (execution=='stop_market') and not stop_price):
+                raise ValueError('parameter "stop_price" most be provided for "stop_limit" or '\
+                                '"stop_market" order execution methods.')
+            
+            if src_currecy and dst_currency:
+                payload['srcCurrency'] = src_currecy
+                payload['dstCurrency'] = dst_currency
+
+            response = self.service.post(client        = http_agent,
+                                         url           = nb.URL.TEST,
+                                         endpoint      = endpoint,
+                                         timeout       = aconfig.Trade.Place.ClosePosition.TIMEOUT,
+                                         tries_interval= nb.Endpoint.CLOSE_POSITION_MI,
+                                         tries         = aconfig.Trade.Place.ClosePosition.TRIES,
+                                         data          = payload,
+                                         headers       = headers)
+
+            return response
+        except ValueError as err:
+            logging.error(f'Inside "nobitex_api.Trade.close_position()" method: {err}')
+            return {}
+    # ____________________________________________________________________________ . . .
+
+
     async def close_all_positions(self):
         """
-        
+        Closes all active positions by market price.
         """
         pass
 # =================================================================================================

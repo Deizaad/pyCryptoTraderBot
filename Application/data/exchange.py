@@ -57,6 +57,11 @@ class Nobitex:
         CANCEL_ORDERS_RL: int = 10
         CANCEL_ORDERS_RP: int = 60
 
+        CLOSE_POSITION: str = '/positions/:positionId:/close'
+        CLOSE_POSITION_MI: float = 0.2
+        CLOSE_POSITION_RL: int = 300
+        CLOSE_POSITION_RP: int = 60
+
         class Order:
             class Place:
                 FUTURES = '/margin/orders/add'

@@ -17,6 +17,10 @@ class Trade:
             TRIES=3
             TIMEOUT=3.5
 
+        class ClosePosition:
+            TRIES=3
+            TIMEOUT=3.5
+
 class Account:
     class Wallets:
         TRIES=5
