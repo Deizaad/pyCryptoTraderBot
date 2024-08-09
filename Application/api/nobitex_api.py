@@ -743,40 +743,50 @@ class Trade:
             list (dict): A list of dictionaries containing the results of each close operation.
         """
         # fetching all active positions
-        positions_df = await anext(self.fetch_open_positions(client=http_agent,
-                                                             token=token,
-                                                             req_interval=nb.Endpoint.POSITIONS_MI,
-                                                             max_rate=nb.Endpoint.POSITIONS_RL,
-                                                             rate_period=nb.Endpoint.POSITIONS_RP))
-        
+        positions_df = await anext(
+            self.fetch_open_positions(
+                client       = http_agent,
+                token        = token,
+                req_interval = nb.Endpoint.POSITIONS_MI,
+                max_rate     = nb.Endpoint.POSITIONS_RL,
+                rate_period  = nb.Endpoint.POSITIONS_RP
+            )
+        )
+
+        print(positions_df)
+
         if positions_df.empty:
             logging.info('There are no active positions to be closed!')
             return []
 
-        required_specs = {'id', 'amount', 'src_currecy', 'dst_currency'}
+        required_specs = {'id', 'liability', 'srcCurrency', 'dstCurrency'}
         if not required_specs.issubset(positions_df.columns):
             raise ValueError(f'positions DataFrame must contain columns: {required_specs}')
 
         coroutines = []
         for _, position in positions_df.iterrows():
             try:
-                coroutines.append(self.close_position(http_agent   = http_agent,
-                                                      token        = token,
-                                                      id           = position['id'],
-                                                      execution    = 'market',
-                                                      amount       = position['amount'],
-                                                      src_currecy  = position.get('src_currecy'),
-                                                      dst_currency = position.get('dst_currency')))
+                coroutines.append(
+                    await self.close_position(
+                        http_agent   = http_agent,
+                        token        = token,
+                        id           = position['id'],
+                        execution    = 'market',
+                        amount       = position['liability'],
+                        src_currecy  = position.get('srcCurrency'),
+                        dst_currency = position.get('dstCurrency')
+                    )
+                )
         
             except Exception as err:
                 logging.error(f'Failed to prepare coroutine for close position {position['id']}: {str(err)}')
-        
+
         try:
             results = await asyncio.gather(*coroutines, return_exceptions=True)
         except Exception as err:
             logging.error(f'Error while executing close position coroutines: {str(err)}')
             return []
-        
+
         # Process results and handle any exceptions
         close_results = []
         for position, result in zip(positions_df.to_dict('records'), results):
@@ -785,7 +795,7 @@ class Trade:
                 close_results.append({'id': position['id'], 'status': 'failed', 'error': str(result)})
             else:
                 close_results.append({'id': position['id'], 'status': 'success', 'response': result})
-        
+
         return close_results
 # =================================================================================================
 
@@ -948,10 +958,16 @@ async def cancel_all_orders_test():
 
     print(response)
 
+async def close_all_positions_test():
+    trade = Trade(APIService())
+    results = await trade.close_all_positions(httpx.AsyncClient(), User.TEST_TOKEN)
+    print(results)
+
 if __name__ == '__main__':
     # asyncio.run(oredr_test())
     # asyncio.run(fetch_orders_test())
     # asyncio.run(fetch_positions_test())
     # asyncio.run(fetch_wallets_test())
     # asyncio.run(fetch_balance_test())
-    asyncio.run(cancel_all_orders_test())
+    # asyncio.run(cancel_all_orders_test())
+    asyncio.run(close_all_positions_test())
