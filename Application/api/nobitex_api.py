@@ -674,7 +674,7 @@ class Trade:
                              side         : str,
                              src_currecy  : str | None = None,
                              dst_currency : str | None = None,
-                             price        : float | None = None, # CAN BE 'market' FOR MARKET ORDER EXECUTIONS?
+                             price        : float | str | None = None, # CAN BE 'market' FOR MARKET ORDER EXECUTIONS?
                              stop_price   : float | None = None):
         """
         Close a position.
@@ -755,6 +755,10 @@ class Trade:
         )
 
         print(positions_df)
+        print(positions_df['markPrice'])
+
+        # Fetch market data for trading pairs that have open positions
+        # ...TODO...
 
         if positions_df.empty:
             logging.info('There are no active positions to be closed!')
@@ -774,12 +778,13 @@ class Trade:
                         id           = position['id'],
                         execution    = 'market',
                         amount       = position['liability'],
-                        side         = 'sell' if position['type'] == 'buy' else 'buy',
+                        side         = 'sell' if position['side'] == 'buy' else 'buy',
                         src_currecy  = position.get('srcCurrency'),
-                        dst_currency = position.get('dstCurrency')
+                        dst_currency = position.get('dstCurrency'),
+                        price        = market_price
                     )
                 )
-        
+
             except Exception as err:
                 logging.error(f'Failed to prepare coroutine for close position {position['id']}: {str(err)}')
 
@@ -792,12 +797,15 @@ class Trade:
 
         # Process results and handle any exceptions
         close_results: list = []
-        # for position, result in zip(positions_df.to_dict('records'), results):
-        #     if isinstance(result, Exception):
-        #         logging.error(f'Failed to close position {position["id"]}: {str(result)}')
-        #         close_results.append({'id': position['id'], 'status': 'failed', 'error': str(result)})
-        #     else:
-        #         close_results.append({'id': position['id'], 'status': 'success', 'response': result})
+        for position, result in zip(positions_df.to_dict('records'), results):
+            if isinstance(result, Exception):
+                logging.error(f'Failed to close position {position["id"]}: {str(result)}')
+                close_results.append({'id': position['id'], 'status': 'failed', 'error': str(result)})
+            else:
+                close_results.append({'id': position['id'], 'status': 'success', 'response': result})
+
+        # check closing_results to confirm positions are closed and try again for failed ones
+        # ...TODO...
 
         return close_results
 # =================================================================================================
@@ -987,5 +995,5 @@ if __name__ == '__main__':
     # asyncio.run(fetch_wallets_test())
     # asyncio.run(fetch_balance_test())
     # asyncio.run(cancel_all_orders_test())
-    # asyncio.run(close_all_positions_test())
-    asyncio.run(close_position_test())
+    # asyncio.run(close_position_test())
+    asyncio.run(close_all_positions_test())
