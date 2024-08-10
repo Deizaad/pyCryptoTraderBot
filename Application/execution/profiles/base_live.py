@@ -10,11 +10,14 @@ from Application.trading.trade_engine import start_trade_engine    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 from Application.execution.scheduler import register_activity_events, watch_transitions    # noqa: E402
 
+# =================================================================================================
 jarchi = EventHandler()
 data   = DataProcessor()
+# =================================================================================================
 
 
 
+# =================================================================================================
 async def run():
     """
     
@@ -29,3 +32,4 @@ async def run():
     # Schedule activity
     await watch_transitions()
 # ________________________________________________________________________________ . . .
+# =================================================================================================

@@ -12,6 +12,7 @@ from Application.utils.botlogger import initialize_logger    # noqa: E402
 
 
 
+# =================================================================================================
 async def main():
     try:
         initialize_logger()
@@ -28,8 +29,11 @@ async def main():
     except Exception as err:
         logging.error(f'Exception occurred in "bot.py" module: {err}')
 # ________________________________________________________________________________ . . .
+# =================================================================================================
 
 
+
+# =================================================================================================
 if __name__ == '__main__':
     try:
         loop = asyncio.get_running_loop()
@@ -42,3 +46,4 @@ if __name__ == '__main__':
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(main())
+# =================================================================================================

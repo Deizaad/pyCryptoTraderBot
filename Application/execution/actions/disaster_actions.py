@@ -43,21 +43,21 @@ async def recovery_mechanism() -> None:
             funcs_set.add(getattr(
                 importlib.import_module('Application.execution.actions.disaster_actions'),
                 mechanism['name']))
-            
+
         # Execute functions synchronously
         # for func in funcs_set:
         #     await func()
 
         # Execute functions asynchronously
         coroutines: list = [func() for func in funcs_set]
-        results = await asyncio.gather(*coroutines)
+        results = await asyncio.gather(*coroutines, return_exceptions=True)
 
         # logic to exit recovery mechanism in case all results are successful
         if all(result == 'succeeded' for result in results):
             logging.info('Recovery mechanisms performed successfully.')
             logging.info(f'Broadcasting "{Event.EXIT_RECOVERY_MECHANISM}" event from '\
                          '"disaster_actions.recovery_mechanism()" function.')
-            
+
             await jarchi.emit(Event.EXIT_RECOVERY_MECHANISM)
 
     except asyncio.CancelledError as err:

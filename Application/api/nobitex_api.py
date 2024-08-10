@@ -688,10 +688,10 @@ class Trade:
 
         Parameters:
             client (AsyncClient): The HTTP agent.
-            token (str): User API token.
+            token (str): User's API token.
         
         Returns:
-            request_response(dict): A dictionary containing requst response.
+            success (str): It returns eather literal 'succeeded' or 'failed' base on success.
         """
         headers = {'Authorization': 'Token ' + token}
 
@@ -705,7 +705,7 @@ class Trade:
             headers        = headers
         )
 
-        return response
+        return 'succeeded' if response['status'] == 'ok' else 'failed'
     # ____________________________________________________________________________ . . .
 
 
@@ -1079,6 +1079,6 @@ if __name__ == '__main__':
     # asyncio.run(fetch_positions_test())
     # asyncio.run(fetch_wallets_test())
     # asyncio.run(fetch_balance_test())
-    # asyncio.run(cancel_all_orders_test())
+    asyncio.run(cancel_all_orders_test())
     # asyncio.run(close_position_test())
-    asyncio.run(close_all_positions_test())
+    # asyncio.run(close_all_positions_test())
