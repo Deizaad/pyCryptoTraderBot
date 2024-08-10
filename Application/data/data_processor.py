@@ -1,16 +1,13 @@
-import os
 import sys
 import httpx
 import asyncio
 import logging
 import pandas as pd
 from httpx import AsyncClient
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
-load_dotenv('project_path.env')
-path = os.getenv('PYTHONPATH')
-if path:
-    sys.path.append(path)
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
 
 from Application.data.user import User    # noqa: E402
 from Application.configs import config    # noqa: E402
@@ -231,6 +228,13 @@ class DataProcessor:
             logging.error(f'Error during live kline fetching: {err}')
     # ____________________________________________________________________________ . . .
 
+
+    async def get_kline_df(self):
+        """
+        Returns kline dataframe.
+        """
+        return self.kline_df
+    # ____________________________________________________________________________ . . .
 
 
 
