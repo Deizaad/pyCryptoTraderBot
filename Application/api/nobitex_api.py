@@ -36,7 +36,7 @@ class Market:
     async def fetch_market_price(self,
                                  http_agent: httpx.AsyncClient,
                                  src_currency: str,
-                                 dst_currency: str) -> float:
+                                 dst_currency: str) -> float | int:
         """
         Fetches market price for given trading pair.
 
@@ -52,14 +52,19 @@ class Market:
                    'dstCurrency': dst_currency}
         
         data = await self.service.get(client         = http_agent,
-                                      url            = nb.URL.MAIN,
+                                      url            = nb.URL.TEST,
                                       endpoint       = nb.Endpoint.MARKET_STATS,
                                       timeout        = aconfig.OHLC.TIMEOUT,
                                       tries_interval = nb.Endpoint.MARKET_STATS_MI,
                                       tries          = aconfig.OHLC.TRIES,
                                       params         = payload)
         
-        market_price = float(data['stats'][f'{src_currency}-{dst_currency}']['latest'])
+        market_price = data['stats'][f'{src_currency}-{dst_currency}']['latest']
+        if '.' in str(market_price):
+            market_price = float(market_price)
+        else:
+            market_price = int(market_price)
+
         return market_price
     # ____________________________________________________________________________ . . .
 
@@ -326,6 +331,14 @@ class Market:
 class Trade:
     def __init__(self, api_service: APIService):
         self.service = api_service
+    # ____________________________________________________________________________ . . .
+
+
+    async def fetch_asset_deceimals(self):
+        """
+        
+        """
+        pass
     # ____________________________________________________________________________ . . .
 
 
@@ -768,7 +781,6 @@ class Trade:
         Closes all active positions by market price.
 
         Parameters:
-            http_agent (AsyncClient): The HTTP agent.
             token (str): User's API token.
 
         Returns:
@@ -785,12 +797,8 @@ class Trade:
             )
         )
 
-        print(positions_df)
-        print(positions_df['markPrice'])
 
-        # Fetch market data for trading pairs that have open positions
-        # ...TODO...
-
+        # Validate positions_df
         if positions_df.empty:
             logging.info('There are no active positions to be closed!')
             return []
@@ -799,9 +807,41 @@ class Trade:
         if not required_specs.issubset(positions_df.columns):
             raise ValueError(f'positions DataFrame must contain columns: {required_specs}')
 
+
+        # Extract trading pairs of open positions
+        positions_pairs: list[tuple] = []
+        for _, position in positions_df.iterrows():
+            positions_pairs.append((position['srcCurrency'], position['dstCurrency']))
+
+        positions_pairs = list(set(positions_pairs))
+
+
+        # Fetch market data for trading pairs
+        market = Market(APIService(), httpx.AsyncClient())
+        market_prices: dict = {}
+        for src, dst in positions_pairs:
+            market_prices[f'{src}-{dst}'] = await market.fetch_market_price(
+                http_agent   = httpx.AsyncClient(),
+                src_currency = src,
+                dst_currency = dst
+            )
+
+
+        # Prepare coroutines for closing positions
         coroutines = []
         for _, position in positions_df.iterrows():
             try:
+                src_currecy  = position.get('srcCurrency')
+                dst_currency = position.get('dstCurrency')
+
+                price = market_prices[f'{src_currecy}-{dst_currency}']
+                if isinstance(price, int):
+                    price = str(int(price/10)) if dst_currency == 'rls' else str(price)
+                else:
+                    price = str(price/10) if dst_currency == 'rls' else str(price)
+                
+                print(price)
+
                 coroutines.append(
                     self.close_position(
                         http_agent   = httpx.AsyncClient(),
@@ -810,32 +850,47 @@ class Trade:
                         execution    = 'market',
                         amount       = position['liability'],
                         side         = 'sell' if position['side'] == 'buy' else 'buy',
-                        src_currecy  = position.get('srcCurrency'),
-                        dst_currency = position.get('dstCurrency'),
-                        price        = market_price
+                        src_currecy  = src_currecy,
+                        dst_currency = dst_currency,
+                        price        = price
                     )
                 )
 
             except Exception as err:
-                logging.error(f'Failed to prepare coroutine for close position {position['id']}: {str(err)}')
+                logging.error('Failed to prepare coroutine for closing the position '\
+                              f'{position['id']}: {str(err)}')
 
+
+        # Attempt to send 'close_position' requests
         try:
             results = await asyncio.gather(*coroutines, return_exceptions=True)
-            print('results: ', results)
         except Exception as err:
             logging.error(f'Error while executing close position coroutines: {str(err)}')
             return []
+
 
         # Process results and handle any exceptions
         close_results: list = []
         for position, result in zip(positions_df.to_dict('records'), results):
             if isinstance(result, Exception):
                 logging.error(f'Failed to close position {position["id"]}: {str(result)}')
-                close_results.append({'id': position['id'], 'status': 'failed', 'error': str(result)})
-            else:
-                close_results.append({'id': position['id'], 'status': 'success', 'response': result})
+                close_results.append({'id': position['id'],
+                                      'status': 'failed',
+                                      'error': str(result)})
 
-        # check closing_results to confirm positions are closed and try again for failed ones
+            elif result['status'] == 'failed':    # type: ignore
+                logging.error(f'Failed to close position {position["id"]}: {str(result)}')
+                close_results.append({'id': position['id'],
+                                      'status': 'failed',
+                                      'error': str(result)})
+
+            else:
+                close_results.append({'id': position['id'],
+                                      'status': 'success',
+                                      'response': result})
+
+
+        # check closing_results to confirm positions are closed and try again for failed ones until a number of retries
         # ...TODO...
 
         return close_results
@@ -1025,7 +1080,7 @@ async def close_all_positions_test():
     print(results)
 
 if __name__ == '__main__':
-    asyncio.run(fetch_market_price_test())
+    # asyncio.run(fetch_market_price_test())
     # asyncio.run(oredr_test())
     # asyncio.run(fetch_orders_test())
     # asyncio.run(fetch_positions_test())
@@ -1033,4 +1088,4 @@ if __name__ == '__main__':
     # asyncio.run(fetch_balance_test())
     # asyncio.run(cancel_all_orders_test())
     # asyncio.run(close_position_test())
-    # asyncio.run(close_all_positions_test())
+    asyncio.run(close_all_positions_test())
