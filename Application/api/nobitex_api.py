@@ -760,14 +760,16 @@ class Trade:
                 payload['srcCurrency'] = src_currecy
                 payload['dstCurrency'] = dst_currency
 
-            response = await self.service.post(client        = http_agent,
-                                               url           = nb.URL.TEST,
-                                               endpoint      = endpoint,
-                                               timeout       = aconfig.Trade.Place.ClosePosition.TIMEOUT,
-                                               tries_interval= nb.Endpoint.CLOSE_POSITION_MI,
-                                               tries         = aconfig.Trade.Place.ClosePosition.TRIES,
-                                               data          = payload,
-                                               headers       = headers)
+            response = await self.service.post(
+                client         = http_agent,
+                url            = nb.URL.TEST,
+                endpoint       = endpoint,
+                timeout        = aconfig.Trade.Place.ClosePosition.TIMEOUT,
+                tries_interval = nb.Endpoint.CLOSE_POSITION_MI,
+                tries          = aconfig.Trade.Place.ClosePosition.TRIES,
+                data           = payload,
+                headers        = headers
+            )
 
             return response
         except ValueError as err:
@@ -784,7 +786,7 @@ class Trade:
             token (str): User's API token.
 
         Returns:
-            list (dict): A list of dictionaries containing the results of each close operation.
+            success (str): It returns eather literal 'succeeded' or 'failed' base on success.
         """
         # fetching all active positions
         positions_df = await anext(
@@ -801,14 +803,14 @@ class Trade:
         # Validate positions_df
         if positions_df.empty:
             logging.info('There are no active positions to be closed!')
-            return []
+            return 'succeeded'
 
         required_specs = {'id', 'liability', 'srcCurrency', 'dstCurrency'}
         if not required_specs.issubset(positions_df.columns):
             raise ValueError(f'positions DataFrame must contain columns: {required_specs}')
 
 
-        # Extract trading pairs of open positions
+        # Extract unique trading pairs of open positions
         positions_pairs: list[tuple] = []
         for _, position in positions_df.iterrows():
             positions_pairs.append((position['srcCurrency'], position['dstCurrency']))
@@ -816,7 +818,7 @@ class Trade:
         positions_pairs = list(set(positions_pairs))
 
 
-        # Fetch market data for trading pairs
+        # Fetch market price for trading pairs
         market = Market(APIService(), httpx.AsyncClient())
         market_prices: dict = {}
         for src, dst in positions_pairs:
@@ -828,6 +830,9 @@ class Trade:
 
 
         # Prepare coroutines for closing positions
+        logging.info(f'There are "{positions_df.size}" positions to be closed: \n'\
+                     f'{positions_df[['srcCurrency', 'dstCurrency', 'id']]}')
+
         coroutines = []
         for _, position in positions_df.iterrows():
             try:
@@ -839,8 +844,6 @@ class Trade:
                     price = str(int(price/10)) if dst_currency == 'rls' else str(price)
                 else:
                     price = str(price/10) if dst_currency == 'rls' else str(price)
-                
-                print(price)
 
                 coroutines.append(
                     self.close_position(
@@ -862,38 +865,28 @@ class Trade:
 
 
         # Attempt to send 'close_position' requests
-        try:
-            results = await asyncio.gather(*coroutines, return_exceptions=True)
-        except Exception as err:
-            logging.error(f'Error while executing close position coroutines: {str(err)}')
-            return []
+        results = await asyncio.gather(*coroutines, return_exceptions=True)
 
 
         # Process results and handle any exceptions
         close_results: list = []
         for position, result in zip(positions_df.to_dict('records'), results):
-            if isinstance(result, Exception):
-                logging.error(f'Failed to close position {position["id"]}: {str(result)}')
-                close_results.append({'id': position['id'],
-                                      'status': 'failed',
-                                      'error': str(result)})
-
-            elif result['status'] == 'failed':    # type: ignore
+            if isinstance(result, Exception) or result.get('status') == 'failed':  # type: ignore
                 logging.error(f'Failed to close position {position["id"]}: {str(result)}')
                 close_results.append({'id': position['id'],
                                       'status': 'failed',
                                       'error': str(result)})
 
             else:
+                logging.info(f'Successfully closed position "{position['id']}"')
                 close_results.append({'id': position['id'],
                                       'status': 'success',
                                       'response': result})
 
-
-        # check closing_results to confirm positions are closed and try again for failed ones until a number of retries
-        # ...TODO...
-
-        return close_results
+        if all(result['status'] == 'success' for result in close_results):
+            return 'succeeded'
+        else:
+            return 'failed'
 # =================================================================================================
 
 
