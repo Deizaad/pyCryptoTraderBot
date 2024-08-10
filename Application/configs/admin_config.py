@@ -1,6 +1,6 @@
 class OHLC:
     TRIES=3
-    TIMEOUT=4.0
+    TIMEOUT=3.5
 
 class Trade:
     class Fetch:

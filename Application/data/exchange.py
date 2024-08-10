@@ -17,6 +17,11 @@ class Nobitex:
         TEST = 'https://testnetapi.nobitex.ir'
 
     class Endpoint:
+        MARKET_STATS: str = '/market/stats'
+        MARKET_STATS_MI: float = 0.6
+        MARKET_STATS_RL: int = 100
+        MARKET_STATS_RP: int = 60
+
         TRADES = '/v2/trades/'
         TRADES_MI: float = 4.0    # Maximum Interval = 4s
         TRADES_RL: int = 15    # Rate Limit = 15p/m

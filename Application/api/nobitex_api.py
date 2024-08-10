@@ -33,6 +33,37 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
+    async def fetch_market_price(self,
+                                 http_agent: httpx.AsyncClient,
+                                 src_currency: str,
+                                 dst_currency: str) -> float:
+        """
+        Fetches market price for given trading pair.
+
+        Parameters:
+            http_agent (AsyncClient): The HTTP agent.
+            src_currecy (str): Source currency.
+            dst_currency (str): Destination currency is eather 'usdt' | 'rls'.
+
+        Returns:
+            market_price (float): Market price for givan trading pair.
+        """
+        payload = {'srcCurrency': src_currency,
+                   'dstCurrency': dst_currency}
+        
+        data = await self.service.get(client         = http_agent,
+                                      url            = nb.URL.MAIN,
+                                      endpoint       = nb.Endpoint.MARKET_STATS,
+                                      timeout        = aconfig.OHLC.TIMEOUT,
+                                      tries_interval = nb.Endpoint.MARKET_STATS_MI,
+                                      tries          = aconfig.OHLC.TRIES,
+                                      params         = payload)
+        
+        market_price = float(data['stats'][f'{src_currency}-{dst_currency}']['latest'])
+        return market_price
+    # ____________________________________________________________________________ . . .
+
+
     async def kline(self,
                     symbol: str,
                     resolution: str,
@@ -902,6 +933,11 @@ class Transaction:
 
 
 
+async def fetch_market_price_test():
+    market = Market(APIService(), httpx.AsyncClient())
+    result = await market.fetch_market_price(httpx.AsyncClient(), 'btc', 'rls')
+    print(result)
+
 async def oredr_test():
     service = APIService()
     trade = Trade(service)
@@ -989,6 +1025,7 @@ async def close_all_positions_test():
     print(results)
 
 if __name__ == '__main__':
+    asyncio.run(fetch_market_price_test())
     # asyncio.run(oredr_test())
     # asyncio.run(fetch_orders_test())
     # asyncio.run(fetch_positions_test())
@@ -996,4 +1033,4 @@ if __name__ == '__main__':
     # asyncio.run(fetch_balance_test())
     # asyncio.run(cancel_all_orders_test())
     # asyncio.run(close_position_test())
-    asyncio.run(close_all_positions_test())
+    # asyncio.run(close_all_positions_test())
