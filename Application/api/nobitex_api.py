@@ -52,7 +52,7 @@ class Market:
                    'dstCurrency': dst_currency}
         
         data = await self.service.get(client         = http_agent,
-                                      url            = nb.URL.TEST,
+                                      url            = nb.URL,
                                       endpoint       = nb.Endpoint.MARKET_STATS,
                                       timeout        = aconfig.OHLC.TIMEOUT,
                                       tries_interval = nb.Endpoint.MARKET_STATS_MI,
@@ -80,7 +80,7 @@ class Market:
                     page: int | None = None,
                     countback: int | None = None,
                     start: int | None = None,
-                    url: str = nb.URL.MAIN, 
+                    url: str = nb.URL, 
                     endpoint: str = nb.Endpoint.OHLC) -> dict:
         """
         Fetches Kline data for a given symbol.
@@ -96,7 +96,7 @@ class Market:
             tries_interval (float): The time period to wait before retrying request in seconds.
             tries (int): Number of tries for request.
             start (str, optional): The start timestamp or 'oldest' for the oldest available data.
-            url (str, optional): The base URL for the request. Defaults to nb.URL.MAIN.
+            url (str, optional): The base URL for the request. Defaults to nb.URL.
             endpoint (str, optional): The API endpoint. Defaults to nb.Endpoint.OHLC.
             max_rate (str, optional): The maximum rate limit for API calls. Defaults to 
             nb.Endpoint.OHLC_RL.
@@ -355,7 +355,7 @@ class Trade:
                           try_interval   : float,
                           tries          : int,
                           token          : str = User.TOKEN,    # type: ignore
-                          url            : str = nb.URL.MAIN,
+                          url            : str = nb.URL,
                           mode           : str | None = None,
                           stopPrice      : float = np.nan,
                           stopLimitPrice : float = np.nan,
@@ -481,7 +481,7 @@ class Trade:
             payload['dstCurrency'] = dst_currency
             payload['srcCurrency'] = src_currency
 
-        params: dict = {'url'            : nb.URL.TEST,
+        params: dict = {'url'            : nb.URL,
                         'endpoint'       : nb.Endpoint.ORDERS,
                         'timeout'        : aconfig.Trade.Fetch.Orders.TIMEOUT,
                         'tries_interval' : nb.Endpoint.ORDERS_MI,
@@ -554,7 +554,7 @@ class Trade:
         headers = {'Authorization': 'Token ' + token}
 
         data = await self.service.get(client         = client,
-                                      url            = nb.URL.TEST,
+                                      url            = nb.URL,
                                       endpoint       = nb.Endpoint.POSITIONS,
                                       timeout        = aconfig.Trade.Fetch.Positions.TIMEOUT,
                                       tries_interval = nb.Endpoint.POSITIONS_MI,
@@ -661,7 +661,7 @@ class Trade:
                 raise ValueError('One of "id" parameters ("id" or "client_id") is mandatory.')
 
             response = self.service.post(client         = http_agent,
-                                         url            = nb.URL.TEST,
+                                         url            = nb.URL,
                                          endpoint       = nb.Endpoint.UPDATE_STATUS,
                                          timeout        = aconfig.Trade.Place.CancelOrders.TIMEOUT,
                                          tries_interval = nb.Endpoint.UPDATE_STATUS_MI,
@@ -697,7 +697,7 @@ class Trade:
 
         response = await self.service.post(
             client         = client,
-            url            = nb.URL.TEST,
+            url            = nb.URL,
             endpoint       = nb.Endpoint.CANCEL_ORDERS,
             timeout        = aconfig.Trade.Place.CancelOrders.TIMEOUT,
             tries_interval = nb.Endpoint.CANCEL_ORDERS_MI,
@@ -762,7 +762,7 @@ class Trade:
 
             response = await self.service.post(
                 client         = http_agent,
-                url            = nb.URL.TEST,
+                url            = nb.URL,
                 endpoint       = endpoint,
                 timeout        = aconfig.Trade.Place.ClosePosition.TIMEOUT,
                 tries_interval = nb.Endpoint.CLOSE_POSITION_MI,
@@ -915,7 +915,7 @@ class Account:
 
         api = APIService()
         data = await api.get(client         = client,
-                             url            = nb.URL.MAIN,
+                             url            = nb.URL,
                              endpoint       = nb.Endpoint.WALLETS,
                              timeout        = aconfig.Account.Wallets.TIMEOUT,
                              tries_interval = nb.Endpoint.WALLETS_MI,
@@ -945,7 +945,7 @@ class Account:
 
         api = APIService()
         data = await api.post(client         = client,
-                              url            = nb.URL.MAIN,
+                              url            = nb.URL,
                               endpoint       = nb.Endpoint.BALANCE,
                               timeout        = aconfig.Account.Balance.TIMEOUT,
                               tries_interval = nb.Endpoint.BALANCE_MI,

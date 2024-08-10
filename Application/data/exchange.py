@@ -6,15 +6,20 @@ path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
 from Application.configs.config import Order  # noqa: E402
-
+from Application.utils.load_json import load    # noqa: E402
 
 # __all__ = ["API_KEY", "CURRENT_TIME", "BASE_URL", "TESTNET"]
 
+config = load(r'Application/configs/config.json')
+setting_url = 'https://testnetapi.nobitex.ir' \
+              if config['setting'] == "TEST" \
+              else 'https://api.nobitex.ir'
 
+
+
+# =================================================================================================
 class Nobitex:
-    class URL:
-        MAIN = 'https://api.nobitex.ir'
-        TEST = 'https://testnetapi.nobitex.ir'
+    URL = setting_url
 
     class Endpoint:
         MARKET_STATS: str = '/market/stats'
@@ -84,6 +89,4 @@ class Nobitex:
                 _choices = [FUTURES,
                             SPOT]
                 endpoint = np.select(_conds, _choices)
-
-    # class Symbol:
-    #     USDTIRT = 'USDTIRT'
+# =================================================================================================
