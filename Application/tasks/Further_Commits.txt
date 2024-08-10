@@ -162,3 +162,9 @@ asyncio.run(data_manager.initiate_kline_df())
 * Confirm the implementation of trade_engine.fetch_gadabouts() function for the part that it: "# In case of remaining positions, check whether available orders are valid for them or not" (Validating the position size coverage)
 
 * Move the Implementation of fetch_gadabouts() function from disaster actions to data_processor
+
+* Complete confirmation and retry logic for close_all_positions() method.
+
+* Write an script to run the container on server at startup and make sure this script gets executed on startup every time.
+
+* Write an script to run the bot.py at container startup and make sure this script gets executed on start of container every time.
