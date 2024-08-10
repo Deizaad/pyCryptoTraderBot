@@ -74,7 +74,7 @@ async def close_all_positions():
     trade = Trade(APIService())
 
     logging.info('Executing "close_all_positions()" recovery mechanism')
-    success = await trade.close_all_positions(User.MAIN_TOKEN)    # type: ignore
+    success = await trade.close_all_positions(User.TOKEN)    # type: ignore
     return 'succeeded' if success == 'succeeded' else 'failed'
 # ________________________________________________________________________________ . . .
 
@@ -86,7 +86,7 @@ async def omit_all_orders():
     trade = Trade(APIService())
 
     logging.info('Executing "omit_all_orders()" recovery mechanism')
-    success = await trade.cancel_all_orders(client=httpx.AsyncClient(), token=User.MAIN_TOKEN)    # type: ignore
+    success = await trade.cancel_all_orders(client=httpx.AsyncClient(), token=User.TOKEN)    # type: ignore
     return 'succeeded' if success == 'succeeded' else 'failed'
 # ________________________________________________________________________________ . . .
 
@@ -103,7 +103,7 @@ async def fetch_gadabouts():
     # populating positions Dataframe
     positions_df = await anext(trade.fetch_open_positions(
         client       = httpx.AsyncClient(),
-        token        = User.TEST_TOKEN,    # type: ignore
+        token        = User.TOKEN,    # type: ignore
         req_interval = nb.Endpoint.POSITIONS_MI,
         max_rate     = nb.Endpoint.POSITIONS_RL,
         rate_period  = nb.Endpoint.POSITIONS_RP
@@ -120,7 +120,7 @@ async def fetch_gadabouts():
         for srcCurrency, dstCurrecy in pairs:
             this_pairs_orders_df = await anext(trade.fetch_orders(
                 client       = httpx.AsyncClient(),
-                token        = User.TEST_TOKEN,    # type: ignore
+                token        = User.TOKEN,    # type: ignore
                 req_interval = nb.Endpoint.ORDERS_MI,
                 max_rate     = nb.Endpoint.ORDERS_RL,
                 rate_period  = nb.Endpoint.ORDERS_RP,

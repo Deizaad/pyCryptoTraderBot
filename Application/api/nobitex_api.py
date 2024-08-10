@@ -354,7 +354,7 @@ class Trade:
                           timeout        : float,
                           try_interval   : float,
                           tries          : int,
-                          token          : str = User.MAIN_TOKEN,    # type: ignore
+                          token          : str = User.TOKEN,    # type: ignore
                           url            : str = nb.URL.MAIN,
                           mode           : str | None = None,
                           stopPrice      : float = np.nan,
@@ -1008,7 +1008,7 @@ async def fetch_orders_test():
     trade   = Trade(service)
 
     data = await anext(trade.fetch_orders(client = httpx.AsyncClient(),
-                                        token  = User.TEST_TOKEN,     # type: ignore
+                                        token  = User.TOKEN,     # type: ignore
                                         req_interval = nb.Endpoint.ORDERS_MI,
                                         max_rate = nb.Endpoint.ORDERS_RL,
                                         rate_period=nb.Endpoint.ORDERS_RP,
@@ -1021,7 +1021,7 @@ async def fetch_positions_test():
     trade   = Trade(service)
 
     response = await trade.fetch_positions(client      = httpx.AsyncClient(),
-                                           token       = User.TEST_TOKEN,    # type: ignore
+                                           token       = User.TOKEN,    # type: ignore
                                            status      = 'active',
                                            page        = 1)
     print(response)
@@ -1030,7 +1030,7 @@ async def fetch_wallets_test():
     account = Account()
 
     response = await account.wallets(client      = httpx.AsyncClient(),
-                                     token       = User.TEST_TOKEN,    # type: ignore
+                                     token       = User.TOKEN,    # type: ignore
                                      environment = 'margin',
                                      drop_void   = True)
 
@@ -1040,7 +1040,7 @@ async def fetch_balance_test():
     account = Account()
 
     response = await account.balance(client   = httpx.AsyncClient(),
-                                     token    = User.TEST_TOKEN,    # type: ignore
+                                     token    = User.TOKEN,    # type: ignore
                                      currency = 'rls')
 
     print(response)
@@ -1049,14 +1049,14 @@ async def cancel_all_orders_test():
     trade = Trade(APIService())
 
     response = await trade.cancel_all_orders(client = httpx.AsyncClient(),
-                                             token  = User.TEST_TOKEN)    # type: ignore
+                                             token  = User.TOKEN)    # type: ignore
 
     print(response)
 
 async def close_position_test():
     trade = Trade(APIService())
     result = await trade.close_position(http_agent=httpx.AsyncClient(),
-                                        token=User.TEST_TOKEN,    # type: ignore
+                                        token=User.TOKEN,    # type: ignore
                                         id='5053',
                                         execution='market',
                                         amount=0.0000089775,
@@ -1069,7 +1069,7 @@ async def close_position_test():
 
 async def close_all_positions_test():
     trade = Trade(APIService())
-    results = await trade.close_all_positions(User.TEST_TOKEN)    # type: ignore
+    results = await trade.close_all_positions(User.TOKEN)    # type: ignore
     print(results)
 
 if __name__ == '__main__':
