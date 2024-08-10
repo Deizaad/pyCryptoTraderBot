@@ -671,6 +671,7 @@ class Trade:
                              id           : str,
                              execution    : str,
                              amount       : float,
+                             side         : str,
                              src_currecy  : str | None = None,
                              dst_currency : str | None = None,
                              price        : float | None = None, # CAN BE 'market' FOR MARKET ORDER EXECUTIONS?
@@ -684,6 +685,7 @@ class Trade:
             id (str): The position id provided by exchange.
             execution (str): The order execution method. Expects eather 'market' | 'limet' | 'stop_market' | 'stop_limit'.
             amount (float): The asset amount from total position's amount that you want to close.
+            side
             src_currecy (str - optional): Source currency.
             dst_currency (str - optional): Destination currency is eather 'usdt' | 'rls'.
             price (float): It's the current market price for 'merket' order executions, or the limit closing price for 'limit' order executions.
@@ -700,7 +702,8 @@ class Trade:
             headers  = {'Authorization': 'Token ' + token}
             payload  = {'execution' : execution,
                         'amount'    : str(amount),
-                        'price'     : str(price)}
+                        'price'     : str(price),
+                        'type'      : side}
 
             if ((execution=='stop_limit') or (execution=='stop_market') and stop_price):
                 payload['stopPrice'] = str(stop_price)
@@ -713,14 +716,14 @@ class Trade:
                 payload['srcCurrency'] = src_currecy
                 payload['dstCurrency'] = dst_currency
 
-            response = self.service.post(client        = http_agent,
-                                         url           = nb.URL.TEST,
-                                         endpoint      = endpoint,
-                                         timeout       = aconfig.Trade.Place.ClosePosition.TIMEOUT,
-                                         tries_interval= nb.Endpoint.CLOSE_POSITION_MI,
-                                         tries         = aconfig.Trade.Place.ClosePosition.TRIES,
-                                         data          = payload,
-                                         headers       = headers)
+            response = await self.service.post(client        = http_agent,
+                                               url           = nb.URL.TEST,
+                                               endpoint      = endpoint,
+                                               timeout       = aconfig.Trade.Place.ClosePosition.TIMEOUT,
+                                               tries_interval= nb.Endpoint.CLOSE_POSITION_MI,
+                                               tries         = aconfig.Trade.Place.ClosePosition.TRIES,
+                                               data          = payload,
+                                               headers       = headers)
 
             return response
         except ValueError as err:
@@ -729,9 +732,7 @@ class Trade:
     # ____________________________________________________________________________ . . .
 
 
-    async def close_all_positions(self,
-                                  http_agent: httpx.AsyncClient,
-                                  token: str):
+    async def close_all_positions(self, token: str):
         """
         Closes all active positions by market price.
 
@@ -745,7 +746,7 @@ class Trade:
         # fetching all active positions
         positions_df = await anext(
             self.fetch_open_positions(
-                client       = http_agent,
+                client       = httpx.AsyncClient(),
                 token        = token,
                 req_interval = nb.Endpoint.POSITIONS_MI,
                 max_rate     = nb.Endpoint.POSITIONS_RL,
@@ -767,12 +768,13 @@ class Trade:
         for _, position in positions_df.iterrows():
             try:
                 coroutines.append(
-                    await self.close_position(
-                        http_agent   = http_agent,
+                    self.close_position(
+                        http_agent   = httpx.AsyncClient(),
                         token        = token,
                         id           = position['id'],
                         execution    = 'market',
                         amount       = position['liability'],
+                        side         = 'sell' if position['type'] == 'buy' else 'buy',
                         src_currecy  = position.get('srcCurrency'),
                         dst_currency = position.get('dstCurrency')
                     )
@@ -783,18 +785,19 @@ class Trade:
 
         try:
             results = await asyncio.gather(*coroutines, return_exceptions=True)
+            print('results: ', results)
         except Exception as err:
             logging.error(f'Error while executing close position coroutines: {str(err)}')
             return []
 
         # Process results and handle any exceptions
-        close_results = []
-        for position, result in zip(positions_df.to_dict('records'), results):
-            if isinstance(result, Exception):
-                logging.error(f'Failed to close position {position["id"]}: {str(result)}')
-                close_results.append({'id': position['id'], 'status': 'failed', 'error': str(result)})
-            else:
-                close_results.append({'id': position['id'], 'status': 'success', 'response': result})
+        close_results: list = []
+        # for position, result in zip(positions_df.to_dict('records'), results):
+        #     if isinstance(result, Exception):
+        #         logging.error(f'Failed to close position {position["id"]}: {str(result)}')
+        #         close_results.append({'id': position['id'], 'status': 'failed', 'error': str(result)})
+        #     else:
+        #         close_results.append({'id': position['id'], 'status': 'success', 'response': result})
 
         return close_results
 # =================================================================================================
@@ -958,9 +961,23 @@ async def cancel_all_orders_test():
 
     print(response)
 
+async def close_position_test():
+    trade = Trade(APIService())
+    result = await trade.close_position(http_agent=httpx.AsyncClient(),
+                                        token=User.TEST_TOKEN,    # type: ignore
+                                        id='5053',
+                                        execution='market',
+                                        amount=0.0000089775,
+                                        side='sell',
+                                        src_currecy='btc',
+                                        dst_currency='rls',
+                                        price=360000003)
+    
+    print(result)
+
 async def close_all_positions_test():
     trade = Trade(APIService())
-    results = await trade.close_all_positions(httpx.AsyncClient(), User.TEST_TOKEN)
+    results = await trade.close_all_positions(User.TEST_TOKEN)    # type: ignore
     print(results)
 
 if __name__ == '__main__':
@@ -970,4 +987,5 @@ if __name__ == '__main__':
     # asyncio.run(fetch_wallets_test())
     # asyncio.run(fetch_balance_test())
     # asyncio.run(cancel_all_orders_test())
-    asyncio.run(close_all_positions_test())
+    # asyncio.run(close_all_positions_test())
+    asyncio.run(close_position_test())
