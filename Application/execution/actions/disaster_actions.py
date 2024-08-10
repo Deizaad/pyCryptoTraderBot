@@ -12,8 +12,18 @@ sys.path.append(path) if path else None
 from Application.data.user import User    # noqa: E402
 from Application.utils.load_json import load    # noqa: E402
 from Application.api.nobitex_api import Trade    # noqa: E402
+from Application.utils.event_channels import Event    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 from Application.data.exchange import Nobitex as nb    # noqa: E402
+from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
+
+jarchi = EventHandler()
+
+
+
+# =================================================================================================
+jarchi.register_event(Event.EXIT_RECOVERY_MECHANISM, [])
+# =================================================================================================
 
 
 
@@ -40,7 +50,15 @@ async def recovery_mechanism() -> None:
 
         # Execute functions asynchronously
         coroutines: list = [func() for func in funcs_set]
-        await asyncio.gather(*coroutines)
+        results = await asyncio.gather(*coroutines)
+
+        # logic to exit recovery mechanism in case all results are successful
+        if all(result == 'succeeded' for result in results):
+            logging.info('Recovery mechanisms performed successfully.')
+            logging.info(f'Broadcasting "{Event.EXIT_RECOVERY_MECHANISM}" event from '\
+                         '"disaster_actions.recovery_mechanism()" function.')
+            
+            await jarchi.emit(Event.EXIT_RECOVERY_MECHANISM)
 
     except asyncio.CancelledError as err:
         logging.error('asyncio.CancelledError occurred inside recovery_mechanism() function: ',err)
@@ -56,7 +74,8 @@ async def close_all_positions():
     trade = Trade(APIService())
 
     logging.info('Executing "close_all_positions()" recovery mechanism')
-    results = await trade.close_all_positions(User.MAIN_TOKEN)    # type: ignore  # noqa: F841
+    success = await trade.close_all_positions(User.MAIN_TOKEN)    # type: ignore
+    return 'succeeded' if success == 'succeeded' else 'failed'
 # ________________________________________________________________________________ . . .
 
 
@@ -67,7 +86,8 @@ async def omit_all_orders():
     trade = Trade(APIService())
 
     logging.info('Executing "omit_all_orders()" recovery mechanism')
-    results = await trade.cancel_all_orders(client=httpx.AsyncClient(), token=User.MAIN_TOKEN)    # type: ignore  # noqa: F841
+    success = await trade.cancel_all_orders(client=httpx.AsyncClient(), token=User.MAIN_TOKEN)    # type: ignore
+    return 'succeeded' if success == 'succeeded' else 'failed'
 # ________________________________________________________________________________ . . .
 
 
