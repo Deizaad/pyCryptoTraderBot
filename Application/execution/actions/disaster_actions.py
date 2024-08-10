@@ -50,12 +50,24 @@ async def recovery_mechanism() -> None:
 
 
 async def close_all_positions():
-    print('"close_all_positions()" function is executed')
+    """
+    
+    """
+    trade = Trade(APIService())
+
+    logging.info('Executing "close_all_positions()" recovery mechanism')
+    results = await trade.close_all_positions(User.MAIN_TOKEN)    # type: ignore  # noqa: F841
 # ________________________________________________________________________________ . . .
 
 
 async def omit_all_orders():
-    print('"omit_all_orders()" function is executed')
+    """
+    
+    """
+    trade = Trade(APIService())
+
+    logging.info('Executing "omit_all_orders()" recovery mechanism')
+    results = await trade.cancel_all_orders(client=httpx.AsyncClient(), token=User.MAIN_TOKEN)    # type: ignore  # noqa: F841
 # ________________________________________________________________________________ . . .
 
 
