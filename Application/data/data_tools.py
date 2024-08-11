@@ -1,20 +1,70 @@
-import os
 import sys
 import pytz
+import importlib
 import pandas as pd
 from datetime import datetime
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
-load_dotenv('project_path.env')
-path = os.getenv('PYTHONPATH')
-if path:
-    sys.path.append(path)
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
 
+from Application.utils.load_json import load    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 
 
 jarchi = EventHandler()
+
+
+def extract_strategy_fields(field: str,
+                            config: dict,
+                            chief_module_path: str,
+                            indicators_module_path: str | None = None):
+    """
+    Extracts function objects and properties of a specified field in strategy config file from 
+    given module.
+
+    Parameters:
+        field (str): The field in the strategy config from which to extract objects.
+        config (dict): The pre-loaded json configuration dictionary.
+        chief_module_path (str): Path to the module where the setup functions are defined.
+        indicators_module_path (str): Path to the module where the indicator functions are defined.
+
+    Returns:
+        extracted_system (list): A list of dictionaries containing function objects and their associated properties/indicators.
+    """
+    extracted_system = []
+
+    # Import function modules
+    chief_module = importlib.import_module(chief_module_path)
+    indicators_module = importlib.import_module(indicators_module_path)\
+                        if indicators_module_path \
+                        else None
+
+    # extract the setups with properties
+    for setup in config.get(field, []):
+        setup_func_name = setup["name"]
+        setup_func_obj  = getattr(chief_module, setup_func_name)
+        setup_instance  = {"function"   : setup_func_obj,
+                           "properties" : setup.get("properties", {}),
+                           "indicators" : []}
+        
+        # extract setup's indicators if there are any
+        for indicator in setup.get("indicators", []):
+            indicator_func_name = indicator["name"]
+            indicator_func_obj  = getattr(indicators_module, indicator_func_name)
+            indicator_instance  = {"function"   : indicator_func_obj,
+                                   "properties" : indicator.get("properties", {})}
+            
+            # include extracted indicator to setup
+            setup_instance["indicators"].append(indicator_instance)
+
+
+        # Add setup_instance to extracted_system list
+        extracted_system.append(setup_instance)
+
+    return extracted_system
+# ________________________________________________________________________________ . . .
 
 
 def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
@@ -201,3 +251,12 @@ def turn_Jalali_to_gregorian(series: pd.Series):
 
     return gregorian_index
 # ________________________________________________________________________________ . . .
+
+
+if __name__ == '__main__':
+    system = extract_strategy_fields(field='entry_signal_setups',
+                                     config=load(r'Application/configs/strategy.json'),
+                                     chief_module_path='Application.trading.signals.setup_functions',
+                                     indicators_module_path='Application.trading.analysis.indicator_functions')
+    
+    print(system)
