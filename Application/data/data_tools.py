@@ -16,13 +16,15 @@ from Application.utils.simplified_event_handler import EventHandler    # noqa: E
 jarchi = EventHandler()
 
 
-def extract_strategy_fields(field: str,
-                            config: dict,
-                            chief_module_path: str,
-                            indicators_module_path: str | None = None):
+def extract_strategy_fields_functions(
+        field                           : str,
+        config                          : dict,
+        setup_functions_module_path     : str,
+        indicator_functions_module_path : str | None = None
+    ):
     """
-    Extracts function objects and properties of a specified field in strategy config file from 
-    given module.
+    Extracts function objects, properties and indicators (if there is any) of a specified field in
+    strategy config file from the given modules.
 
     Parameters:
         field (str): The field in the strategy config from which to extract objects.
@@ -36,16 +38,17 @@ def extract_strategy_fields(field: str,
     extracted_system = []
 
     # Import function modules
-    chief_module = importlib.import_module(chief_module_path)
-    indicators_module = importlib.import_module(indicators_module_path)\
-                        if indicators_module_path \
+    chief_module = importlib.import_module(setup_functions_module_path)
+    indicators_module = importlib.import_module(indicator_functions_module_path)\
+                        if indicator_functions_module_path \
                         else None
 
     # extract the setups with properties
     for setup in config.get(field, []):
         setup_func_name = setup["name"]
         setup_func_obj  = getattr(chief_module, setup_func_name)
-        setup_instance  = {"function"   : setup_func_obj,
+        setup_instance  = {"name"       : setup_func_name,
+                           "function"   : setup_func_obj,
                            "properties" : setup.get("properties", {}),
                            "indicators" : []}
         
@@ -53,7 +56,8 @@ def extract_strategy_fields(field: str,
         for indicator in setup.get("indicators", []):
             indicator_func_name = indicator["name"]
             indicator_func_obj  = getattr(indicators_module, indicator_func_name)
-            indicator_instance  = {"function"   : indicator_func_obj,
+            indicator_instance  = {"name"       : indicator_func_name,
+                                   "function"   : indicator_func_obj,
                                    "properties" : indicator.get("properties", {})}
             
             # include extracted indicator to setup
@@ -254,9 +258,11 @@ def turn_Jalali_to_gregorian(series: pd.Series):
 
 
 if __name__ == '__main__':
-    system = extract_strategy_fields(field='entry_signal_setups',
-                                     config=load(r'Application/configs/strategy.json'),
-                                     chief_module_path='Application.trading.signals.setup_functions',
-                                     indicators_module_path='Application.trading.analysis.indicator_functions')
-    
+    system = extract_strategy_fields_functions(
+        field='entry_signal_setups',
+        config=load(r'Application/configs/strategy.json'),
+        setup_functions_module_path='Application.trading.signals.setup_functions',
+        indicator_functions_module_path='Application.trading.analysis.indicator_functions'
+    )
+
     print(system)
