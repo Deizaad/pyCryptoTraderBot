@@ -22,7 +22,7 @@ jarchi = EventHandler()
 
 
 # =================================================================================================
-jarchi.register_event(Event.EXIT_RECOVERY_MECHANISM, [])
+jarchi.register_event(Event.RECOVERY_MECHANISM_ACCOMPLISHED, [])
 # =================================================================================================
 
 
@@ -55,10 +55,10 @@ async def recovery_mechanism() -> None:
         # logic to exit recovery mechanism in case all results are successful
         if all(result == 'succeeded' for result in results):
             logging.info('Recovery mechanisms performed successfully.')
-            logging.info(f'Broadcasting "{Event.EXIT_RECOVERY_MECHANISM}" event from '\
+            logging.info(f'Broadcasting "{Event.RECOVERY_MECHANISM_ACCOMPLISHED}" event from '\
                          '"disaster_actions.recovery_mechanism()" function.')
 
-            await jarchi.emit(Event.EXIT_RECOVERY_MECHANISM)
+            await jarchi.emit(Event.RECOVERY_MECHANISM_ACCOMPLISHED)
 
     except asyncio.CancelledError as err:
         logging.error('asyncio.CancelledError occurred inside recovery_mechanism() function: ',err)
