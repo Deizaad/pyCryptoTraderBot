@@ -1,17 +1,72 @@
-import os
 import sys
 import asyncio
 import logging
 import pandas as pd
-from typing import Callable
-from dotenv import load_dotenv
+from dotenv import dotenv_values
+from typing import Callable, Dict, Any, Set
 
-load_dotenv('project_path.env')
-path = os.getenv('PYTHONPATH')
-if path:
-    sys.path.append(path)
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
 
+from Application.utils.load_json import load    # noqa: E402
 from Application.trading.signals.setup_functions import get_selected_setups    # noqa: E402
+
+
+
+# =================================================================================================
+async def pre_signal_generation_flow():
+    """
+    Performs the workflow before signal generation.
+
+    Parameters:
+    """
+    entry_setups, indicators = declare_setups('entry_signal_setups',
+                                              'Application.trading.signals.setup_functions',
+                                              load(r'Application/configs/strategy.json'))
+# ________________________________________________________________________________ . . .
+
+
+def declare_setups(category: str, path_to_setups_module: str, configs: Dict[str, Any]):
+    """
+    Declares chosen strategy setups and required indicators from config file.
+
+    Parameters:
+        category (str): Category of setup. Expects eather 'entry_signal_setups' | 'take_profit_setups' | 'stop_loss_setups'.
+        path_to_setups_module (str): The file path to the setups module where strategy setups are defined.
+        configs (Dict[str, Any]): Preloaded configuration dictionary that includes the selected setups and their properties.
+    
+    Returns:
+        Tuple (Dict[Callable, Dict[str, Any]], Set):
+            - A dictionary mapping setup functions to their properties.
+            - A set of required indicators.
+    """
+    declared_indicators: Set[tuple] = set()
+    declared_setup_functions: Dict[Callable, Dict[str, float]] = {}
+
+    selected_setups, required_indicators = get_selected_setups(setup_type  = category,
+                                                               module_path = path_to_setups_module,
+                                                               config      = configs)
+    
+    # Extract setup functions
+    for setup in selected_setups:
+        setup_func: Callable = selected_setups[setup]['function']
+        properties: dict     = selected_setups[setup]['properties']
+
+        declared_setup_functions[setup_func] = properties
+        logging.info(f'Setup "{setup}" has been added to "declared_setup_functions".')
+
+    # Extract indicators
+    for value in required_indicators.values():
+            for item in value:
+                if item not in declared_indicators:
+                    declared_indicators.add(item)
+                    logging.info(f'Indicator {item} has been added to "declared_indicators".')
+
+    return declared_setup_functions, declared_indicators
+# ________________________________________________________________________________ . . .
+
+
+# =================================================================================================
 
 
 
@@ -23,7 +78,7 @@ class SignalChief:
         """
         self.declared_setup_functions: dict[Callable, dict[str, float]] = {}
 
-        selected_setups, _ = get_selected_setups(path_to_setups_module, configs)
+        selected_setups, _ = get_selected_setups('entry_signal_setups', path_to_setups_module, configs)
 
         for setup in selected_setups:
             setup_func: Callable = selected_setups[setup]['function']
@@ -63,3 +118,15 @@ class SignalChief:
 
         return signal_df
 # =================================================================================================
+
+
+
+if __name__ == '__main__':
+    def declare_setups_test():
+        setups, indicators = declare_setups('entry_signal_setups',
+                                            'Application.trading.signals.setup_functions',
+                                            load(r'Application/configs/strategy.json'))
+        
+        print('setups:\n', setups, '\nindicators:\n', indicators)
+
+    declare_setups_test()
