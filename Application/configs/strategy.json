@@ -4,10 +4,16 @@
     "entry_signal_setups": [
         {
             "name": "supertrend_setupfunc",
-            "properties": {
-                "window": 14,
-                "factor": 3
-            }
+            "properties": {},
+            "indicators": [
+                {
+                    "name": "pandas_supertrend",
+                    "properties": {
+                        "window": 14,
+                        "factor": 3
+                    }
+                }
+            ]
         }
     ],
     
@@ -27,6 +33,14 @@
         {
             "name": "omit_all_orders",
             "properties": {}
+        }
+    ],
+
+    "market_validation": [
+        {
+            "name": "bypass_market_validation",
+            "properties": {},
+            "indicators": []
         }
     ]
 }
