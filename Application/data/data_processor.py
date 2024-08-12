@@ -49,9 +49,10 @@ class DataProcessor:
 
     def _initialize_dataframes(self):
         self.kline_df     = pd.DataFrame()
-        self.indicator_df = pd.DataFrame()
         self.signal_df    = pd.DataFrame()
+        self.indicator_df = pd.DataFrame()
         self.positions_df = pd.DataFrame()
+        self.validation_indicators_df = pd.DataFrame()
         
         logging.info('DataProcessor initialized data with empty DataFrames!')
     # ____________________________________________________________________________ . . .
@@ -255,6 +256,15 @@ class DataProcessor:
             logging.error(f'Error while computing indicators: {err}')
     # ____________________________________________________________________________ . . .
 
+
+
+
+    async def get_validation_indicators_df(self):
+        """
+        Returns validation indicators dataframe.
+        """
+        return self.validation_indicators_df
+    # ____________________________________________________________________________ . . .
 
 
 
