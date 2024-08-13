@@ -11,14 +11,9 @@ from Application.utils.simplified_event_handler import EventHandler    # noqa: E
 
 jarchi = EventHandler()
 
+jarchi.register_event(Event.START_ACTIVITY, [])
+jarchi.register_event(Event.END_ACTIVITY, [])
 
-def register_activity_events():
-    """
-    
-    """
-    jarchi.register_event(Event.START_ACTIVITY, [])
-    jarchi.register_event(Event.END_ACTIVITY, [])
-# ________________________________________________________________________________ . . .
 
 
 async def watch_transitions():
