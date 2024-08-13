@@ -13,21 +13,17 @@ from Application.utils.event_channels import Event    # noqa: E402
 from Application.data.data_processor import DataProcessor  # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 from Application.data.data_tools import extract_strategy_fields_functions  # noqa: E402
-from Application.trading.analysis.indicator_supervisor import compute_validation_indicators  # noqa: E402
 
 data = DataProcessor()
 jarchi = EventHandler()
 
 jarchi.register_event(Event.MARKET_IS_VALID, [])
-jarchi.register_event(Event.NEW_VALIDATION_INDICATOR_DATA, [])
-
-
 
 
 
 # =================================================================================================
 class MarketValidator:
-    async def market_validator(self):
+    async def start_market_validation(self):
         """
         Performs market validation based on chosen validator in config file.
         """
@@ -41,22 +37,27 @@ class MarketValidator:
             )
 
             # Define the partial function for computing validation indicators
-            self.compute_validation_indicators_partial = partial(
-                compute_validation_indicators, validation_setups=self.validation_setups
+            self.PARTIAL_compute_validation_indicators = partial(
+                data.computing_validation_indicators, validation_setups=self.validation_setups
             )
 
             # Attach validation_indicator_functions compution to new_kline
-            jarchi.attach(self.compute_validation_indicators_partial, Event.NEW_KLINE_DATA)
+            jarchi.attach(self.PARTIAL_compute_validation_indicators, Event.NEW_KLINE_DATA)
 
             # Attach validator_functions_coroutines to new_indicators
             jarchi.attach(self.execute_validator_functions, Event.NEW_VALIDATION_INDICATOR_DATA)
+
+            # Attach stop_market_validation to market_is_valid event
+            jarchi.attach(self._stop_market_validation, Event.MARKET_IS_VALID)
 
         except Exception as err:
             logging.error(f'Error occured while validating market: {err}')
     # ____________________________________________________________________________ . . .
 
 
-    async def execute_validator_functions(self, kline_df: pd.DataFrame, validation_indicators_df: pd.DataFrame):
+    async def execute_validator_functions(self,
+                                          kline_df                 : pd.DataFrame,
+                                          validation_indicators_df : pd.DataFrame):
         """
         Executes validator functions Asynchronously and emits on MARKET_IS_VALID event channel.
 
@@ -66,7 +67,11 @@ class MarketValidator:
         try:
             coroutines = set()
             for setup in self.validation_setups:
-                coroutines.add(setup["function"](kline_df=kline_df, validation_indicators_df=validation_indicators_df, properties=setup['properties']))
+                coroutines.add(setup["function"](
+                    kline_df=kline_df,
+                    validation_indicators_df=validation_indicators_df,
+                    properties=setup['properties']
+                ))
 
             results = await asyncio.gather(*coroutines, return_exceptions=True)
 
@@ -83,7 +88,26 @@ class MarketValidator:
     # ____________________________________________________________________________ . . .
 
 
-def bypass_market_validation(kline_df: pd.DataFrame, validation_indicators_df: pd.DataFrame, properties: dict) -> str:
+    async def _stop_market_validation(self):
+        """
+        Stops further market validation processes.
+        """
+        jarchi.detach(listener=self.execute_validator_functions,
+                      event=Event.NEW_VALIDATION_INDICATOR_DATA)
+
+        jarchi.detach(listener=self.PARTIAL_compute_validation_indicators,
+                      event=Event.NEW_KLINE_DATA)
+        
+        logging.info('Further market validation processes stopped.')
+    # ____________________________________________________________________________ . . .
+# =================================================================================================
+
+
+
+# =================================================================================================
+def bypass_market_validation(kline_df                 : pd.DataFrame,
+                             validation_indicators_df : pd.DataFrame,
+                             properties               : dict) -> str:
     """
     Returns:
         validation (str): Always returns 'valid'.
