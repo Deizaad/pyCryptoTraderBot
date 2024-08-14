@@ -23,7 +23,9 @@ from Application.data.data_tools import has_signals,\
                                         update_dataframe,\
                                         parse_kline_to_df    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
-from Application.trading.signals.signal_supervisor import generate_signals    # noqa: E402
+from Application.trading.signals.signal_supervisor import ENTRY_SYSTEM,\
+                                                          generate_signals    # noqa: E402
+from Application.trading.market.validator import MARKET_VALIDATION_SYSTEM    # noqa: E402
 from Application.trading.analysis.indicator_supervisor import compute_indicators,\
                                                               compute_validation_indicators     # noqa: E402
 
@@ -47,10 +49,12 @@ class DataProcessor:
     def __init__(self) -> None:
         self.jarchi = EventHandler()
         self.jarchi.register_event(Event.NEW_INDICATORS_DATA, ['kline_df', 'indicator_df'])
-        self.jarchi.register_event(Event.NEW_VALIDATION_INDICATOR_DATA, ['v_indicators_df'])
         self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df'])
         self.jarchi.register_event(Event.NEW_TRADING_SIGNAL, [])
         self.jarchi.register_event(Event.OPEN_POSITIONS_EXIST, ['positions_df'])
+        self.jarchi.register_event(Event.NEW_VALIDATION_INDICATOR_DATA, ['kline_df',
+                                                                         'indicator_df',
+                                                                         'validation_indicators_df'])
     # ____________________________________________________________________________ . . .
 
 
@@ -154,10 +158,6 @@ class DataProcessor:
             # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
             func_name=self._initiate_kline.__qualname__
             event_channel=Event.NEW_KLINE_DATA
-            logging.info(f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...')
-            await self.jarchi.emit(Event.NEW_KLINE_DATA,
-                             kline_df=self.kline_df,
-                             indicator_df=self.indicator_df)
         # ________________________________________________________________________ . . .
 
 
@@ -195,8 +195,7 @@ class DataProcessor:
                 )
 
                 await self.jarchi.emit(Event.NEW_KLINE_DATA,
-                                 kline_df=self.kline_df,
-                                 indicator_df=self.indicator_df)
+                                 kline_df=self.kline_df)
 
         except Exception as err:
             logging.error(f'Error in requesting subsequent initial_fetches: {err}')
@@ -229,9 +228,9 @@ class DataProcessor:
                     event_channel=Event.NEW_KLINE_DATA
                     logging.info(f'Sending "{event_channel}" event from "{func_name}" ...')
                     await self.jarchi.emit(Event.NEW_KLINE_DATA,
-                                     kline_df=self.kline_df,
-                                     indicator_df=self.indicator_df)
+                                     kline_df=self.kline_df)
 
+                    print(self.kline_df)
         except Exception as err:
             logging.error(f'Error during live kline fetching: {err}')
     # ____________________________________________________________________________ . . .
@@ -248,7 +247,7 @@ class DataProcessor:
 
 
 
-    async def computing_indicators(self, trading_system: list):
+    async def computing_indicators(self):
         """
         Calls indicator computer function from IndicatorChief and emits on "NEW_INDICATORS_DATA" event channel.
 
@@ -256,13 +255,16 @@ class DataProcessor:
             trading_system (list): 
         """
         try:
-            self.indicator_df = await compute_indicators(trading_system = trading_system,
+            self.indicator_df = await compute_indicators(trading_system = ENTRY_SYSTEM,
                                                          kline_df       = self.kline_df)
             
             logging.info(f'Broadcasting "{Event.NEW_INDICATORS_DATA}" event from '\
                          '"DataProcessor.computing_indicators()" method.')
             
-            await self.jarchi.emit(Event.NEW_INDICATORS_DATA)
+            print(self.indicator_df)
+            await self.jarchi.emit(Event.NEW_INDICATORS_DATA,
+                                   kline_df     = self.kline_df,
+                                   indicator_df = self.indicator_df)
 
         except Exception as err:
             logging.error(f'Inside "DataProcessor.computing_indicators()" method: {err}')
@@ -280,7 +282,7 @@ class DataProcessor:
 
 
 
-    async def computing_validation_indicators(self, validation_setups: list):
+    async def computing_validation_indicators(self):
         """
         Calls computer function from IndicatorChief for validation indicators and emits on 
         corresponding event channel.
@@ -290,14 +292,17 @@ class DataProcessor:
         """
         try:
             self.validation_indicators_df = await compute_validation_indicators(
-                validation_setups = validation_setups,
+                validation_system = MARKET_VALIDATION_SYSTEM,
                 kline_df          = self.kline_df
             )
 
             logging.info(f'Broadcasting "{Event.NEW_VALIDATION_INDICATOR_DATA}" event from '\
                          '"DataProcessor.computing_validation_indicators()" method.')
 
-            await self.jarchi.emit(Event.NEW_VALIDATION_INDICATOR_DATA)
+            await self.jarchi.emit(Event.NEW_VALIDATION_INDICATOR_DATA,
+                                   kline_df        = self.kline_df,
+                                   indicator_df    = self.indicator_df,
+                                   validation_indicators_df = self.validation_indicators_df)
 
         except Exception as err:
             logging.error('Inside "DataProcessor.computing_validation_indicators()" method: ', err)
@@ -315,7 +320,7 @@ class DataProcessor:
 
 
 
-    async def generating_signals(self, trading_system: list):
+    async def generating_signals(self):
         """
         Calls trading signal generator function from SignalChief and emits on "NEW_TRADING_SIGNAL"
         event channel.
@@ -323,7 +328,7 @@ class DataProcessor:
         Parameters:
         """
         try:
-            self.signal_df = await generate_signals(trading_system = trading_system,
+            self.signal_df = await generate_signals(trading_system = ENTRY_SYSTEM,
                                                     kline_df       = self.kline_df,
                                                     indicators_df  = self.indicator_df)
             
