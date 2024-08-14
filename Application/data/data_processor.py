@@ -23,7 +23,7 @@ from Application.data.data_tools import has_signals,\
                                         update_dataframe,\
                                         parse_kline_to_df    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
-from Application.trading.signals.signal_supervisor import ENTRY_SYSTEM,\
+from Application.trading.signals.signal_generator import ENTRY_SYSTEM,\
                                                           generate_signals    # noqa: E402
 from Application.trading.market.validator import MARKET_VALIDATION_SYSTEM    # noqa: E402
 from Application.trading.analysis.indicator_supervisor import compute_indicators,\

@@ -38,9 +38,9 @@ async def generate_signals(trading_system : list,
         results = await asyncio.gather(*coroutines_set)
     except asyncio.CancelledError:
             logging.error("An signal generation task got canceled in "\
-                          "'signal_supervisor.generate_signals()' function.")
+                          "'signal_generator.generate_signals()' function.")
     except Exception as err:
-        logging.error(f'Inside "signal_supervisor.generate_signals()": {err}')
+        logging.error(f'Inside "signal_generator.generate_signals()": {err}')
 
     signal_df = pd.DataFrame(index=kline_df.index)
     for result in results:
