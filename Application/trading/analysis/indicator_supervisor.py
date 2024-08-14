@@ -1,12 +1,6 @@
-import sys
 import asyncio
 import logging
 import pandas as pd
-from dotenv import dotenv_values
-
-path = dotenv_values('project_path.env').get('PYTHONPATH')
-sys.path.append(path) if path else None
-
 
 
 # =================================================================================================
@@ -16,7 +10,7 @@ async def compute_validation_indicators(validation_setups: list, kline_df: pd.Da
 
     Parameters:
         validation_setups (list): List of market validation setups.
-        kline_df (DataFrame): 
+        kline_df (DataFrame): kline DataFrame.
 
     Retrns:
         v_indicators_df (DataFrame): A pandas Dataframe containing validation indicators values.
@@ -28,10 +22,12 @@ async def compute_validation_indicators(validation_setups: list, kline_df: pd.Da
     for setup in validation_setups:
         for indicator_config in setup.get("indicators", []):
             coroutines_set.add(
-                indicator_config["function"](**indicator_config["properties"], kline_df=kline_df)
+                indicator_config["function"](properties = indicator_config["properties"],
+                                             kline_df   = kline_df)
             )
 
-            logging.info(f'Indicator {indicator_config["name"]} has been added to validation indicators.')
+            logging.info(f'Indicator {indicator_config["name"]} has been added to validation '\
+                         'indicators.')
 
     # Executing coroutine objects
     try:
@@ -44,6 +40,49 @@ async def compute_validation_indicators(validation_setups: list, kline_df: pd.Da
         logging.error(f'Inside "compute_validation_indicators()": {err}')
 
     # Extract and merging indicator dataframes together
+    indicators_df = pd.DataFrame(index=kline_df.index)
+    if results:
+        for result in results:
+            if not result.empty:
+                indicators_df = indicators_df.merge(
+                    result, left_index=True, right_index=True, how='left'
+                )
+
+    return indicators_df
+# ________________________________________________________________________________ . . .
+
+
+async def compute_indicators(trading_system: list, kline_df: pd.DataFrame):
+    """
+    Computes indicator functions of given system asynchronously.
+
+    Parameters: 
+        trading_system (list): List of trading setups.
+        kline_df (DataFrame): kline DataFrame.
+
+    Returns:
+        indicators_df (DataFrame): A pandas Dataframe containing indicators values.
+    """
+    coroutines_set = set()
+
+    for setup in trading_system:
+        for indicator_config in setup.get("indicators", []):
+            coroutines_set.add(
+                indicator_config["function"](properties = indicator_config["properties"],
+                                             kline_df   = kline_df)
+            )
+
+            logging.info(f'Indicator "{indicator_config["name"]}" has been added to Indicators.')
+
+    try:
+        if coroutines_set:
+            results = await asyncio.gather(*coroutines_set)
+    except asyncio.CancelledError:
+            logging.error("An indicator compution task got canceled in "\
+                          "'compute_indicators()' function.")
+    except Exception as err:
+        logging.error(f'Inside "compute_indicators()": {err}')
+
     indicators_df = pd.DataFrame(index=kline_df.index)
     if results:
         for result in results:
