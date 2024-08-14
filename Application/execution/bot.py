@@ -25,9 +25,9 @@ async def main():
         await prf_module.run()
 
     except RuntimeError as err:
-        logging.error(f'RuntimeError occurred in "bot.py" module: {err}')
+        logging.error(f'RuntimeError occurred in "bot.main" function: {err}')
     except Exception as err:
-        logging.error(f'Exception occurred in "bot.py" module: {err}')
+        logging.error(f'Exception occurred in "bot.main" function: {err}')
 # ________________________________________________________________________________ . . .
 # =================================================================================================
 
