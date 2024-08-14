@@ -18,9 +18,9 @@ async def start_trade_engine():
     """
     Starts trade engine.
     """
-    await recovery_mechanism()
-
     jarchi.attach(start_signals_engine, Event.RECOVERY_MECHANISM_ACCOMPLISHED)
+
+    await recovery_mechanism()
 # ________________________________________________________________________________ . . .
 
 
