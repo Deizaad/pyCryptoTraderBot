@@ -5,7 +5,7 @@ import pandas_ta as ta    # type: ignore
 
 
 # =================================================================================================
-async def pandas_supertrend(kline_df, **kwargs) -> pd.DataFrame:    # FIXME NO-005
+async def pandas_supertrend(kline_df: pd.DataFrame, properties: dict) -> pd.DataFrame:    # FIXME NO-005
     """
     Supertrend indicator function using pandas_ta library.
 
@@ -17,8 +17,8 @@ async def pandas_supertrend(kline_df, **kwargs) -> pd.DataFrame:    # FIXME NO-0
     Returns:
         DataFrame: Indicator DataFrame with two columns 'supertrend' and 'supertrend_side'.
     """
-    window = kwargs.get('window')
-    factor = kwargs.get('factor')
+    window = properties.get('window')
+    factor = properties.get('factor')
     
     try:
         _df = ta.supertrend(kline_df['high'], kline_df['low'], kline_df['close'], window, factor)
