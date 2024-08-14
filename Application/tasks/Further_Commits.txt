@@ -168,3 +168,6 @@ asyncio.run(data_manager.initiate_kline_df())
 * Write an script to run the container on server at startup and make sure this script gets executed on startup every time.
 
 * Write an script to run the bot.py at container startup and make sure this script gets executed on start of container every time.
+
+* Solve the bug of EventHandler.detach method causing error: {Detaching "generating_signals" from event channel "new indicators data arrived": It wasntbeen attached yet!
+Inside recovery_mechanism() function: list.remove(x): x not in list}
