@@ -11,19 +11,23 @@ sys.path.append(path) if path else None
 
 from Application.data.user import User    # noqa: E402
 from Application.configs import config    # noqa: E402
-from Application.utils.load_json import load    # noqa: E402
+# from Application.utils.load_json import load    # noqa: E402
 from Application.data.exchange import Nobitex    # noqa: E402
 from Application.api import nobitex_api as NB_API    # noqa: E402
 from Application.utils.event_channels import Event    # noqa: E402
 import Application.configs.admin_config as Aconfig    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 # from Application.data.validator import is_consistent    # noqa: E402
-from Application.data.data_tools import df_has_news,\
+from Application.data.data_tools import has_signals,\
+                                        df_has_news,\
                                         update_dataframe,\
                                         parse_kline_to_df    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
-from Application.trading.signals.signal_supervisor import SignalChief    # noqa: E402
-from Application.trading.analysis.indicator_supervisor import IndicatorChief    # noqa: E402
+from Application.trading.signals.signal_supervisor import generate_signals    # noqa: E402
+from Application.trading.analysis.indicator_supervisor import compute_indicators,\
+                                                              compute_validation_indicators     # noqa: E402
+
+
 
 
 
@@ -42,7 +46,10 @@ class DataProcessor:
 
     def __init__(self) -> None:
         self.jarchi = EventHandler()
-        self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df', 'indicator_df'])
+        self.jarchi.register_event(Event.NEW_INDICATORS_DATA, ['kline_df', 'indicator_df'])
+        self.jarchi.register_event(Event.NEW_VALIDATION_INDICATOR_DATA, ['v_indicators_df'])
+        self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df'])
+        self.jarchi.register_event(Event.NEW_TRADING_SIGNAL, [])
         self.jarchi.register_event(Event.OPEN_POSITIONS_EXIST, ['positions_df'])
     # ____________________________________________________________________________ . . .
 
@@ -72,16 +79,16 @@ class DataProcessor:
                                               Nobitex.Endpoint.OHLC_MI,
                                               Aconfig.OHLC.TRIES)
 
-            self.analysis = IndicatorChief()
-            indicator_task = self._awake_indicators(self.analysis)
+            # self.analysis = IndicatorChief()
+            # indicator_task = self._awake_indicators(self.analysis)
 
-            self.signal = SignalChief()
-            signal_task = self._awake_signals(self.signal)
+            # self.signal = SignalChief()
+            # signal_task = self._awake_signals(self.signal)
 
             self.trade = NB_API.Trade(APIService())
             # positions_task = self._initiate_positions()
 
-            await asyncio.gather( kline_task, indicator_task, signal_task)# include positions_task to first
+            await asyncio.gather( kline_task)#, indicator_task, signal_task)# include positions_task to first
 
         except Exception as err:
             logging.error(f'Error while initiating data: {err}')
@@ -240,23 +247,61 @@ class DataProcessor:
 
 
 
-    async def _awake_indicators(self, indicator_chief: IndicatorChief):
-        indicator_chief.declare_indicators('Application.trading.signals.setup_functions',
-                                           load(r'Application/configs/signal_config.json'))
-        
-        self.jarchi.attach(self._compute_indicators,
-                           Event.NEW_KLINE_DATA)
-    # ____________________________________________________________________________ . . .
 
+    async def computing_indicators(self, trading_system: list):
+        """
+        Calls indicator computer function from IndicatorChief and emits on "NEW_INDICATORS_DATA" event channel.
 
-    async def _compute_indicators(self, kline_df):
+        Parameters:
+            trading_system (list): 
+        """
         try:
-            self.indicator_df = await self.analysis.cook_indicators(kline_df)
+            self.indicator_df = await compute_indicators(trading_system = trading_system,
+                                                         kline_df       = self.kline_df)
+            
+            logging.info(f'Broadcasting "{Event.NEW_INDICATORS_DATA}" event from '\
+                         '"DataProcessor.computing_indicators()" method.')
+            
+            await self.jarchi.emit(Event.NEW_INDICATORS_DATA)
+
         except Exception as err:
-            logging.error(f'Error while computing indicators: {err}')
+            logging.error(f'Inside "DataProcessor.computing_indicators()" method: {err}')
     # ____________________________________________________________________________ . . .
 
 
+    async def get_indicators_df(self):
+        """
+        Returns indicators DataFrame.
+        """
+        return self.indicator_df
+    # ____________________________________________________________________________ . . .
+
+
+
+
+
+    async def computing_validation_indicators(self, validation_setups: list):
+        """
+        Calls computer function from IndicatorChief for validation indicators and emits on 
+        corresponding event channel.
+
+        Parameters:
+            validation_setups (list): List of market validation setups is goinf to be used to extract indicator functions from.
+        """
+        try:
+            self.validation_indicators_df = await compute_validation_indicators(
+                validation_setups = validation_setups,
+                kline_df          = self.kline_df
+            )
+
+            logging.info(f'Broadcasting "{Event.NEW_VALIDATION_INDICATOR_DATA}" event from '\
+                         '"DataProcessor.computing_validation_indicators()" method.')
+
+            await self.jarchi.emit(Event.NEW_VALIDATION_INDICATOR_DATA)
+
+        except Exception as err:
+            logging.error('Inside "DataProcessor.computing_validation_indicators()" method: ', err)
+    # ____________________________________________________________________________ . . .
 
 
     async def get_validation_indicators_df(self):
@@ -269,22 +314,35 @@ class DataProcessor:
 
 
 
-    async def _awake_signals(self, signal_chief: SignalChief):
-        signal_chief.declare_setups('Application.trading.signals.setup_functions',
-                                    load(r'Application/configs/signal_config.json'))
-        
-        self.jarchi.attach(self._generate_signals,
-                           Event.NEW_KLINE_DATA)
-    # ____________________________________________________________________________ . . .
 
+    async def generating_signals(self, trading_system: list):
+        """
+        Calls trading signal generator function from SignalChief and emits on "NEW_TRADING_SIGNAL"
+        event channel.
 
-    async def _generate_signals(self, kline_df: pd.DataFrame, indicator_df: pd.DataFrame):
+        Parameters:
+        """
         try:
-            if (not kline_df.empty) and (not indicator_df.empty):
-                self.signal_df = await self.signal.generate_signals(kline_df, indicator_df)
+            self.signal_df = await generate_signals(trading_system = trading_system,
+                                                    kline_df       = self.kline_df,
+                                                    indicators_df  = self.indicator_df)
+            
+            if has_signals(self.signal_df) == 'new_signal':
+                logging.info(f'Broadcasting "{Event.NEW_TRADING_SIGNAL}" event from'\
+                             '"DataProcessor.generating_signals()" method.')
+                
+                await self.jarchi.emit(Event.NEW_TRADING_SIGNAL)
+
+            elif has_signals(self.signal_df) == 'late_signal':
+                logging.info(f'Broadcasting "{Event.LATE_TRADING_SIGNAL}" event from'\
+                             '"DataProcessor.generating_signals()" method.')
+                
+                await self.jarchi.emit(Event.LATE_TRADING_SIGNAL)
+                
 
         except Exception as err:
-            logging.error(f'Inside "_generate_signal()" method of DataProcessor: {err}')
+            logging.error('Inside "DataProcessor.generating_signals()" method of DataProcessor: ',
+                          err)
     # ____________________________________________________________________________ . . .
 
 
