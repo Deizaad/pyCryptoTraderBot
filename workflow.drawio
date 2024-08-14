@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="2hrEDhwtY0BgSdLxk32c" name="Page-1">
-        <mxGraphModel dx="6254" dy="1783" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="5738" dy="1032" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -946,13 +946,13 @@
                 <mxCell id="495" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="469" source="490" target="491" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="490" value="&lt;span style=&quot;color: rgb(0, 204, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(24, 20, 29); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;On &quot;run market validator&quot; listener call:&lt;/span&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="469" vertex="1">
+                <mxCell id="490" value="&lt;span style=&quot;color: rgb(0, 204, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(24, 20, 29); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;On &quot;run market validator&quot; listener call:&lt;/span&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="469" vertex="1">
                     <mxGeometry x="67.5" y="47.5" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="496" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="469" source="491" target="492" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="491" value="&lt;font color=&quot;#66cc00&quot;&gt;perform market validations&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="469" vertex="1">
+                <mxCell id="491" value="&lt;font color=&quot;#66cc00&quot;&gt;perform market validations&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="469" vertex="1">
                     <mxGeometry x="87.5" y="137.5" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="497" value="Yes" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="469" source="492" target="493" edge="1">
@@ -961,13 +961,13 @@
                 <mxCell id="498" value="No" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="469" source="492" target="494" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="492" value="is market valid?" style="rhombus;whiteSpace=wrap;html=1;rounded=0;shadow=0;glass=0;sketch=0;fillStyle=auto;fontColor=#66CC00;gradientColor=none;" parent="469" vertex="1">
+                <mxCell id="492" value="is market valid?" style="rhombus;whiteSpace=wrap;html=1;rounded=0;shadow=0;glass=0;sketch=0;fillStyle=auto;fontColor=#ffffff;fillColor=#647687;strokeColor=#314354;" parent="469" vertex="1">
                     <mxGeometry x="78.75" y="227.5" width="97.5" height="97.5" as="geometry"/>
                 </mxCell>
-                <mxCell id="493" value="&lt;font color=&quot;#66cc00&quot;&gt;Broadcast market is valid event&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="469" vertex="1">
+                <mxCell id="493" value="&lt;font color=&quot;#66cc00&quot;&gt;Broadcast market is valid event&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="469" vertex="1">
                     <mxGeometry x="152.5" y="367.5" width="80" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="494" value="&lt;font color=&quot;#66cc00&quot;&gt;Broadcast market is not valid event&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="469" vertex="1">
+                <mxCell id="494" value="&lt;font color=&quot;#66cc00&quot;&gt;Broadcast market is not valid event&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="469" vertex="1">
                     <mxGeometry x="22.5" y="367.5" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="502" value="trading/strategy/portfolio_manager.py" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=12 12;" parent="725" vertex="1">
@@ -1013,7 +1013,7 @@
                         <mxRectangle x="-740" y="-70" width="80" height="30" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="676" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="543" target="677" edge="1">
+                <mxCell id="676" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="543" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="197.46" y="1200"/>
@@ -1023,51 +1023,51 @@
                         <mxPoint x="197.48999999999978" y="1190.0000000000005" as="sourcePoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="757" value="Start_signals_engine" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=8 8;" vertex="1" parent="543">
+                <mxCell id="757" value="Start_signals_engine" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=8 8;" parent="543" vertex="1">
                     <mxGeometry x="15" y="150" width="510" height="440" as="geometry">
                         <mxRectangle x="-740" y="-70" width="80" height="30" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="764" value="&lt;font color=&quot;#66cc00&quot;&gt;emit on &quot;there_is_no_trade&quot; event channel&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" vertex="1" parent="757">
+                <mxCell id="764" value="&lt;font color=&quot;#66cc00&quot;&gt;emit on &quot;there_is_no_trade&quot; event channel&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="757" vertex="1">
                     <mxGeometry x="187" y="40" width="135" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="769" value="Post_market_validation_flow" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;startSize=23;" vertex="1" parent="757">
+                <mxCell id="769" value="Post_market_validation_flow" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;startSize=23;" parent="757" vertex="1">
                     <mxGeometry x="15" y="280" width="480" height="130" as="geometry">
                         <mxRectangle x="-740" y="-70" width="80" height="30" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="753" value="Attach signal generator to &quot;new_indicators_data&quot;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="769">
+                <mxCell id="753" value="Attach signal generator to &quot;new_indicators_data&quot;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="769" vertex="1">
                     <mxGeometry x="66.25999999999999" y="37.5" width="157.47" height="75" as="geometry"/>
                 </mxCell>
-                <mxCell id="765" value="Attach &quot;compute_indicators&quot; to &quot;new_market_data&quot;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="769">
+                <mxCell id="765" value="Attach &quot;compute_indicators&quot; to &quot;new_market_data&quot;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="769" vertex="1">
                     <mxGeometry x="246.26" y="37.5" width="157.47" height="75" as="geometry"/>
                 </mxCell>
-                <mxCell id="775" value="Pre_market_validation_flow" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;startSize=23;" vertex="1" parent="757">
+                <mxCell id="775" value="Pre_market_validation_flow" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;startSize=23;" parent="757" vertex="1">
                     <mxGeometry x="17.5" y="130" width="475" height="130" as="geometry">
                         <mxRectangle x="-740" y="-70" width="80" height="30" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="776" value="Detach signal generator from &quot;new_indicators_data&quot;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="775">
+                <mxCell id="776" value="Detach signal generator from &quot;new_indicators_data&quot;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="775" vertex="1">
                     <mxGeometry x="23.759999999999987" y="40" width="157.47" height="75" as="geometry"/>
                 </mxCell>
-                <mxCell id="777" value="Detach &quot;compute_indicators&quot; from &quot;new_market_data&quot;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="775">
+                <mxCell id="777" value="Detach &quot;compute_indicators&quot; from &quot;new_market_data&quot;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="775" vertex="1">
                     <mxGeometry x="293.76" y="40" width="157.47" height="75" as="geometry"/>
                 </mxCell>
-                <mxCell id="778" value="&lt;font color=&quot;#66cc00&quot;&gt;Start market_validator&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;" vertex="1" parent="775">
+                <mxCell id="778" value="&lt;font color=&quot;#66cc00&quot;&gt;Start market_validator&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="775" vertex="1">
                     <mxGeometry x="197.76" y="47.5" width="80" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="780" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Attach &quot;post_market_validation_flow&quot; to &quot;market_is_valid&quot; event&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" vertex="1" parent="757">
+                <mxCell id="780" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Attach &quot;post_market_validation_flow&quot; to &quot;market_is_valid&quot; event&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="757" vertex="1">
                     <mxGeometry x="32.5" y="40" width="135" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="789" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Attach &quot;pre_market_validation_flow&quot; to &quot;trade_is_closed&quot; and &quot;there_is_no_trade&quot; events&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" vertex="1" parent="757">
+                <mxCell id="789" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Attach &quot;pre_market_validation_flow&quot; to &quot;trade_is_closed&quot; and &quot;there_is_no_trade&quot; events&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="757" vertex="1">
                     <mxGeometry x="335" y="40" width="135" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="781" value="Stop_signals_engine" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=8 8;" vertex="1" parent="543">
+                <mxCell id="781" value="Stop_signals_engine" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=8 8;" parent="543" vertex="1">
                     <mxGeometry x="135" y="620" width="270" height="150" as="geometry">
                         <mxRectangle x="-740" y="-70" width="80" height="30" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="787" value="Detach &quot;Pre_market_validation_flow&quot; from &quot;trade_is_closed&quot; event" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" vertex="1" parent="781">
+                <mxCell id="787" value="Detach &quot;Pre_market_validation_flow&quot; from &quot;trade_is_closed&quot; event" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="781" vertex="1">
                     <mxGeometry x="30" y="37.5" width="210" height="75" as="geometry"/>
                 </mxCell>
                 <mxCell id="749" value="&lt;font color=&quot;#66cc00&quot;&gt;Extract trading system functions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="543" vertex="1">
@@ -1090,9 +1090,6 @@
                 <mxCell id="740" value="&lt;font color=&quot;#66cc00&quot;&gt;Attach the signal engine to&amp;nbsp;&lt;/font&gt;&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;&quot;Recovery mechanism accomplished&quot; event&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="571" vertex="1">
                     <mxGeometry x="255" y="250" width="120" height="90" as="geometry"/>
                 </mxCell>
-                <mxCell id="751" value="&lt;font color=&quot;#66cc00&quot;&gt;Extract trading system functions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="571" vertex="1">
-                    <mxGeometry x="60" y="170" width="80" height="60" as="geometry"/>
-                </mxCell>
                 <mxCell id="598" value="trading/strategy/risk_functions.py" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=12 12;" parent="725" vertex="1">
                     <mxGeometry x="350" y="1090" width="410" height="280" as="geometry">
                         <mxRectangle x="-740" y="-70" width="80" height="30" as="alternateBounds"/>
@@ -1112,7 +1109,7 @@
                 <mxCell id="680" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="634" source="660" target="557" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="660" value="&lt;font color=&quot;#66cc00&quot;&gt;generate signals for entry setup&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="634" vertex="1">
+                <mxCell id="660" value="&lt;font color=&quot;#66cc00&quot;&gt;generate signals for entry setup&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" parent="634" vertex="1">
                     <mxGeometry x="165" y="40" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="671" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="634" source="669" target="546" edge="1">
@@ -1131,23 +1128,29 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="669" value="&lt;font color=&quot;#66cc00&quot;&gt;perform validation on signals&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="634" vertex="1">
+                <mxCell id="669" value="&lt;font color=&quot;#66cc00&quot;&gt;perform validation on new signals&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="634" vertex="1">
                     <mxGeometry x="101.25" y="140" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="546" value="&lt;font color=&quot;#66cc00&quot;&gt;Broadcast &quot;new valid signal event&quot;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="634" vertex="1">
                     <mxGeometry x="157.5" y="230" width="80" height="60" as="geometry"/>
                 </mxCell>
+                <mxCell id="796" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="634" source="557" target="793">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
                 <mxCell id="557" value="&lt;font color=&quot;#66cc00&quot;&gt;Check for late-entering signals&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="634" vertex="1">
-                    <mxGeometry x="285" y="140" width="80" height="60" as="geometry"/>
+                    <mxGeometry x="285" y="120" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="558" value="&lt;font color=&quot;#66cc00&quot;&gt;Broadcast late-signal event&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="634" vertex="1">
-                    <mxGeometry x="285" y="230" width="80" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="556" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#66CC00;" parent="634" source="557" target="558" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
+                    <mxGeometry x="285" y="270" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="670" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Store generated signals along with strategy name on ram&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="634" vertex="1">
                     <mxGeometry x="45" y="226.25" width="90" height="67.5" as="geometry"/>
+                </mxCell>
+                <mxCell id="797" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="634" source="793" target="558">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="793" value="&lt;font color=&quot;#66cc00&quot;&gt;perform validation on late signals&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" vertex="1" parent="634">
+                    <mxGeometry x="285" y="200" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="688" value="order_engine.py" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=12 12;" parent="725" vertex="1">
                     <mxGeometry x="435" y="1540" width="480" height="390" as="geometry">
