@@ -7,7 +7,7 @@ sys.path.append(path) if path else None
 from Application.utils.event_channels import Event    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 from Application.execution.actions.disaster_actions import recovery_mechanism    # noqa: E402
-from Application.trading.signals.signal_supervisor import start_signals_engine #, stop_signals_engine    # noqa: E402
+from Application.trading.signals.signals_chief import start_signals_engine #, stop_signals_engine    # noqa: E402
 
 jarchi = EventHandler()
 
