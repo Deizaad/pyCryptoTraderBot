@@ -4,12 +4,12 @@ import pandas as pd
 
 
 # =================================================================================================
-async def compute_validation_indicators(validation_setups: list, kline_df: pd.DataFrame):
+async def compute_validation_indicators(validation_system: list, kline_df: pd.DataFrame):
     """
     Computes validation indicator functions asynchronously.
 
     Parameters:
-        validation_setups (list): List of market validation setups.
+        validation_system (list): List of market validation setups.
         kline_df (DataFrame): kline DataFrame.
 
     Retrns:
@@ -19,8 +19,11 @@ async def compute_validation_indicators(validation_setups: list, kline_df: pd.Da
     coroutines_set = set()
 
     # Add indicator functions and their properties to coroutines
-    for setup in validation_setups:
+    for setup in validation_system:
         for indicator_config in setup.get("indicators", []):
+            # Handle the case where there is no indicator to be computed
+            if not indicator_config:
+                return pd.DataFrame()
             coroutines_set.add(
                 indicator_config["function"](properties = indicator_config["properties"],
                                              kline_df   = kline_df)
@@ -33,6 +36,8 @@ async def compute_validation_indicators(validation_setups: list, kline_df: pd.Da
     try:
         if coroutines_set:
             results = await asyncio.gather(*coroutines_set)
+        else:
+            results = []
     except asyncio.CancelledError:
             logging.error("An indicator compution task got canceled in "\
                           "'compute_validation_indicators()' function.")
@@ -67,6 +72,9 @@ async def compute_indicators(trading_system: list, kline_df: pd.DataFrame):
 
     for setup in trading_system:
         for indicator_config in setup.get("indicators", []):
+            # Handle the case where there is no indicator to be computed
+            if not indicator_config:
+                return pd.DataFrame()
             coroutines_set.add(
                 indicator_config["function"](properties = indicator_config["properties"],
                                              kline_df   = kline_df)
@@ -77,6 +85,8 @@ async def compute_indicators(trading_system: list, kline_df: pd.DataFrame):
     try:
         if coroutines_set:
             results = await asyncio.gather(*coroutines_set)
+        else:
+            results = []
     except asyncio.CancelledError:
             logging.error("An indicator compution task got canceled in "\
                           "'compute_indicators()' function.")
