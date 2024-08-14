@@ -4,6 +4,38 @@ import pandas as pd
 
 
 
+async def generate_signals(trading_system : list,
+                           kline_df       : pd.DataFrame,
+                           indicators_df  : pd.DataFrame):
+    """
+    Executes setup functions from given trading system asynchronously.
+    """
+    coroutines_set = set()
+
+    for setup in trading_system:
+        coroutines_set.add(setup['function'](kline_df     = kline_df,
+                                             indicator_df = indicators_df,
+                                             properties   = setup['properties']))
+
+        logging.info(f'Setup "{setup['name']}" has been added to signal setups.')
+
+    try:
+        results = await asyncio.gather(*coroutines_set)
+    except asyncio.CancelledError:
+            logging.error("An signal generation task got canceled in "\
+                          "'signal_supervisor.generate_signals()' function.")
+    except Exception as err:
+        logging.error(f'Inside "signal_supervisor.generate_signals()": {err}')
+
+    signal_df = pd.DataFrame(index=kline_df.index)
+    for result in results:
+            if not result.empty:
+                signal_df = signal_df.merge(
+                    result, left_index=True, right_index=True, how='left'
+                )
+
+    return signal_df
+# ________________________________________________________________________________ . . .
 
 
 # def declare_setups(category: str, path_to_setups_module: str, configs: Dict[str, Any]):
