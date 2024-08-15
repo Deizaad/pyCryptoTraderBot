@@ -48,13 +48,17 @@ class DataProcessor:
 
     def __init__(self) -> None:
         self.jarchi = EventHandler()
-        self.jarchi.register_event(Event.NEW_INDICATORS_DATA, ['kline_df', 'indicator_df'])
         self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df'])
-        self.jarchi.register_event(Event.NEW_TRADING_SIGNAL, [])
+        self.jarchi.register_event(Event.NEW_TRADING_SIGNAL, ['kline_df',
+                                                              'signals_df', 
+                                                              'indicators_df'])
+
         self.jarchi.register_event(Event.OPEN_POSITIONS_EXIST, ['positions_df'])
         self.jarchi.register_event(Event.NEW_VALIDATION_INDICATOR_DATA, ['kline_df',
                                                                          'indicator_df',
                                                                          'validation_indicators_df'])
+
+        self.jarchi.register_event(Event.NEW_INDICATORS_DATA, ['kline_df', 'indicator_df'])
     # ____________________________________________________________________________ . . .
 
 
@@ -336,7 +340,10 @@ class DataProcessor:
                 logging.info(f'Broadcasting "{Event.NEW_TRADING_SIGNAL}" event from'\
                              '"DataProcessor.generating_signals()" method.')
                 
-                await self.jarchi.emit(Event.NEW_TRADING_SIGNAL)
+                await self.jarchi.emit(Event.NEW_TRADING_SIGNAL,
+                                       kline_df      = self.kline_df,
+                                       indicators_df = self.indicator_df,
+                                       signals_df    = self.signal_df)
 
             elif has_signals(self.signal_df) == 'late_signal':
                 logging.info(f'Broadcasting "{Event.LATE_TRADING_SIGNAL}" event from'\
