@@ -16,6 +16,29 @@ from Application.utils.simplified_event_handler import EventHandler    # noqa: E
 jarchi = EventHandler()
 
 
+
+def has_signals(signals_df: pd.DataFrame) -> str | None:
+    """
+    Checks the signals DataFrame for new signals on last two rows of any column.
+
+    Parameters:
+        signals_df (DataFrame):
+
+    Returns:
+        has_signals (str | None): Eather 'new_signal' | 'late_Signal' | None.
+    """
+    # Incase there are signals on both last and the second last rows just consider the last row.
+    if (signals_df.iloc[-1] != 0).any() and (signals_df.iloc[-2] != 0).any():
+        return 'new_signal'
+    elif (signals_df.iloc[-1] != 0).any():
+        return 'new_signal'
+    elif(signals_df.iloc[-2] != 0).any():
+        return 'late_signal'
+
+    return None
+# ________________________________________________________________________________ . . .
+
+
 def extract_strategy_fields_functions(
         field                           : str,
         config                          : dict,
