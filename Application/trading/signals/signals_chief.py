@@ -7,6 +7,7 @@ sys.path.append(path) if path else None
 from Application.utils.event_channels import Event    # noqa: E402
 from Application.data.data_processor import DataProcessor    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
+from Application.trading.signals.signal_generator import validate_signals    # noqa: E402
 from Application.trading.market.validation_chief import start_market_validation    # noqa: E402
 
 data = DataProcessor()
@@ -31,6 +32,8 @@ async def start_signals_engine():
     jarchi.attach(pre_market_validation_flow, Event.THERE_IS_NO_TRADE)
 
     jarchi.attach(post_market_validation_flow, Event.MARKET_IS_VALID)
+
+    jarchi.attach(validate_signals, Event.NEW_TRADING_SIGNAL)
 
     await jarchi.emit(Event.THERE_IS_NO_TRADE)
 # ________________________________________________________________________________ . . .
