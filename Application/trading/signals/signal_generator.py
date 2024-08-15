@@ -15,7 +15,8 @@ ENTRY_SYSTEM: list  = extract_strategy_fields_functions(
     field                           = 'entry_signal_setups',
     config                          = load(r'Application/configs/strategy.json'),
     setup_functions_module_path     = 'Application.trading.signals.setup_functions',
-    indicator_functions_module_path = 'Application.trading.analysis.indicator_functions'
+    indicator_functions_module_path = 'Application.trading.analysis.indicator_functions',
+    validator_functions_module_path = 'Application.trading.signals.signal_validation'
 )
 
 
@@ -53,6 +54,21 @@ async def generate_signals(trading_system : list,
 # ________________________________________________________________________________ . . .
 
 
+async def validate_signals(kline_df      : pd.DataFrame,
+                           indicators_df : pd.DataFrame,
+                           signals_df    : pd.DataFrame):
+    """
+    Executes signal validation functions from given trading system asynchronously.
+    """
+    coroutines_set = set()
+
+    for setup in ENTRY_SYSTEM:
+        for validator in setup.get("validators", []):
+            coroutines_set.add(setup['function'](kline_df      = kline_df,
+                                                 indicators_df = indicators_df,
+                                                 signals_df    = signals_df,
+                                                 properties    = validator['properties']))             
+# ________________________________________________________________________________ . . .
 
 
 # if __name__ == '__main__':
