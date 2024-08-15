@@ -171,3 +171,5 @@ asyncio.run(data_manager.initiate_kline_df())
 
 * Solve the bug of EventHandler.detach method causing error: {Detaching "generating_signals" from event channel "new indicators data arrived": It wasntbeen attached yet!
 Inside recovery_mechanism() function: list.remove(x): x not in list}
+
+** at the time, the signal validation mechanism is not compatible with having more than one setup (including all setups: Entry, take_profit, and stop_loss) because it only emits on NEW_VALID_SIGNAL event channel without considering which setup it is checking and which setup it is emitting for. Solve this.
