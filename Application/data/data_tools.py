@@ -43,7 +43,8 @@ def extract_strategy_fields_functions(
         field                           : str,
         config                          : dict,
         setup_functions_module_path     : str,
-        indicator_functions_module_path : str | None = None
+        indicator_functions_module_path : str | None = None,
+        validator_functions_module_path : str | None = None
     ):
     """
     Extracts function objects, properties and indicators (if there is any) of a specified field in
@@ -65,6 +66,10 @@ def extract_strategy_fields_functions(
     indicators_module = importlib.import_module(indicator_functions_module_path)\
                         if indicator_functions_module_path \
                         else None
+    
+    validators_module = importlib.import_module(validator_functions_module_path)\
+                        if validator_functions_module_path\
+                        else None
 
     # extract the setups with properties
     for setup in config.get(field, []):
@@ -73,7 +78,8 @@ def extract_strategy_fields_functions(
         setup_instance  = {"name"       : setup_func_name,
                            "function"   : setup_func_obj,
                            "properties" : setup.get("properties", {}),
-                           "indicators" : []}
+                           "indicators" : [],
+                           "validators" : []}
         
         # extract setup's indicators if there are any
         for indicator in setup.get("indicators", []):
@@ -86,6 +92,16 @@ def extract_strategy_fields_functions(
             # include extracted indicator to setup
             setup_instance["indicators"].append(indicator_instance)
 
+        # extract setup's validators if there are any
+        for validator in setup.get("validators", []):
+            validator_func_name = validator["name"]
+            validator_func_obj  = getattr(validators_module, validator_func_name)
+            validator_instance  = {"name": validator_func_name,
+                                   "function": validator_func_obj,
+                                   "properties": validator.get("properties", {})}
+            
+            # Include extracted validator to setup
+            setup_instance["validators"].append(validator_instance)
 
         # Add setup_instance to extracted_system list
         extracted_system.append(setup_instance)
@@ -285,7 +301,8 @@ if __name__ == '__main__':
         field='entry_signal_setups',
         config=load(r'Application/configs/strategy.json'),
         setup_functions_module_path='Application.trading.signals.setup_functions',
-        indicator_functions_module_path='Application.trading.analysis.indicator_functions'
+        indicator_functions_module_path='Application.trading.analysis.indicator_functions',
+        validator_functions_module_path='Application.trading.signals.signal_validation'
     )
 
     print(system)
