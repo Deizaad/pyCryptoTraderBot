@@ -16,7 +16,7 @@ ENTRY_SYSTEM: list  = extract_strategy_fields_functions(
     config                          = load(r'Application/configs/strategy.json'),
     setup_functions_module_path     = 'Application.trading.signals.setup_functions',
     indicator_functions_module_path = 'Application.trading.analysis.indicator_functions',
-    validator_functions_module_path = 'Application.trading.signals.signal_validation'
+    validator_functions_module_path = 'Application.trading.signals.signal_validation_functions'
 )
 
 
