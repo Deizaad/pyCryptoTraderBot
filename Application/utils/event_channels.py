@@ -4,9 +4,10 @@ class Event:
     """
     END_ACTIVITY      = 'active time is ended'
     SUCCESS_FETCH     = 'successfully fetched data'
-    START_ACTIVITY    =  'active time is started'
+    START_ACTIVITY    = 'active time is started'
     NEW_KLINE_DATA    = 'new kline data arrived'
     MARKET_IS_VALID   = 'market is valid'
+    NEW_VALID_SIGNAL  = 'new valid signal is available'
     TRADE_GOT_CLOSED  = 'current trade got closed'
     THERE_IS_NO_TRADE = 'there is no open trade'
     NEW_TRADING_SIGNAL              = 'there are new trading signals available'
