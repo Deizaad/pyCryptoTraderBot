@@ -449,13 +449,13 @@ class Trade:
 
     async def _base_place_order(self,
                                http_agent   : httpx.AsyncClient,
-                               token: str,
-                               environment: str,
-                               execution: str,
-                               side: str,
-                               src_currency: str,
-                               dst_currency: str,
-                               amount:float,
+                               token        : str,
+                               environment  : str,
+                               execution    : str,
+                               side         : str,
+                               src_currency : str,
+                               dst_currency : str,
+                               amount       :float,
                                **kwargs):
         """
         This is the base order placement method that gonna be called by other child methods.
@@ -470,10 +470,10 @@ class Trade:
                           'amount'        : str(amount)}   # Implement a function to be called here to correct the "price" and "amount" floating point numbers.
 
         if execution == 'limit' or execution == 'stop_limit':
-            payload['price'] = kwargs.get('price')
+            payload['price'] = str(kwargs.get('price'))
 
         if execution == 'stop_limit' or execution == 'stop_market':
-            payload['stopPrice'] = kwargs.get('stop_price')
+            payload['stopPrice'] = str(kwargs.get('stop_price'))
 
         if kwargs.get('client_oid'):
             payload['clientOrderId'] = kwargs.get('client_oid')
@@ -490,7 +490,7 @@ class Trade:
         elif environment == 'futures':
             endpoint       = nb.Endpoint.PLACE_FUTURES_ORDER
             tries_interval = nb.Endpoint.PLACE_FUTURES_ORDER_MI
-            payload['leverage'] = kwargs.get('leverage')
+            payload['leverage'] = str(kwargs.get('leverage'))
             print(payload)
 
 
@@ -1251,6 +1251,7 @@ async def fetch_market_price_test():
     result = await market.fetch_market_price(httpx.AsyncClient(), 'btc', 'rls')
     print(result)
 
+
 async def oredr_test():
     service = APIService()
     trade = Trade(service)
@@ -1291,6 +1292,7 @@ async def fetch_positions_test():
                                            page        = 1)
     print(response)
 
+
 async def fetch_wallets_test():
     account = Account()
 
@@ -1309,6 +1311,7 @@ async def fetch_balance_test():
                                      currency = 'rls')
 
     print(response)
+
 
 async def cancel_all_orders_test():
     trade = Trade(APIService())
@@ -1336,6 +1339,7 @@ async def close_all_positions_test():
     trade = Trade(APIService())
     results = await trade.close_all_positions(User.TOKEN)    # type: ignore
     print(results)
+
 
 async def place_spot_limit_order_test():
     service = APIService()
@@ -1405,12 +1409,12 @@ async def place_futures_limit_order_test():
     response = await trade.place_futures_limit(http_agent   = httpx.AsyncClient(),
                                                token        = User.TOKEN,    # type: ignore
                                                side         = 'buy',
-                                               src_currency = 'btc',
-                                               dst_currency = 'rls',
-                                               amount       = 0.0006,
-                                               price        = 3_509_818_209,
+                                               src_currency = 'usdt',
+                                               dst_currency = 'irt',
+                                               amount       = 50,
+                                               price        = 58900,
                                                leverage     = 1)
-    
+
     print(response)
 
 if __name__ == '__main__':
@@ -1431,4 +1435,5 @@ if __name__ == '__main__':
     # asyncio.run(place_spot_market_order_test())
     # asyncio.run(place_spot_stop_limit_order_test())
     # asyncio.run(place_spot_stop_market_order_test())
+
     asyncio.run(place_futures_limit_order_test())
