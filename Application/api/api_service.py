@@ -32,8 +32,9 @@ class APIService:
                                                 headers = headers, 
                                                 timeout = timeout)
                 
-                if response.status_code == 200:
-                    return response.json()
+                # print(response)
+                # if response.status_code == 200:
+                return response.json()
                 # else:
                 #     logger.error(f"API request failed: {response.status_code} {response.text}")
             except httpx.HTTPError as err:
