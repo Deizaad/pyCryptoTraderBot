@@ -13,6 +13,9 @@ class Trade:
             TIMEOUT=4.0
     
     class Place:
+        class PlaceOrder:
+            TRIES=3
+            TIMEOUT=2.5
         class CancelOrders:
             TRIES=3
             TIMEOUT=3.5

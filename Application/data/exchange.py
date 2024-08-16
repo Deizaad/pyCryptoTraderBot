@@ -1,11 +1,9 @@
 import sys
-import numpy as np
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.configs.config import Order  # noqa: E402
 from Application.utils.load_json import load    # noqa: E402
 
 # __all__ = ["API_KEY", "CURRENT_TIME", "BASE_URL", "TESTNET"]
@@ -72,21 +70,13 @@ class Nobitex:
         CLOSE_POSITION_RL: int = 300
         CLOSE_POSITION_RP: int = 60
 
-        class Order:
-            class Place:
-                FUTURES = '/margin/orders/add'
-                FUTURES_MI: float = 6.0
-                FUTURES_RL: int = 100
-                FUTURES_RP: int = 600    # Rate period = 600 second
+        PLACE_SPOT_ORDER = '/market/orders/add'
+        PLACE_SPOT_ORDER_MI: float = 3.0
+        PLACE_SPOT_ORDER_RL: int = 200
+        PLACE_SPOT_ORDER_RP: int = 600
 
-                SPOT = '/market/orders/add'
-                SPOT_MI: float = 3
-                SPOT_RL: int = 200
-                SPOT_RP: int = 600  # Rate period = 600 second
-
-                _conds = [Order.CATEGORY == 'futures',
-                          Order.CATEGORY == 'spot']
-                _choices = [FUTURES,
-                            SPOT]
-                endpoint = np.select(_conds, _choices)
+        PLACE_FUTURES_ORDER = ''
+        PLACE_FUTURES_ORDER_MI: float = 6.0
+        PLACE_FUTURES_ORDER_RL: int = 100
+        PLACE_FUTURES_ORDER_RP: int = 600
 # =================================================================================================
