@@ -58,7 +58,7 @@ async def post_market_validation_flow():
 
 async def pre_market_validation_flow():
     """
-    Performs jobs on "there_is_no_open_trade" event.
+    Performs jobs on "there_is_no_open_trade" and "TRADE_GOT_CLOSED" events.
     """
     await start_market_validation()
 

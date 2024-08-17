@@ -1,6 +1,27 @@
 {
     "active_times": 247,
 
+    "recovery_mechanisms":[
+        {
+            "name": "close_all_positions",
+            "properties": {}
+        },
+        {
+            "name": "omit_all_orders",
+            "properties": {}
+        }
+    ],
+
+    "market_validation": [
+        {
+            "name": "bypass_market_validation",
+            "properties": {},
+            "indicators": []
+        }
+    ],
+
+
+
     "entry_signal_setups": [
         {
             "name": "supertrend_setupfunc",
@@ -24,30 +45,34 @@
         }
     ],
     
-    "take_profit_setups":[
+    "take_profit_signal_setups":[
         
     ],
 
-    "stop_loss_setups":[
+    "stop_loss_signal_setups":[
 
     ],
 
-    "recovery_mechanisms":[
-        {
-            "name": "close_all_positions",
-            "properties": {}
-        },
-        {
-            "name": "omit_all_orders",
-            "properties": {}
-        }
-    ],
+    
 
-    "market_validation": [
-        {
-            "name": "bypass_market_validation",
-            "properties": {},
-            "indicators": []
-        }
-    ]
+
+    "entry_order_placement_setup": {
+        "name": "",
+        "properties": ""
+    },
+
+    "take_profit_order_placement_setup": {
+        "name": "",
+        "properties": ""
+    },
+
+    "stop_loss_order_placement_setup": {
+        "name": "",
+        "properties": ""
+    },
+
+    "combo_of_tp_sl_order_placement_setup": {
+        "name": "",
+        "properties": ""
+    }
 }
