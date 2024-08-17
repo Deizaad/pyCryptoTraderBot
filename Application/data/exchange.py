@@ -75,7 +75,7 @@ class Nobitex:
         PLACE_SPOT_ORDER_RL: int = 200
         PLACE_SPOT_ORDER_RP: int = 600
 
-        PLACE_FUTURES_ORDER = ''
+        PLACE_FUTURES_ORDER = '/margin/orders/add'
         PLACE_FUTURES_ORDER_MI: float = 6.0
         PLACE_FUTURES_ORDER_RL: int = 100
         PLACE_FUTURES_ORDER_RP: int = 600

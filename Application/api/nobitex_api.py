@@ -491,7 +491,6 @@ class Trade:
             endpoint       = nb.Endpoint.PLACE_FUTURES_ORDER
             tries_interval = nb.Endpoint.PLACE_FUTURES_ORDER_MI
             payload['leverage'] = str(kwargs.get('leverage'))
-            print(payload)
 
 
         response = await self.service.post(client         = http_agent,
@@ -510,7 +509,7 @@ class Trade:
 
 
 
-    async def place_spot_limit(self,
+    async def place_spot_limit_order(self,
                                http_agent   : httpx.AsyncClient,
                                token        : str,
                                side         : str,
@@ -540,7 +539,7 @@ class Trade:
     # ____________________________________________________________________________ . . .
 
 
-    async def place_spot_market(self,
+    async def place_spot_market_order(self,
                                 http_agent   : httpx.AsyncClient,
                                 token        : str,
                                 side         : str,
@@ -568,7 +567,7 @@ class Trade:
     # ____________________________________________________________________________ . . .
 
 
-    async def place_spot_stop_limit(self,
+    async def place_spot_stop_limit_order(self,
                                     http_agent   : httpx.AsyncClient,
                                     token        : str,
                                     side         : str,
@@ -597,7 +596,7 @@ class Trade:
     # ____________________________________________________________________________ . . .
 
 
-    async def place_spot_stop_market(self,
+    async def place_spot_stop_market_order(self,
                                      http_agent   : httpx.AsyncClient,
                                      token        : str,
                                      side         : str,
@@ -624,10 +623,23 @@ class Trade:
     # ____________________________________________________________________________ . . .
 
 
+    async def place_spot_oco_order(self):
+        """
+        Places oco (one-cancels-other) orders.
+
+        Parameters:
+
+        """
+        response = await self._base_place_order()
+
+        return response
+    # ____________________________________________________________________________ . . .
 
 
 
-    async def place_futures_limit(self,
+
+
+    async def place_futures_limit_order(self,
                                   http_agent   : httpx.AsyncClient,
                                   token        : str,
                                   side         : str,
@@ -635,7 +647,8 @@ class Trade:
                                   dst_currency : str,
                                   amount       : float,
                                   price        : float,
-                                  leverage     : float):
+                                  leverage     : float,
+                                  client_oid   : str):
         """
         Places limit order on futures market.
         """
@@ -648,62 +661,97 @@ class Trade:
                                                 dst_currency = dst_currency,
                                                 amount       = amount,
                                                 price        = price,
-                                                leverage     = leverage)
+                                                leverage     = leverage,
+                                                client_oid   = client_oid)
         
         return response
     # ____________________________________________________________________________ . . .
 
 
-    async def place_futures_market(self,
-                                   http_agent   : httpx.AsyncClient,
-                                   side         : str,
-                                   src_currency : str,
-                                   dst_currency : str,
-                                   amount       : float,
-                                   client_oid   : str):
+    async def place_futures_market_order(self,
+                                         http_agent   : httpx.AsyncClient,
+                                         token        : str,
+                                         side         : str,
+                                         src_currency : str,
+                                         dst_currency : str,
+                                         amount       : float,
+                                         leverage     : float,
+                                         client_oid   : str):
         """
         Places limit order on futures market.
         """
-        # Fetch market price for trading pair
-        market = Market(APIService(), httpx.AsyncClient())
-        market_price = await market.fetch_market_price(http_agent   = httpx.AsyncClient(),
-                                                       src_currency = src_currency,
-                                                       dst_currency = dst_currency)
-
         response = await self._base_place_order(http_agent   = http_agent,
+                                                token        = token,
                                                 environment  = 'futures',
-                                                side         = side,
                                                 execution    = 'market',
+                                                side         = side,
                                                 src_currency = src_currency,
                                                 dst_currency = dst_currency,
                                                 amount       = amount,
-                                                price        = market_price,
+                                                leverage     = leverage,
                                                 client_oid   = client_oid)
 
         return response
     # ____________________________________________________________________________ . . .
 
 
-    async def place_futures_stop_limit(self):
+    async def place_futures_stop_limit_order(self,
+                                       http_agent   : httpx.AsyncClient,
+                                       token        : str,
+                                       side         : str,
+                                       src_currency : str,
+                                       dst_currency : str,
+                                       amount       : float,
+                                       price        : float,
+                                       stop_price   : float,
+                                       leverage     : float,
+                                       client_oid   : str):
         """
         Places stop_limit order on futures market.
         """
-        pass
+        response = await self._base_place_order(http_agent   = http_agent,
+                                                token        = token,
+                                                environment  = 'futures',
+                                                execution    = 'stop_limit',
+                                                side         = side,
+                                                src_currency = src_currency,
+                                                dst_currency = dst_currency,
+                                                amount       = amount,
+                                                price        = price,
+                                                stop_price   = stop_price,
+                                                leverage     = leverage,
+                                                client_oid   = client_oid)
+        
+        return response
     # ____________________________________________________________________________ . . .
 
 
-
-
-
-    async def place_oco_order(self):
+    async def place_futures_stop_market_order(self,
+                                              http_agent   : httpx.AsyncClient,
+                                              token        : str,
+                                              side         : str,
+                                              src_currency : str,
+                                              dst_currency : str,
+                                              amount       : float,
+                                              stop_price   : float,
+                                              leverage     : float,
+                                              client_oid   : str):
         """
-        Places oco (one-cancels-other) orders.
-
-        Parameters:
-
+        Places stop_market order on futures market.
         """
-        pass
-    # ____________________________________________________________________________ . . .
+        response = await self._base_place_order(http_agent   = http_agent,
+                                                token        = token,
+                                                environment  = 'futures',
+                                                execution    = 'stop_market',
+                                                side         = side,
+                                                src_currency = src_currency,
+                                                dst_currency = dst_currency,
+                                                amount       = amount,
+                                                stop_price   = stop_price,
+                                                leverage     = leverage,
+                                                client_oid   = client_oid)
+
+        return response
 
 
 
@@ -1269,6 +1317,7 @@ async def oredr_test():
 
     print(response)
 
+
 async def fetch_orders_test():
     service = APIService()
     trade   = Trade(service)
@@ -1345,7 +1394,7 @@ async def place_spot_limit_order_test():
     service = APIService()
     trade = Trade(service)
 
-    response = await trade.place_spot_limit(http_agent   = httpx.AsyncClient(),
+    response = await trade.place_spot_limit_order(http_agent   = httpx.AsyncClient(),
                                             token        = User.TOKEN,    # type: ignore
                                             side         = 'buy',
                                             src_currency = 'btc',
@@ -1360,7 +1409,7 @@ async def place_spot_market_order_test():
     service = APIService()
     trade = Trade(service)
 
-    response = await trade.place_spot_market(http_agent   = httpx.AsyncClient(),
+    response = await trade.place_spot_market_order(http_agent   = httpx.AsyncClient(),
                                              token        = User.TOKEN,    # type: ignore
                                              side         = 'buy',
                                              src_currency = 'btc',
@@ -1374,7 +1423,7 @@ async def place_spot_stop_limit_order_test():
     service = APIService()
     trade = Trade(service)
 
-    response = await trade.place_spot_stop_limit(http_agent   = httpx.AsyncClient(),
+    response = await trade.place_spot_stop_limit_order(http_agent   = httpx.AsyncClient(),
                                                  token        = User.TOKEN,    # type: ignore
                                                  side         = 'buy',
                                                  src_currency = 'btc',
@@ -1390,7 +1439,7 @@ async def place_spot_stop_market_order_test():
     service = APIService()
     trade = Trade(service)
     
-    response = await trade.place_spot_stop_market(http_agent   = httpx.AsyncClient(),
+    response = await trade.place_spot_stop_market_order(http_agent   = httpx.AsyncClient(),
                                                   token        = User.TOKEN,    # type: ignore
                                                   side         = 'buy',
                                                   src_currency = 'btc',
@@ -1406,14 +1455,63 @@ async def place_futures_limit_order_test():
     service = APIService()
     trade = Trade(service)
 
-    response = await trade.place_futures_limit(http_agent   = httpx.AsyncClient(),
+    response = await trade.place_futures_limit_order(http_agent   = httpx.AsyncClient(),
                                                token        = User.TOKEN,    # type: ignore
                                                side         = 'buy',
                                                src_currency = 'usdt',
-                                               dst_currency = 'irt',
+                                               dst_currency = 'rls',
                                                amount       = 50,
                                                price        = 58900,
-                                               leverage     = 1)
+                                               leverage     = 1,
+                                               client_oid   = 'orderTest01')
+
+    print(response)
+
+async def place_futures_market_order_test():
+    service = APIService()
+    trade = Trade(service)
+
+    response = await trade.place_futures_market_order(http_agent   = httpx.AsyncClient(),
+                                                      token        = User.TOKEN,    # type: ignore
+                                                      side         = 'buy',
+                                                      src_currency = 'usdt',
+                                                      dst_currency = 'rls',
+                                                      amount       = 50,
+                                                      leverage     = 1,
+                                                      client_oid   = 'orderTest01')
+
+    print(response)
+
+async def place_futures_stop_limit_order_test():
+    service = APIService()
+    trade = Trade(service)
+
+    response = await trade.place_futures_stop_limit_order(http_agent   = httpx.AsyncClient(),
+                                                          token        = User.TOKEN,    # type: ignore
+                                                          side         = 'buy',
+                                                          src_currency = 'usdt',
+                                                          dst_currency = 'rls',
+                                                          amount       = 50,
+                                                          price        = 58900,
+                                                          stop_price   = 58900,
+                                                          leverage     = 1,
+                                                          client_oid   = 'orderTest01')
+
+    print(response)
+
+async def place_futures_stop_market_order_test():
+    service = APIService()
+    trade = Trade(service)
+
+    response = await trade.place_futures_stop_market_order(http_agent   = httpx.AsyncClient(),
+                                                           token        = User.TOKEN,    # type: ignore
+                                                           side         = 'buy',
+                                                           src_currency = 'usdt',
+                                                           dst_currency = 'rls',
+                                                           amount       = 50,
+                                                           stop_price   = 58900,
+                                                           leverage     = 1,
+                                                           client_oid   = 'orderTest01')
 
     print(response)
 
@@ -1436,4 +1534,7 @@ if __name__ == '__main__':
     # asyncio.run(place_spot_stop_limit_order_test())
     # asyncio.run(place_spot_stop_market_order_test())
 
-    asyncio.run(place_futures_limit_order_test())
+    # asyncio.run(place_futures_limit_order_test())
+    # asyncio.run(place_futures_market_order_test())
+    # asyncio.run(place_futures_stop_limit_order_test())
+    asyncio.run(place_futures_stop_market_order_test())
