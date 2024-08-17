@@ -32,7 +32,10 @@ class APIService:
                                                 headers = headers, 
                                                 timeout = timeout)
                 
+                # print(data)
+                # print(response.request)
                 # print(response)
+
                 # if response.status_code == 200:
                 return response.json()
                 # else:
