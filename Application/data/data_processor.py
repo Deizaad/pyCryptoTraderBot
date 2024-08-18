@@ -18,7 +18,7 @@ from Application.utils.event_channels import Event    # noqa: E402
 import Application.configs.admin_config as Aconfig    # noqa: E402
 from Application.api.api_service import APIService    # noqa: E402
 # from Application.data.validator import is_consistent    # noqa: E402
-from Application.data.data_tools import has_signals,\
+from Application.data.data_tools import has_signal,\
                                         df_has_news,\
                                         update_dataframe,\
                                         parse_kline_to_df    # noqa: E402
@@ -336,20 +336,21 @@ class DataProcessor:
                                                     kline_df       = self.kline_df,
                                                     indicators_df  = self.indicator_df)
             
-            if has_signals(self.signal_df) == 'new_signal':
-                logging.info(f'Broadcasting "{Event.NEW_TRADING_SIGNAL}" event from'\
-                             '"DataProcessor.generating_signals()" method.')
-                
-                await self.jarchi.emit(Event.NEW_TRADING_SIGNAL,
-                                       kline_df      = self.kline_df,
-                                       indicators_df = self.indicator_df,
-                                       signals_df    = self.signal_df)
+            for column in self.signal_df:
+                if has_signal(self.signal_df, column) == 'new_signal':
+                    logging.info(f'Broadcasting "{Event.NEW_TRADING_SIGNAL}" event from'\
+                                '"DataProcessor.generating_signals()" method.')
+                    
+                    await self.jarchi.emit(Event.NEW_TRADING_SIGNAL,
+                                        kline_df      = self.kline_df,
+                                        indicators_df = self.indicator_df,
+                                        signals_df    = self.signal_df)
 
-            elif has_signals(self.signal_df) == 'late_signal':
-                logging.info(f'Broadcasting "{Event.LATE_TRADING_SIGNAL}" event from'\
-                             '"DataProcessor.generating_signals()" method.')
-                
-                await self.jarchi.emit(Event.LATE_TRADING_SIGNAL)
+                elif has_signal(self.signal_df, column) == 'late_signal':
+                    logging.info(f'Broadcasting "{Event.LATE_TRADING_SIGNAL}" event from'\
+                                '"DataProcessor.generating_signals()" method.')
+                    
+                    await self.jarchi.emit(Event.LATE_TRADING_SIGNAL)
                 
 
         except Exception as err:
