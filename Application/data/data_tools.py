@@ -17,25 +17,26 @@ jarchi = EventHandler()
 
 
 
-def has_signals(signals_df: pd.DataFrame) -> str | None:
+def has_signal(signals_df: pd.DataFrame, column) -> str | None:
     """
-    Checks the signals DataFrame for new signals on last two rows of any column.
+    Checks the signals in the last two rows of the specified column in signals dataframe.
 
     Parameters:
         signals_df (DataFrame):
+        column ():
 
     Returns:
-        has_signals (str | None): Eather 'new_signal' | 'late_Signal' | None.
+        has_signals (str | None): Eather 'new_signal' | 'late_signal' | None.
     """
-    # Incase there are signals on both last and the second last rows just consider the last row.
-    if (signals_df.iloc[-1] != 0).any() and (signals_df.iloc[-2] != 0).any():
-        return 'new_signal'
-    elif (signals_df.iloc[-1] != 0).any():
-        return 'new_signal'
-    elif(signals_df.iloc[-2] != 0).any():
-        return 'late_signal'
+    last_value = signals_df[column].iloc[-1]
+    second_last_value = signals_df[column].iloc[-2]
 
-    return None
+    if last_value != 0:
+        return 'new_signal'
+    elif second_last_value != 0:
+        return 'late_signal'
+    else:
+        return None
 # ________________________________________________________________________________ . . .
 
 
@@ -306,3 +307,29 @@ if __name__ == '__main__':
     )
 
     print(system)
+
+    def test_has_signal():
+        data = {
+            'entry_supertrend': [0, 0, 0, 1, 0],
+            'tp_setup1': [0, 0, 0, -1, 0],
+            'sl_setup1': [0, 0, 0, -1, 1],
+            'some_other_column': [0, 0, 0, 1, -1]
+        }
+        index = pd.date_range(start="2023-01-01 09:00:00", periods=5, freq='min')
+        df = pd.DataFrame(data, index=index)
+
+        expected_signals = {
+            'entry_supertrend': 'late_signal',
+            'tp_setup1': 'late_signal',
+            'sl_setup1': 'new_signal',
+            'some_other_column': 'new_signal',
+        }
+
+        for column in df.columns:
+            result = has_signal(df, column)
+            assert result == expected_signals[column], f"Test failed for {column}. Expected {expected_signals[column]}, got {result}."
+
+        print("All tests passed.")
+
+
+    test_has_signal()
