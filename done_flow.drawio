@@ -1,0 +1,78 @@
+<mxfile host="65bd71144e">
+    <diagram id="bUYJuNmFrbV8m6pwbn9G" name="Page-1">
+        <mxGraphModel dx="2427" dy="1498" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="5" value="bot.py" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="70" width="480" height="414" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="" style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;" vertex="1" parent="5">
+                    <mxGeometry x="130" y="50" width="220" height="296" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="func main.py:" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="27">
+                    <mxGeometry x="5" width="130" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="Initialize logger" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="27">
+                    <mxGeometry x="50" y="35" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="Read config.json and import the profile module" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="27">
+                    <mxGeometry x="50" y="118" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="Execute the profile_module.run() function" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="27">
+                    <mxGeometry x="50" y="201" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="Available profiles:" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="-245" y="490" width="1110" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="base_live.py" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="6">
+                    <mxGeometry x="40" y="70" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="6">
+                    <mxGeometry x="170" y="70" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="6">
+                    <mxGeometry x="300" y="70" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="6">
+                    <mxGeometry x="430" y="70" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="6">
+                    <mxGeometry x="560" y="70" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="6">
+                    <mxGeometry x="690" y="70" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="6">
+                    <mxGeometry x="820" y="70" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="6">
+                    <mxGeometry x="950" y="70" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="31" target="6">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="310" y="364" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="310" y="390"/>
+                            <mxPoint x="310" y="390"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="16" value="Application.execution.profiles.base_live.py" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="-245" y="780" width="1110" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="func run():" style="verticalLabelPosition=middle;verticalAlign=middle;html=1;shape=mxgraph.basic.diag_snip_rect;dx=6;whiteSpace=wrap;labelPosition=center;align=center;" vertex="1" parent="16">
+                    <mxGeometry x="35" y="40" width="300" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="7" target="16">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="-145" y="740"/>
+                            <mxPoint x="310" y="740"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
