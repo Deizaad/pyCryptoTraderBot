@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="2hrEDhwtY0BgSdLxk32c" name="Page-1">
-        <mxGraphModel dx="5558" dy="1256" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="5093" dy="789" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -1261,16 +1261,22 @@
                 <mxCell id="747" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Check for [untracked open orders] and [untracked, unmanaged open positions] to handle them properly before starting to trade&lt;br&gt;&lt;/span&gt;" style="verticalLabelPosition=middle;verticalAlign=middle;html=1;shape=mxgraph.basic.diag_snip_rect;dx=6;whiteSpace=wrap;labelPosition=center;align=center;" parent="742" vertex="1">
                     <mxGeometry x="61.5" y="70" width="192" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="799" value="Start_orders_engine" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=12 12;" vertex="1" parent="1">
+                <mxCell id="799" value="Start_orders_engine" style="swimlane;whiteSpace=wrap;html=1;rounded=1;dashed=1;dashPattern=12 12;" parent="1" vertex="1">
                     <mxGeometry x="-530" y="2300" width="320" height="410" as="geometry">
                         <mxRectangle x="-740" y="-70" width="80" height="30" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="810" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Extract the ordering method from strategy&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" vertex="1" parent="799">
+                <mxCell id="810" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Extract the ordering method from strategy&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="799" vertex="1">
                     <mxGeometry x="120" y="60" width="80" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="811" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Attach the order_agent to &quot;new_valid_signal&quot;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" vertex="1" parent="799">
+                <mxCell id="811" value="&lt;span style=&quot;color: rgb(102, 204, 0);&quot;&gt;Attach the order_agent to &quot;new_valid_signal&quot;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" parent="799" vertex="1">
                     <mxGeometry x="120" y="140" width="80" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="812" value="Live_trading_flow" style="swimlane;whiteSpace=wrap;html=1;strokeWidth=3;" vertex="1" parent="1">
+                    <mxGeometry x="-620" y="3050" width="1530" height="1670" as="geometry"/>
+                </mxCell>
+                <mxCell id="978" value="&lt;font color=&quot;#66cc00&quot;&gt;Start signals engine&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;flipH=0;fillColor=none;" vertex="1" parent="812">
+                    <mxGeometry x="725" y="90" width="80" height="60" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
