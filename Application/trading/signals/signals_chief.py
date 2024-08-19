@@ -34,6 +34,7 @@ async def start_signals_engine():
     jarchi.attach(post_market_validation_flow, Event.MARKET_IS_VALID)
 
     jarchi.attach(validate_signals, Event.NEW_TRADING_SIGNAL)
+    jarchi.attach(validate_signals, Event.LATE_TRADING_SIGNAL)
 
     await jarchi.emit(Event.THERE_IS_NO_TRADE)
 # ________________________________________________________________________________ . . .

@@ -56,7 +56,7 @@ async def generate_signals(trading_system : list,
 
 async def validate_signals(kline_df      : pd.DataFrame,
                            indicators_df : pd.DataFrame,
-                           signals_df    : pd.DataFrame):
+                           setup_name    : pd.DataFrame):
     """
     Executes signal validation functions from given trading system asynchronously.
     """
@@ -66,7 +66,7 @@ async def validate_signals(kline_df      : pd.DataFrame,
         for validator in setup.get("validators", []):
             coroutines_set.add(setup['function'](kline_df      = kline_df,
                                                  indicators_df = indicators_df,
-                                                 signals_df    = signals_df,
+                                                 setup_name    = setup_name,
                                                  properties    = validator['properties']))             
 # ________________________________________________________________________________ . . .
 

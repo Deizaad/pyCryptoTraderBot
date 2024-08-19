@@ -49,8 +49,12 @@ class DataProcessor:
     def __init__(self) -> None:
         self.jarchi = EventHandler()
         self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df'])
-        self.jarchi.register_event(Event.NEW_TRADING_SIGNAL, ['kline_df',
-                                                              'signals_df', 
+        self.jarchi.register_event(Event.NEW_TRADING_SIGNAL, ['setup_name',
+                                                              'kline_df',
+                                                              'indicators_df'])
+        
+        self.jarchi.register_event(Event.LATE_TRADING_SIGNAL, ['setup_name',
+                                                              'kline_df',
                                                               'indicators_df'])
 
         self.jarchi.register_event(Event.OPEN_POSITIONS_EXIST, ['positions_df'])
@@ -342,15 +346,18 @@ class DataProcessor:
                                 '"DataProcessor.generating_signals()" method.')
                     
                     await self.jarchi.emit(Event.NEW_TRADING_SIGNAL,
-                                        kline_df      = self.kline_df,
-                                        indicators_df = self.indicator_df,
-                                        signals_df    = self.signal_df)
+                                           kline_df      = self.kline_df,
+                                           indicators_df = self.indicator_df,
+                                           setup_name    = column)
 
                 elif has_signal(self.signal_df, column) == 'late_signal':
                     logging.info(f'Broadcasting "{Event.LATE_TRADING_SIGNAL}" event from'\
                                 '"DataProcessor.generating_signals()" method.')
                     
-                    await self.jarchi.emit(Event.LATE_TRADING_SIGNAL)
+                    await self.jarchi.emit(Event.LATE_TRADING_SIGNAL,
+                                           kline_df      = self.kline_df,
+                                           indicators_df = self.indicator_df,
+                                           setup_name    = column)
                 
 
         except Exception as err:
