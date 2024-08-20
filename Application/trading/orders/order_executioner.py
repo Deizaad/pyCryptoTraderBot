@@ -36,6 +36,7 @@ async def trade_entry_executioner():
     
     """
     pass
+# ________________________________________________________________________________ . . .
 
 
 async def take_profit_executioner():
@@ -43,6 +44,7 @@ async def take_profit_executioner():
     
     """
     pass
+# ________________________________________________________________________________ . . .
 
 
 async def stop_loss_executioner():
@@ -50,6 +52,7 @@ async def stop_loss_executioner():
     
     """
     pass
+# ________________________________________________________________________________ . . .
 
 
 async def combo_tp_sl_executioner():
@@ -57,3 +60,4 @@ async def combo_tp_sl_executioner():
     
     """
     pass
+# ________________________________________________________________________________ . . .

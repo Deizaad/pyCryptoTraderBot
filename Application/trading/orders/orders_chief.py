@@ -23,7 +23,7 @@ async def start_orders_engine():
     jarchi.attach(take_profit_executioner, Event.VALID_TP_SIGNAL)
     jarchi.attach(combo_tp_sl_executioner, Event.VALID_TP_SL_SIGNAL)
     jarchi.attach(trade_entry_executioner, Event.VALID_ENTRY_SIGNAL)
-
+# ________________________________________________________________________________ . . .
 
 
 async def orders_state_machine():
@@ -31,3 +31,4 @@ async def orders_state_machine():
     Manages state of orders.
     """
     pass
+# ________________________________________________________________________________ . . .
