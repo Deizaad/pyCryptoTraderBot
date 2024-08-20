@@ -7,6 +7,7 @@ path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
 from Application.data.user import User             # noqa: E402
+from Application.utils.load_json import load       # noqa: E402
 from Application.api.nobitex_api import Market     # noqa: E402
 from Application.api.nobitex_api import Account    # noqa: E402
 from Application.api.api_service import APIService # noqa: E402
@@ -42,10 +43,27 @@ async def fetch_portfolio_balance() -> tuple[int, float]:
     portfolio_balance_usd = round((portfolio_balance_rials / usdt_rate), 2)
 
     return portfolio_balance_rials, portfolio_balance_usd
+# ________________________________________________________________________________ . . .
+
+
+async def get_allowed_exposure():
+    """
+    Returns:
+        allowed_exposure (float): The allowed_exposure balance in 'USD'.
+    """
+    strategy_cfg = load(r'Application/configs/strategy.json')
+    _, usd_portfolio_balance = await fetch_portfolio_balance()
+
+    allowed_exposure = usd_portfolio_balance * strategy_cfg['portfolio_exposure']
+    return allowed_exposure
+    
 # =================================================================================================
 
 
 
 if __name__ == '__main__':
-    rls, usd = asyncio.run(fetch_portfolio_balance())
-    print(rls, usd)
+    # rls, usd = asyncio.run(fetch_portfolio_balance())
+    # print(rls, usd)
+
+    a = asyncio.run(get_allowed_exposure())
+    print(a)
