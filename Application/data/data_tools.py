@@ -111,6 +111,25 @@ def extract_strategy_fields_functions(
 # ________________________________________________________________________________ . . .
 
 
+def extract_trading_approach() -> dict:
+    """
+    Extracts name, function object and properties of 'trading_approach' from 'strategy.json' file.
+    """
+    config = load(r'Application/configs/strategy.json')
+    functions_module = importlib.import_module('Application.trading.trading_approach_functions')
+
+    name = config['trading_approach']['name']
+    function = getattr(functions_module, name)
+    properties = config['trading_approach']['properties']
+
+    extracted_approach = {'name': name,
+                          'function': function,
+                          'properties': properties}
+
+    return extracted_approach
+# ________________________________________________________________________________ . . .
+
+
 def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
     """
     This function turns raw kline dict to pandas DataFrame.
