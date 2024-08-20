@@ -1182,10 +1182,9 @@ class Trade:
 class Account:
 
     async def wallets(self,
-                      client: httpx.AsyncClient,
-                      token: str,
-                      environment: str,
-                      drop_void: bool = True) -> pd.DataFrame:
+                      http_agent  : httpx.AsyncClient,
+                      token       : str,
+                      drop_void   : bool = True) -> pd.DataFrame:
         """
         Fetches user's wallets for given market environment.
 
@@ -1195,13 +1194,14 @@ class Account:
             environment (str): Market environment. Most be eather "spot" or "margin".
             drop_void (bool): Excludes wallets with zero balance.
 
-        Returns (DataFrame): Client's wallets data.
+        Returns:
+            wallets_df (DataFrame): Client's wallets data.
         """
-        payload: dict = {'type': environment}
+        payload: dict = {'type': 'spot'}
         headers: dict = {'Authorization': 'Token ' + token}
 
         api = APIService()
-        data = await api.get(client         = client,
+        data = await api.get(client         = http_agent,
                              url            = nb.URL,
                              endpoint       = nb.Endpoint.WALLETS,
                              timeout        = aconfig.Account.Wallets.TIMEOUT,
@@ -1216,9 +1216,9 @@ class Account:
     # ____________________________________________________________________________ . . .
 
 
-    async def balance(self, client: httpx.AsyncClient, token: str, currency: str):
+    async def balance(self, http_agent: httpx.AsyncClient, token: str, currency: str):
         """
-        Fetches the balance of specific currency for user.
+        Fetches the wallet balance of specific currency for user.
 
         Parameters:
             client (httpx.AsyncClient): HTTP client.
@@ -1231,7 +1231,7 @@ class Account:
         headers: dict = {'Authorization': 'Token ' + token}
 
         api = APIService()
-        data = await api.post(client         = client,
+        data = await api.post(client         = http_agent,
                               url            = nb.URL,
                               endpoint       = nb.Endpoint.BALANCE,
                               timeout        = aconfig.Account.Balance.TIMEOUT,
@@ -1268,252 +1268,255 @@ class Transaction:
 
 
 
-async def fetch_market_price_test():
-    market = Market(APIService(), httpx.AsyncClient())
-    result = await market.fetch_market_price(httpx.AsyncClient(), 'btc', 'rls')
-    print(result)
-
-
-async def fetch_orders_test():
-    service = APIService()
-    trade   = Trade(service)
-
-    data = await anext(trade.fetch_orders(client = httpx.AsyncClient(),
-                                        token  = User.TOKEN,     # type: ignore
-                                        req_interval = nb.Endpoint.ORDERS_MI,
-                                        max_rate = nb.Endpoint.ORDERS_RL,
-                                        rate_period=nb.Endpoint.ORDERS_RP,
-                                        status = 'all'))
-
-    print(data)
-
-async def fetch_positions_test():
-    service = APIService()
-    trade   = Trade(service)
-
-    response = await trade.fetch_positions(client      = httpx.AsyncClient(),
-                                           token       = User.TOKEN,    # type: ignore
-                                           status      = 'active',
-                                           page        = 1)
-    print(response)
-
-
-async def fetch_wallets_test():
-    account = Account()
-
-    response = await account.wallets(client      = httpx.AsyncClient(),
-                                     token       = User.TOKEN,    # type: ignore
-                                     environment = 'margin',
-                                     drop_void   = True)
-
-    print(response)
-
-async def fetch_balance_test():
-    account = Account()
-
-    response = await account.balance(client   = httpx.AsyncClient(),
-                                     token    = User.TOKEN,    # type: ignore
-                                     currency = 'rls')
-
-    print(response)
-
-
-async def cancel_all_orders_test():
-    trade = Trade(APIService())
-
-    response = await trade.cancel_all_orders(client = httpx.AsyncClient(),
-                                             token  = User.TOKEN)    # type: ignore
-
-    print(response)
-
-async def close_position_test():
-    trade = Trade(APIService())
-    result = await trade.close_position(http_agent=httpx.AsyncClient(),
-                                        token=User.TOKEN,    # type: ignore
-                                        id='5053',
-                                        execution='market',
-                                        amount=0.0000089775,
-                                        side='sell',
-                                        src_currecy='btc',
-                                        dst_currency='rls',
-                                        price=360000003)
-    
-    print(result)
-
-async def close_all_positions_test():
-    trade = Trade(APIService())
-    results = await trade.close_all_positions(User.TOKEN)    # type: ignore
-    print(results)
-
-
-async def place_spot_limit_order_test():
-    service = APIService()
-    trade = Trade(service)
-
-    response = await trade.place_spot_limit_order(http_agent   = httpx.AsyncClient(),
-                                            token        = User.TOKEN,    # type: ignore
-                                            side         = 'buy',
-                                            src_currency = 'btc',
-                                            dst_currency = 'rls',
-                                            amount       = 0.0006,
-                                            price        = 9_998_000_000,
-                                            client_oid   = 'orderTEST01')
-
-    print(response)
-
-async def place_spot_market_order_test():
-    service = APIService()
-    trade = Trade(service)
-
-    response = await trade.place_spot_market_order(http_agent   = httpx.AsyncClient(),
-                                             token        = User.TOKEN,    # type: ignore
-                                             side         = 'buy',
-                                             src_currency = 'btc',
-                                             dst_currency = 'rls',
-                                             amount       = 0.0006,
-                                             client_oid   = 'orderTEST01')
-    
-    print(response)
-
-async def place_spot_stop_limit_order_test():
-    service = APIService()
-    trade = Trade(service)
-
-    response = await trade.place_spot_stop_limit_order(http_agent   = httpx.AsyncClient(),
-                                                 token        = User.TOKEN,    # type: ignore
-                                                 side         = 'buy',
-                                                 src_currency = 'btc',
-                                                 dst_currency = 'rls',
-                                                 amount       = 0.0006,
-                                                 price        = 9_998_888_000,
-                                                 stop_price   = 9_998_888_000,
-                                                 client_oid   = 'orderTEST01')
-
-    print(response)
-
-async def place_spot_stop_market_order_test():
-    service = APIService()
-    trade = Trade(service)
-    
-    response = await trade.place_spot_stop_market_order(http_agent   = httpx.AsyncClient(),
-                                                        token        = User.TOKEN,    # type: ignore
-                                                        side         = 'buy',
-                                                        src_currency = 'btc',
-                                                        dst_currency = 'rls',
-                                                        amount       = 0.0006,
-                                                        stop_price   = 9_998_888_000,
-                                                        client_oid   = 'orderTEST01')
-    
-    print(response)
-
-async def place_spot_oco_order_test():
-    service = APIService()
-    trade = Trade(service)
-    
-    response = await trade.place_spot_oco_order(http_agent     = httpx.AsyncClient(),
-                                                token          = User.TOKEN,    # type: ignore
-                                                side           = 'buy',
-                                                src_currency   = 'usdt',
-                                                dst_currency   = 'rls',
-                                                amount         = 50,
-                                                tp_price       = 570000,
-                                                sl_stop_price  = 590000,
-                                                sl_limit_price = 600000,
-                                                client_oid     = 'orderTest01')
-
-    print(response)
-
-
-async def place_futures_limit_order_test():
-    service = APIService()
-    trade = Trade(service)
-
-    response = await trade.place_futures_limit_order(http_agent   = httpx.AsyncClient(),
-                                               token        = User.TOKEN,    # type: ignore
-                                               side         = 'buy',
-                                               src_currency = 'usdt',
-                                               dst_currency = 'rls',
-                                               amount       = 50,
-                                               price        = 58900,
-                                               leverage     = 1,
-                                               client_oid   = 'orderTest01')
-
-    print(response)
-
-async def place_futures_market_order_test():
-    service = APIService()
-    trade = Trade(service)
-
-    response = await trade.place_futures_market_order(http_agent   = httpx.AsyncClient(),
-                                                      token        = User.TOKEN,    # type: ignore
-                                                      side         = 'buy',
-                                                      src_currency = 'usdt',
-                                                      dst_currency = 'rls',
-                                                      amount       = 50,
-                                                      leverage     = 1,
-                                                      client_oid   = 'orderTest01')
-
-    print(response)
-
-async def place_futures_stop_limit_order_test():
-    service = APIService()
-    trade = Trade(service)
-
-    response = await trade.place_futures_stop_limit_order(http_agent   = httpx.AsyncClient(),
-                                                          token        = User.TOKEN,    # type: ignore
-                                                          side         = 'buy',
-                                                          src_currency = 'usdt',
-                                                          dst_currency = 'rls',
-                                                          amount       = 50,
-                                                          price        = 58900,
-                                                          stop_price   = 58900,
-                                                          leverage     = 1,
-                                                          client_oid   = 'orderTest01')
-
-    print(response)
-
-async def place_futures_stop_market_order_test():
-    service = APIService()
-    trade = Trade(service)
-
-    response = await trade.place_futures_stop_market_order(http_agent   = httpx.AsyncClient(),
-                                                           token        = User.TOKEN,    # type: ignore
-                                                           side         = 'buy',
-                                                           src_currency = 'usdt',
-                                                           dst_currency = 'rls',
-                                                           amount       = 50,
-                                                           stop_price   = 58900,
-                                                           leverage     = 1,
-                                                           client_oid   = 'orderTest01')
-
-    print(response)
-
-async def place_futures_oco_order_test():
-    service = APIService()
-    trade = Trade(service)
-    
-    response = await trade.place_futures_oco_order(http_agent     = httpx.AsyncClient(),
-                                                   token          = User.TOKEN,    # type: ignore
-                                                   side           = 'buy',
-                                                   src_currency   = 'usdt',
-                                                   dst_currency   = 'rls',
-                                                   amount         = 50,
-                                                   tp_price       = 570000,
-                                                   sl_stop_price  = 590000,
-                                                   sl_limit_price = 600000,
-                                                   leverage       = 1,
-                                                   client_oid     = 'orderTest01')
-
-    print(response)
 
 if __name__ == '__main__':
+
+    async def fetch_market_price_test():
+        market = Market(APIService(), httpx.AsyncClient())
+        result = await market.fetch_market_price(httpx.AsyncClient(), 'btc', 'rls')
+        print(result)
+
+
+    async def fetch_orders_test():
+        service = APIService()
+        trade   = Trade(service)
+
+        data = await anext(trade.fetch_orders(client = httpx.AsyncClient(),
+                                            token  = User.TOKEN,     # type: ignore
+                                            req_interval = nb.Endpoint.ORDERS_MI,
+                                            max_rate = nb.Endpoint.ORDERS_RL,
+                                            rate_period=nb.Endpoint.ORDERS_RP,
+                                            status = 'all'))
+
+        print(data)
+
+    async def fetch_positions_test():
+        service = APIService()
+        trade   = Trade(service)
+
+        response = await trade.fetch_positions(client      = httpx.AsyncClient(),
+                                            token       = User.TOKEN,    # type: ignore
+                                            status      = 'active',
+                                            page        = 1)
+        print(response)
+
+
+    async def fetch_wallets_test():
+        account = Account()
+
+        response = await account.wallets(http_agent  = httpx.AsyncClient(),
+                                        token       = User.TOKEN,    # type: ignore
+                                        drop_void   = True)
+
+        print(response)
+
+    async def fetch_balance_test():
+        account = Account()
+
+        response = await account.balance(http_agent = httpx.AsyncClient(),
+                                        token      = User.TOKEN,    # type: ignore
+                                        currency   = 'usdt')
+
+        print(response)
+
+
+    async def cancel_all_orders_test():
+        trade = Trade(APIService())
+
+        response = await trade.cancel_all_orders(client = httpx.AsyncClient(),
+                                                token  = User.TOKEN)    # type: ignore
+
+        print(response)
+
+    async def close_position_test():
+        trade = Trade(APIService())
+        result = await trade.close_position(http_agent=httpx.AsyncClient(),
+                                            token=User.TOKEN,    # type: ignore
+                                            id='5053',
+                                            execution='market',
+                                            amount=0.0000089775,
+                                            side='sell',
+                                            src_currecy='btc',
+                                            dst_currency='rls',
+                                            price=360000003)
+        
+        print(result)
+
+    async def close_all_positions_test():
+        trade = Trade(APIService())
+        results = await trade.close_all_positions(User.TOKEN)    # type: ignore
+        print(results)
+
+
+    async def place_spot_limit_order_test():
+        service = APIService()
+        trade = Trade(service)
+
+        response = await trade.place_spot_limit_order(http_agent   = httpx.AsyncClient(),
+                                                token        = User.TOKEN,    # type: ignore
+                                                side         = 'buy',
+                                                src_currency = 'btc',
+                                                dst_currency = 'rls',
+                                                amount       = 0.0006,
+                                                price        = 9_998_000_000,
+                                                client_oid   = 'orderTEST01')
+
+        print(response)
+
+    async def place_spot_market_order_test():
+        service = APIService()
+        trade = Trade(service)
+
+        response = await trade.place_spot_market_order(http_agent   = httpx.AsyncClient(),
+                                                token        = User.TOKEN,    # type: ignore
+                                                side         = 'buy',
+                                                src_currency = 'btc',
+                                                dst_currency = 'rls',
+                                                amount       = 0.0006,
+                                                client_oid   = 'orderTEST01')
+        
+        print(response)
+
+    async def place_spot_stop_limit_order_test():
+        service = APIService()
+        trade = Trade(service)
+
+        response = await trade.place_spot_stop_limit_order(http_agent   = httpx.AsyncClient(),
+                                                    token        = User.TOKEN,    # type: ignore
+                                                    side         = 'buy',
+                                                    src_currency = 'btc',
+                                                    dst_currency = 'rls',
+                                                    amount       = 0.0006,
+                                                    price        = 9_998_888_000,
+                                                    stop_price   = 9_998_888_000,
+                                                    client_oid   = 'orderTEST01')
+
+        print(response)
+
+    async def place_spot_stop_market_order_test():
+        service = APIService()
+        trade = Trade(service)
+        
+        response = await trade.place_spot_stop_market_order(http_agent   = httpx.AsyncClient(),
+                                                            token        = User.TOKEN,    # type: ignore
+                                                            side         = 'buy',
+                                                            src_currency = 'btc',
+                                                            dst_currency = 'rls',
+                                                            amount       = 0.0006,
+                                                            stop_price   = 9_998_888_000,
+                                                            client_oid   = 'orderTEST01')
+        
+        print(response)
+
+    async def place_spot_oco_order_test():
+        service = APIService()
+        trade = Trade(service)
+        
+        response = await trade.place_spot_oco_order(http_agent     = httpx.AsyncClient(),
+                                                    token          = User.TOKEN,    # type: ignore
+                                                    side           = 'buy',
+                                                    src_currency   = 'usdt',
+                                                    dst_currency   = 'rls',
+                                                    amount         = 50,
+                                                    tp_price       = 570000,
+                                                    sl_stop_price  = 590000,
+                                                    sl_limit_price = 600000,
+                                                    client_oid     = 'orderTest01')
+
+        print(response)
+
+
+    async def place_futures_limit_order_test():
+        service = APIService()
+        trade = Trade(service)
+
+        response = await trade.place_futures_limit_order(http_agent   = httpx.AsyncClient(),
+                                                token        = User.TOKEN,    # type: ignore
+                                                side         = 'buy',
+                                                src_currency = 'usdt',
+                                                dst_currency = 'rls',
+                                                amount       = 50,
+                                                price        = 58900,
+                                                leverage     = 1,
+                                                client_oid   = 'orderTest01')
+
+        print(response)
+
+    async def place_futures_market_order_test():
+        service = APIService()
+        trade = Trade(service)
+
+        response = await trade.place_futures_market_order(http_agent   = httpx.AsyncClient(),
+                                                        token        = User.TOKEN,    # type: ignore
+                                                        side         = 'buy',
+                                                        src_currency = 'usdt',
+                                                        dst_currency = 'rls',
+                                                        amount       = 50,
+                                                        leverage     = 1,
+                                                        client_oid   = 'orderTest01')
+
+        print(response)
+
+    async def place_futures_stop_limit_order_test():
+        service = APIService()
+        trade = Trade(service)
+
+        response = await trade.place_futures_stop_limit_order(http_agent   = httpx.AsyncClient(),
+                                                            token        = User.TOKEN,    # type: ignore
+                                                            side         = 'buy',
+                                                            src_currency = 'usdt',
+                                                            dst_currency = 'rls',
+                                                            amount       = 50,
+                                                            price        = 58900,
+                                                            stop_price   = 58900,
+                                                            leverage     = 1,
+                                                            client_oid   = 'orderTest01')
+
+        print(response)
+
+    async def place_futures_stop_market_order_test():
+        service = APIService()
+        trade = Trade(service)
+
+        response = await trade.place_futures_stop_market_order(http_agent   = httpx.AsyncClient(),
+                                                            token        = User.TOKEN,    # type: ignore
+                                                            side         = 'buy',
+                                                            src_currency = 'usdt',
+                                                            dst_currency = 'rls',
+                                                            amount       = 50,
+                                                            stop_price   = 58900,
+                                                            leverage     = 1,
+                                                            client_oid   = 'orderTest01')
+
+        print(response)
+
+    async def place_futures_oco_order_test():
+        service = APIService()
+        trade = Trade(service)
+        
+        response = await trade.place_futures_oco_order(http_agent     = httpx.AsyncClient(),
+                                                    token          = User.TOKEN,    # type: ignore
+                                                    side           = 'buy',
+                                                    src_currency   = 'usdt',
+                                                    dst_currency   = 'rls',
+                                                    amount         = 50,
+                                                    tp_price       = 570000,
+                                                    sl_stop_price  = 590000,
+                                                    sl_limit_price = 600000,
+                                                    leverage       = 1,
+                                                    client_oid     = 'orderTest01')
+
+        print(response)
+
+
+
     # asyncio.run(fetch_market_price_test())
     # asyncio.run(oredr_test())
 
     # asyncio.run(fetch_orders_test())
     # asyncio.run(fetch_positions_test())
 
-    # asyncio.run(fetch_wallets_test())
+    asyncio.run(fetch_wallets_test())
     # asyncio.run(fetch_balance_test())
 
     # asyncio.run(cancel_all_orders_test())
@@ -1530,4 +1533,4 @@ if __name__ == '__main__':
     # asyncio.run(place_futures_market_order_test())
     # asyncio.run(place_futures_stop_limit_order_test())
     # asyncio.run(place_futures_stop_market_order_test())
-    asyncio.run(place_futures_oco_order_test())
+    # asyncio.run(place_futures_oco_order_test())
