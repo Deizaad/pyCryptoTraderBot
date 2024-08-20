@@ -36,4 +36,10 @@ async def all_valid(kline_df      : pd.DataFrame,
 # ________________________________________________________________________________ . . .
 
 
+async def compare_probable_risk():
+    """
+    Compares the probable risk of trade (stop loss hit) with position size.
+    """
+    pass
+
 # =================================================================================================
