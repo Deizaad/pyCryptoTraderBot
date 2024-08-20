@@ -54,8 +54,12 @@
     ],
 
 
-    "order_placement_setup": {
-        "name": "",
-        "properties": ""
-    }
+    "trading_approach": {
+            "name": "approach_01",
+            "properties": "test_properties"
+    },
+
+    "portfolio_exposure": 1.0,
+
+    "risk_per_trade": 0.01
 }
