@@ -53,25 +53,8 @@
 
     ],
 
-    
 
-
-    "entry_order_placement_setup": {
-        "name": "",
-        "properties": ""
-    },
-
-    "take_profit_order_placement_setup": {
-        "name": "",
-        "properties": ""
-    },
-
-    "stop_loss_order_placement_setup": {
-        "name": "",
-        "properties": ""
-    },
-
-    "combo_of_tp_sl_order_placement_setup": {
+    "order_placement_setup": {
         "name": "",
         "properties": ""
     }
