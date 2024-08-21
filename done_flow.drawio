@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="bUYJuNmFrbV8m6pwbn9G" name="Page-1">
-        <mxGraphModel dx="2460" dy="1144" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="2257" dy="486" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -61,11 +61,17 @@
                 <mxCell id="16" value="Application.execution.profiles.base_live.py" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="-245" y="780" width="1110" height="700" as="geometry"/>
                 </mxCell>
-                <mxCell id="32" value="* Attach the &quot;start_trade_engine()&quot; and &quot;start_fetching_kline()&quot; to &quot;START_ACTIVITY&quot; event channel.&#10;&#10;* Execute  the &quot;scheduler.watch_transitions()&quot;." style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="16">
-                    <mxGeometry x="45" y="60" width="220" height="296" as="geometry"/>
+                <mxCell id="32" value="* Execute the &quot;_attach_to_events()&quot;.&#10;&#10;* Execute  the &quot;scheduler.watch_transitions()&quot;.&#10;&#10;* Execute the &quot;trading_workflow.start_live_trading_flow()&quot;." style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" parent="16" vertex="1">
+                    <mxGeometry x="45" y="60" width="245" height="296" as="geometry"/>
                 </mxCell>
-                <mxCell id="33" value="func run():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="32">
+                <mxCell id="33" value="func run():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" parent="32" vertex="1">
                     <mxGeometry x="5" width="100" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="* Attach the &quot;start_signals_engine()&quot; to &quot;RECOVERY_MECHANISM_ACCOMPLISHED&quot; event channel.&#10;&#10;* Attach the &quot;start_trade_engine()&quot; and &quot;start_fetching_kline()&quot; to &quot;START_ACTIVITY&quot; event channel." style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="16">
+                    <mxGeometry x="325" y="60" width="300" height="296" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="func _attach_to_events():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="40">
+                    <mxGeometry x="5" width="220" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="25" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="7" target="16" edge="1">
                     <mxGeometry relative="1" as="geometry">
@@ -75,14 +81,71 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="37" value="Application.execution.scheduler.py" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="-790" y="780" width="470" height="700" as="geometry"/>
+                <mxCell id="37" value="Application.execution.scheduler.py" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="-245" y="1570" width="470" height="700" as="geometry"/>
                 </mxCell>
-                <mxCell id="38" value="* Extract activity_setup from strategy.json.&#10;&#10;* Execute corresponding activity function.&#10;&#10;* Emit on START_ACTIVITY and END_ACTIVITY event channels." style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="37">
+                <mxCell id="38" value="* Extract activity_setup from strategy.json.&#10;&#10;* Execute corresponding activity function.&#10;&#10;* Emit on START_ACTIVITY and END_ACTIVITY event channels." style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" parent="37" vertex="1">
                     <mxGeometry x="45" y="60" width="345" height="296" as="geometry"/>
                 </mxCell>
-                <mxCell id="39" value="func watch_transitions():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="38">
+                <mxCell id="39" value="func watch_transitions():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" parent="38" vertex="1">
                     <mxGeometry x="5" width="210" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="Application.trading.trading_workflow.py" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="1570" width="470" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="* It executes the chosen trading approach in strategy.json from trading_approach_functions.py" style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="42">
+                    <mxGeometry x="45" y="60" width="305" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="func start_live_trading_flow():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="43">
+                    <mxGeometry x="5" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="Application.trading.signals.signals_chief.py" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="930" y="1570" width="870" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="" style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="45">
+                    <mxGeometry x="82.5" y="160" width="305" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="func start_signals_engine():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="46">
+                    <mxGeometry x="5" width="230" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="" style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="45">
+                    <mxGeometry x="82.5" y="356" width="305" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="func stop_signals_engine():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="49">
+                    <mxGeometry x="5" width="230" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="" style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="45">
+                    <mxGeometry x="460" y="160" width="360" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="func post_market_validation_flow():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="51">
+                    <mxGeometry x="5" width="290" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="" style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="45">
+                    <mxGeometry x="460" y="350" width="360" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="func pre_market_validation_flow():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="53">
+                    <mxGeometry x="5" width="290" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="Register events ..." style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="45">
+                    <mxGeometry x="375" y="60" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="Application.trading.trade_engine.py" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="-800" y="1570" width="470" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="* Execute the recovery mechanism." style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="55">
+                    <mxGeometry x="45" y="60" width="345" height="296" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="func start_trade_engine():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="56">
+                    <mxGeometry x="5" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="Application.data.data_processor.py" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="-1360" y="1570" width="470" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="* Executes the self._initiate_kline() and self._live_kline() methods." style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="58">
+                    <mxGeometry x="45" y="60" width="345" height="296" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="func start_fetching_kline():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="59">
+                    <mxGeometry x="5" width="220" height="30" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
