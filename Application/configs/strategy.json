@@ -55,11 +55,16 @@
 
 
     "trading_approach": {
-            "name": "approach_01",
-            "properties": "test_properties"
+        "name": "approach_01",
+        "properties": {}
     },
 
     "portfolio_exposure": 1.0,
 
-    "risk_per_trade": 0.01
+    "risk_per_trade": 0.01,
+
+    "position_sizing_approach":{
+        "name": "risk_adjusted_kelly_sizing",
+        "properties": {}
+    }
 }
