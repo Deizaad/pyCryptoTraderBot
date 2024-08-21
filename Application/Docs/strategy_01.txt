@@ -1,0 +1,43 @@
+* Strategy Name:
+    strategy_01
+
+* Entry Setup:
+    Based on supertrend indicator when it crosses price chart.
+
+* Take Profit Setup:
+
+
+* Stop loss setup:
+
+
+* Trading Approach:
+
+
+* Portfolio Exposure for this Strategy: 
+    % 100 of portfolio balance
+
+* Risk Per Trade:
+    % 1 of portfolio exposure
+
+* Position Sizing:
+    Based on "VaR" and "Kelly Criterion" methods. by considering probable price slippage and the
+    leverage calculate position size in a way that it won't lose more than the specified 
+    risk_per_trade at the state of trade with highest risk (it's the initial stop loss level). it
+    means that if the stop-loss oredr gets hit by price and we get out of position, it won't lose
+    more than the specified risk_per_trade (also have to consider the probable slippage for 
+    stop-loss order which is a stop-market-price order)
+
+    It consists of calculating the kelly_fraction with this formula:
+        kelly_fraction = win_rate - (1 - win_rate) / win_loss_ratio
+    then calculating the max_loss_per_trade_value by this formula:
+        max_loss_per_trade_value = risk_per_trade_pst * capital
+    then calculating adjusted_stop_loss with this formula:
+        adjusted_stop_loss = stop_loss_pct + probable_slippage_pct
+    then the position size would be :
+        position_size = max_loss_per_trade_value / (adjusted_stop_loss * leverage)
+    
+    then position size would be the {kelly_fraction * capital (also considering leverage here)} if
+    it is no exceeding the max_loss_per_trade_value othervise position size is equal to 
+    {max_loss_per_trade_value / (adjusted_stop_loss * leverage)}.
+
+* leverage factor:
