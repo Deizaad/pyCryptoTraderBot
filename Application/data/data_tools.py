@@ -1,5 +1,6 @@
 import sys
 import pytz
+import logging
 import importlib
 import pandas as pd
 from datetime import datetime
@@ -9,9 +10,8 @@ from persiantools.jdatetime import JalaliDateTime    # type: ignore
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.utils.load_json import load    # noqa: E402
-from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
-
+from Application.utils.load_json import load                        # noqa: E402
+from Application.utils.simplified_event_handler import EventHandler # noqa: E402
 
 jarchi = EventHandler()
 
@@ -111,22 +111,36 @@ def extract_strategy_fields_functions(
 # ________________________________________________________________________________ . . .
 
 
-def extract_trading_approach() -> dict:
+def extract_singular_strategy_setup(setup_name            : str,
+                                    config                : dict,
+                                    functions_module_path : str):
     """
-    Extracts name, function object and properties of 'trading_approach' from 'strategy.json' file.
+    Extracts function, and properties of a sigular strategy setup.
+
+    Parameters:
+        setup_name (str): The field name in the strategy.json config file from which to extract objects.
+        config (dict): The pre-loaded json configuration dictionary.
+        functions_module_path (str): Path to the module where the setup functions are defined.
+
+    Returns:
+        extracted_setup (dict): A dictionary containing extracted setup along with it's function object and assiciated properties.
     """
-    config = load(r'Application/configs/strategy.json')
-    functions_module = importlib.import_module('Application.trading.trading_approach_functions')
+    try:
+        funcs_module = importlib.import_module(functions_module_path)
 
-    name = config['trading_approach']['name']
-    function = getattr(functions_module, name)
-    properties = config['trading_approach']['properties']
+        name = config[setup_name]['name']
+        extracted_setup = {'name'       : name,
+                           'function'   : getattr(funcs_module, name),
+                           'properties' : config[setup_name]['properties']}
 
-    extracted_approach = {'name': name,
-                          'function': function,
-                          'properties': properties}
+        return extracted_setup
 
-    return extracted_approach
+    except AttributeError as err:
+        logging.error(f"Module '{funcs_module}' has no function named '{name}'. {err} ")
+        return {}
+    except ModuleNotFoundError as err:
+        logging.error(f"There is no module with path '{functions_module_path}', perhaps you misspelled it? {err}")
+        return {}
 # ________________________________________________________________________________ . . .
 
 
