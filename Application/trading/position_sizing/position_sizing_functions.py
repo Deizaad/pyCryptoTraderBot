@@ -1,14 +1,14 @@
+import asyncio
 
 
 
-
-def risk_adjusted_kelly_margin_sizing(capital               : float,
-                                      risk_per_trade_pct    : float,
-                                      leverage              : float,
-                                      win_rate              : float,
-                                      win_loss_ratio        : float,
-                                      stop_loss_pct         : float,
-                                      probable_slippage_pct : float) -> float:
+async def risk_adjusted_kelly_margin_sizing(capital               : float,
+                                            risk_per_trade_pct    : float,
+                                            leverage              : float,
+                                            win_rate              : float,
+                                            win_loss_ratio        : float,
+                                            stop_loss_pct         : float,
+                                            probable_slippage_pct : float) -> float:
     """
     Calculate the position size based on Kelly Criterion and max loss per trade.
     Ensures that position size does not exceed max allowable risk.
@@ -45,16 +45,52 @@ def risk_adjusted_with_kelly_criterion_margin_sizing():
     """
     
     """
+
     pass
 
 
+def risk_adjusted_margin_sizing(portfolio_balance  : float,
+                                risk_per_trade_pct : float,
+                                stop_loss_distance : float,
+                                probable_slippage  : float):
+    """
+    
+    """
+    max_risk_per_trade_value    = risk_per_trade_pct * portfolio_balance
+    adjusted_stop_loss_distance = stop_loss_distance + probable_slippage
+    position_size_by_risk = round((max_risk_per_trade_value / adjusted_stop_loss_distance), 2)
+    print(position_size_by_risk)
+
+    # Define the minimum position size for pair
+    min_position_size = 5
+
+    # Define the maximum position size for pair
+    max_position_size = 50
+    
+    if min_position_size < position_size_by_risk < max_position_size:
+        position_size = position_size_by_risk
+    elif position_size_by_risk <= min_position_size:
+        position_size = min_position_size
+    else:
+        position_size = max_position_size
+
+    # Return position_size value back to base currency
+
+    return position_size
+
+
 if __name__ == '__main__':
-    position_size = risk_adjusted_kelly_margin_sizing(capital               = 100000,
+    position_size = asyncio.run(risk_adjusted_kelly_margin_sizing(capital               = 100000,
                                                       risk_per_trade_pct    = 0.02,
                                                       leverage              = 2,
                                                       win_rate              = 0.55,
                                                       win_loss_ratio        = 2.5,
                                                       stop_loss_pct         = 0.03,
-                                                      probable_slippage_pct = 0.005)
+                                                      probable_slippage_pct = 0.005))
     
+    position_size = risk_adjusted_margin_sizing(portfolio_balance=10000.0,
+                                                risk_per_trade_pct=0.02,
+                                                stop_loss_distance=7,
+                                                probable_slippage=2)
+
     print(position_size)
