@@ -64,7 +64,7 @@
     "risk_per_trade": 0.01,
 
     "position_sizing_approach":{
-        "name": "risk_adjusted_kelly_sizing",
+        "name": "risk_adjusted_position_sizing",
         "properties": {}
     }
 }

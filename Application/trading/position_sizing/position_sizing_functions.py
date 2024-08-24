@@ -1,13 +1,7 @@
-import sys
-# import asyncio
-from dotenv import dotenv_values
-
-path = dotenv_values('project_path.env').get('PYTHONPATH')
-sys.path.append(path) if path else None
-
-# from Application.data.exchange import Nobitex as nb # noqa: E402
+import asyncio
 
 
+# =================================================================================================
 async def risk_adjusted_kelly_margin_sizing(capital               : float,
                                             risk_per_trade_pct    : float,
                                             leverage              : float,
@@ -45,6 +39,7 @@ async def risk_adjusted_kelly_margin_sizing(capital               : float,
     # chosing final position size
     final_position_size = min(position_size_by_risk, kelly_position_size)
     return final_position_size
+# ________________________________________________________________________________ . . .
 
 
 def risk_adjusted_with_kelly_criterion_margin_sizing():
@@ -53,18 +48,19 @@ def risk_adjusted_with_kelly_criterion_margin_sizing():
     """
 
     pass
+# ________________________________________________________________________________ . . .
 
 
-def risk_adjusted_position_sizing(portfolio_balance  : float,
-                                  risk_per_trade_pct : float,
-                                  entry_price        : float,
-                                  stop_loss_price    : float,
-                                  slippage_pct       : float,
-                                  maker_fee          : float,
-                                  taker_fee          : float,
-                                  src_currency       : str,
-                                  dst_currency       : str,
-                                  funding_rate_fee   : float | None = None):
+async def risk_adjusted_position_sizing(portfolio_balance  : float,
+                                        risk_per_trade_pct : float,
+                                        entry_price        : float,
+                                        stop_loss_price    : float,
+                                        slippage_pct       : float,
+                                        maker_fee          : float,
+                                        taker_fee          : float,
+                                        src_currency       : str,
+                                        dst_currency       : str,
+                                        funding_rate_fee   : float | None = None):
     """
     Calculates position size in a way that the total risk dosn't exceed the pre defined resk per
     trade value.
@@ -94,6 +90,7 @@ def risk_adjusted_position_sizing(portfolio_balance  : float,
         position_size = max_position_size
 
     return position_size
+# ________________________________________________________________________________ . . .
 
 
 def _min_position_size(src_currency: str, dst_currency: str):
@@ -107,6 +104,8 @@ def _min_position_size(src_currency: str, dst_currency: str):
     computing it again.
     """
     return 5
+# ________________________________________________________________________________ . . .
+
 
 def _max_position_size(src_currency: str, dst_currency: str):
     """
@@ -114,6 +113,7 @@ def _max_position_size(src_currency: str, dst_currency: str):
     on market price, and ...
     """
     return 50
+# ________________________________________________________________________________ . . .
 
 
 def monte_carlo_position_sizing():
@@ -122,6 +122,7 @@ def monte_carlo_position_sizing():
     ratio.
     """
     pass
+# ________________________________________________________________________________ . . .
 
 
 def volatility_based_position_sizing():
@@ -130,6 +131,10 @@ def volatility_based_position_sizing():
     risk per trade regardless of the pair's volatility.
     """
     pass
+# ________________________________________________________________________________ . . .
+
+
+# =================================================================================================
 
 
 if __name__ == '__main__':
@@ -143,14 +148,14 @@ if __name__ == '__main__':
     #     probable_slippage_pct = 0.005)
     # )
     
-    position_size = risk_adjusted_position_sizing(portfolio_balance  = 10000.0,
-                                                  risk_per_trade_pct = 0.02,
-                                                  entry_price        = 256,
-                                                  stop_loss_price    = 250,
-                                                  slippage_pct       = 0.002,
-                                                  maker_fee          = 0.001,
-                                                  taker_fee          = 0.0013,
-                                                  src_currency       = 'usdt',
-                                                  dst_currency       = 'rls')
+    position_size = asyncio.run(risk_adjusted_position_sizing(portfolio_balance  = 10000.0,
+                                                              risk_per_trade_pct = 0.02,
+                                                              entry_price        = 256,
+                                                              stop_loss_price    = 250,
+                                                              slippage_pct       = 0.002,
+                                                              maker_fee          = 0.001,
+                                                              taker_fee          = 0.0013,
+                                                              src_currency       = 'usdt',
+                                                              dst_currency       = 'rls'))
 
     print(position_size)
