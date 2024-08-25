@@ -4,13 +4,29 @@
 * Entry Setup:
     Based on supertrend indicator when it crosses price chart.
 
+* Entry signal validation:
+    
+
 * Take Profit Setup:
+    taking profit consists of a limit order at "average run up" level with 50% of position size and
+    a trailing order with 20% of position size that gets activated after the limit take profit 
+    order filled.
 
 
 * Stop loss setup:
 
+* risk management orders setup:
+    - Executing limit order that is going to be placed after price reaches the risk_free_level, to
+    risk free the trade with 30% of position size.
 
-* Trading Approach:
+
+* Trade Management Approach:
+    - Enter the trade with entire position size using a limit order.
+    - set the stop loss and take profit.
+    - 
+    - risk free the trade with 30% of positin size using a limit order.
+
+* Risk management approaches:
 
 
 * Portfolio Exposure for this Strategy: 
