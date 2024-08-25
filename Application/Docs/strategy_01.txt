@@ -1,39 +1,63 @@
 * Strategy Name:
-    strategy_01
+    ...
+__________________________________________________________________________________ . . .
 
-* Entry Setup:
-    Based on supertrend indicator when it crosses price chart.
 
-* Entry signal validation:
+* Entry:
+    Signal Setup:
+        Based on supertrend indicator when it.
+        - Buy: when supertrend indicating bullish for a candle while it has been bearish on 
+        previous candle.
+        - Sell: when supertrend indicating bearish for a candle while it has been bullish on 
+        previous candle.
+
+    Ordering Approach:
+        Enter trades using a limit order for %100 of positin size.
+__________________________________________________________________________________ . . .
+
+
+* Late Signals Entring Circumstances:
+    for now do not enter trades on late signals.
+__________________________________________________________________________________ . . .
+
+
+* Entry Signal Validation:
+
+__________________________________________________________________________________ . . .
     
 
-* Take Profit Setup:
-    taking profit consists of a limit order at "average run up" level with 50% of position size and
-    a trailing order with 20% of position size that gets activated after the limit take profit 
-    order filled.
+* Take Profit:
+    Signal Setup:
+        taking profit consists of a limit order at "average run up" level with 50% of position size
+        and a trailing order with 20% of position size that gets activated after the limit take 
+        profit order filled.
+    
+    Ordering Approach:
+
+__________________________________________________________________________________ . . .
 
 
-* Stop loss setup:
+* Stop lLoss Sinal Setup:
+__________________________________________________________________________________ . . .
 
-* risk management orders setup:
+
+* Other signal Validation Filters:
+__________________________________________________________________________________ . . .
+
+
+* Risk Management Orders Setup:
     - Executing limit order that is going to be placed after price reaches the risk_free_level, to
     risk free the trade with 30% of position size.
+__________________________________________________________________________________ . . .
 
 
-* Trade Management Approach:
+* Trading Workflow Approach:
     - Enter the trade with entire position size using a limit order.
     - set the stop loss and take profit.
     - 
     - risk free the trade with 30% of positin size using a limit order.
+__________________________________________________________________________________ . . .
 
-* Risk management approaches:
-
-
-* Portfolio Exposure for this Strategy: 
-    % 100 of portfolio balance
-
-* Risk Per Trade:
-    % 1 of portfolio exposure
 
 * Position Sizing:
     Based on "VaR" and "Kelly Criterion" methods. by considering probable price slippage and the
@@ -55,5 +79,46 @@
     then position size would be the {kelly_fraction * capital (also considering leverage here)} if
     it is no exceeding the max_loss_per_trade_value othervise position size is equal to 
     {max_loss_per_trade_value / (adjusted_stop_loss * leverage)}.
+__________________________________________________________________________________ . . .
 
-* leverage factor:
+
+* Portfolio Management Approaches: 
+    Expose % 100 of portfolio balance for tis strategy.
+__________________________________________________________________________________ . . .
+
+
+* Market Conditions Criteria:
+__________________________________________________________________________________ . . .
+
+
+* Risk Management Approaches:
+    Risk % 1 of portfolio exposure per trade
+__________________________________________________________________________________ . . .
+
+
+* Leverage Factor:
+__________________________________________________________________________________ . . .
+
+
+* In-Trade Actions:
+__________________________________________________________________________________ . . .
+
+
+* Active Days And Hours:
+__________________________________________________________________________________ . . .
+
+
+* Market Category and Pairs Application:
+__________________________________________________________________________________ . . .
+
+
+* Resolution Application:
+__________________________________________________________________________________ . . .
+
+
+* Trading Environment Application:
+__________________________________________________________________________________ . . .
+
+
+* Floating_Strategy_Factors Handling Approaches:
+__________________________________________________________________________________ . . .
