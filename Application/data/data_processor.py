@@ -3,31 +3,31 @@ import httpx
 import asyncio
 import logging
 import pandas as pd
-from httpx import AsyncClient
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.data.user import User    # noqa: E402
-from Application.configs import config    # noqa: E402
-# from Application.utils.load_json import load    # noqa: E402
-from Application.data.exchange import Nobitex    # noqa: E402
-from Application.api import nobitex_api as NB_API    # noqa: E402
-from Application.utils.event_channels import Event    # noqa: E402
-import Application.configs.admin_config as Aconfig    # noqa: E402
-from Application.api.api_service import APIService    # noqa: E402
-# from Application.data.validator import is_consistent    # noqa: E402
+from Application.data.user import User                                                      # noqa: E402
+from Application.configs import config                                                      # noqa: E402
+# from Application.utils.load_json import load                                              # noqa: E402
+from Application.data.exchange import Nobitex                                               # noqa: E402
+from Application.api import nobitex_api as NB_API                                           # noqa: E402
+from Application.utils.event_channels import Event                                          # noqa: E402
+import Application.configs.admin_config as Aconfig                                          # noqa: E402
+from Application.api.api_service import APIService                                          # noqa: E402
+# from Application.data.validator import is_consistent                                      # noqa: E402
 from Application.data.data_tools import has_signal,\
                                         df_has_news,\
                                         update_dataframe,\
-                                        parse_kline_to_df    # noqa: E402
-from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
+                                        parse_kline_to_df                                   # noqa: E402
+from Application.trading import strategy_fields as strategy                                 # noqa: E402
+from Application.utils.simplified_event_handler import EventHandler                         # noqa: E402
 from Application.trading.signals.signal_generator import ENTRY_SYSTEM,\
-                                                          generate_signals    # noqa: E402
-from Application.trading.market.validator import MARKET_VALIDATION_SYSTEM    # noqa: E402
+                                                          generate_signals                  # noqa: E402
+from Application.trading.market.validator import MARKET_VALIDATION_SYSTEM                   # noqa: E402
 from Application.trading.analysis.indicator_supervisor import compute_indicators,\
-                                                              compute_validation_indicators     # noqa: E402
+                                                              compute_validation_indicators # noqa: E402
 
 
 
@@ -40,7 +40,7 @@ class DataProcessor:
     def __new__(cls):
         if not cls._instance:
             cls._instance = super(DataProcessor, cls).__new__(cls)
-            cls._instance._initialize_dataframes()
+            cls._instance._initialize_data()
         
         return cls._instance
     # ____________________________________________________________________________ . . .
@@ -48,6 +48,8 @@ class DataProcessor:
 
     def __init__(self) -> None:
         self.jarchi = EventHandler()
+        self.market = NB_API.Market(APIService())
+
         self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df'])
         self.jarchi.register_event(Event.NEW_TRADING_SIGNAL, ['setup_name',
                                                               'kline_df',
@@ -66,12 +68,13 @@ class DataProcessor:
     # ____________________________________________________________________________ . . .
 
 
-    def _initialize_dataframes(self):
-        self.kline_df     = pd.DataFrame()
-        self.signal_df    = pd.DataFrame()
-        self.indicator_df = pd.DataFrame()
-        self.positions_df = pd.DataFrame()
-        self.validation_indicators_df = pd.DataFrame()
+    def _initialize_data(self):
+        self.kline_df                 : pd.DataFrame        = pd.DataFrame()
+        self.signal_df                : pd.DataFrame        = pd.DataFrame()
+        self.market_price             : float               = 0.0
+        self.indicator_df             : pd.DataFrame        = pd.DataFrame()
+        self.positions_df             : pd.DataFrame        = pd.DataFrame()
+        self.validation_indicators_df : pd.DataFrame        = pd.DataFrame()
         
         logging.info('DataProcessor initialized data with empty DataFrames!')
     # ____________________________________________________________________________ . . .
@@ -82,7 +85,7 @@ class DataProcessor:
         This method initiates other data processing methods or functions.
         """
         try:
-            self.market = NB_API.Market(APIService(), AsyncClient())
+            self.market = NB_API.Market(APIService())
             kline_task = self._initiate_kline(self.market,
                                               config.MarketData.OHLC.SYMBOL,
                                               config.MarketData.OHLC.RESOLUTION,
@@ -122,7 +125,9 @@ class DataProcessor:
 
 
     async def start_fetching_kline(self):
-        self.market = NB_API.Market(APIService(), AsyncClient())
+        """
+        Starts a mechanism that constantly fetches kline data.
+        """
         await self._initiate_kline(self.market,
                                    config.MarketData.OHLC.SYMBOL,
                                    config.MarketData.OHLC.RESOLUTION,
@@ -150,8 +155,7 @@ class DataProcessor:
         
         # Requesting first initial_fetch to current time
         logging.info('Sending First initial_fetch request for Kline data ...')
-        data = await market.initiate_kline(AsyncClient(),
-                                           symbol,
+        data = await market.initiate_kline(symbol,
                                            resolution,
                                            required_candles,
                                            timeout,
@@ -174,8 +178,7 @@ class DataProcessor:
         try:
             is_first_subsequent_fetch = True
 
-            async for new_data in market.populate_kline(AsyncClient(),
-                                                        self.kline_df,
+            async for new_data in market.populate_kline(self.kline_df,
                                                         symbol,
                                                         resolution,
                                                         required_candles,
@@ -214,7 +217,6 @@ class DataProcessor:
         logging.info('Sending live_fetch requests for Kline data ...')
         try:
             async for data in self.market.update_kline(
-                client         = AsyncClient(),
                 current_data   = self.kline_df,
                 symbol         = config.MarketData.OHLC.SYMBOL,
                 resolution     = config.MarketData.OHLC.RESOLUTION,
@@ -249,6 +251,35 @@ class DataProcessor:
         Returns kline dataframe.
         """
         return self.kline_df
+    # ____________________________________________________________________________ . . .
+
+
+
+
+    async def start_fetching_market_price(self):
+        """
+        Starts a mechanism that constantly fetches market price.
+        """
+        await self._live_fetch_market_price()
+    # ____________________________________________________________________________ . . .
+
+
+    async def _live_fetch_market_price(self):
+        async for data in self.market.live_fetch_market_price(
+            http_agent   = httpx.AsyncClient(),
+            src_currency = strategy.TRADING_PAIR['src_currency'],
+            dst_currency = strategy.TRADING_PAIR['dst_currency']
+        ):
+            if data != self.market_price:
+                self.market_price = data
+    # ____________________________________________________________________________ . . .
+
+
+    def get_market_price(self) -> float:
+        """
+        Returns the market price.
+        """
+        return self.market_price
     # ____________________________________________________________________________ . . .
 
 
