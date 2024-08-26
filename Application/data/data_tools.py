@@ -3,6 +3,7 @@ import pytz
 import logging
 import importlib
 import pandas as pd
+from typing import Any
 from datetime import datetime
 from dotenv import dotenv_values
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
@@ -40,8 +41,28 @@ def has_signal(signals_df: pd.DataFrame, column) -> str | None:
 # ________________________________________________________________________________ . . .
 
 
-def extract_strategy_fields_functions(
-        field                           : str,
+def extract_strategy_field_value(field : str) -> Any:
+    """
+    Extracts the value of a strategy field.
+
+    Raises:
+        ValueError:
+    
+    Returns:
+        extracted_value (Any):
+    """
+    value = load(r'Application/configs/strategy.json').get(field, None)
+
+    if not value:
+        raise ValueError(f"Can not find value of '{field}' field 'strategy.json' config file, "\
+                         "it has not been quantified with a value, or perhaps you misspelled it.")
+    
+    return value
+# ________________________________________________________________________________ . . .
+
+
+def extract_non_singular_strategy_setup(
+        setup_name                      : str,
         config                          : dict,
         setup_functions_module_path     : str,
         indicator_functions_module_path : str | None = None,
@@ -52,7 +73,7 @@ def extract_strategy_fields_functions(
     strategy config file from the given modules.
 
     Parameters:
-        field (str): The field in the strategy config from which to extract objects.
+        setup_name (str): The field in the strategy config from which to extract objects.
         config (dict): The pre-loaded json configuration dictionary.
         chief_module_path (str): Path to the module where the setup functions are defined.
         indicators_module_path (str): Path to the module where the indicator functions are defined.
@@ -73,7 +94,7 @@ def extract_strategy_fields_functions(
                         else None
 
     # extract the setups with properties
-    for setup in config.get(field, []):
+    for setup in config.get(setup_name, []):
         setup_func_name = setup["name"]
         setup_func_obj  = getattr(chief_module, setup_func_name)
         setup_instance  = {"name"       : setup_func_name,
@@ -113,20 +134,20 @@ def extract_strategy_fields_functions(
 
 def extract_singular_strategy_setup(setup_name            : str,
                                     config                : dict,
-                                    functions_module_path : str):
+                                    setup_functions_module_path : str):
     """
     Extracts function, and properties of a sigular strategy setup.
 
     Parameters:
         setup_name (str): The field name in the strategy.json config file from which to extract objects.
         config (dict): The pre-loaded json configuration dictionary.
-        functions_module_path (str): Path to the module where the setup functions are defined.
+        setup_functions_module_path (str): Path to the module where the setup functions are defined.
 
     Returns:
         extracted_setup (dict): A dictionary containing extracted setup along with it's function object and assiciated properties.
     """
     try:
-        funcs_module = importlib.import_module(functions_module_path)
+        funcs_module = importlib.import_module(setup_functions_module_path)
 
         name = config[setup_name]['name']
         extracted_setup = {'name'       : name,
@@ -139,7 +160,7 @@ def extract_singular_strategy_setup(setup_name            : str,
         logging.error(f"Module '{funcs_module}' has no function named '{name}'. {err} ")
         return {}
     except ModuleNotFoundError as err:
-        logging.error(f"There is no module with path '{functions_module_path}', perhaps you misspelled it? {err}")
+        logging.error(f"There is no module with path '{setup_functions_module_path}', perhaps you misspelled it? {err}")
         return {}
 # ________________________________________________________________________________ . . .
 
@@ -331,8 +352,8 @@ def turn_Jalali_to_gregorian(series: pd.Series):
 
 
 if __name__ == '__main__':
-    system = extract_strategy_fields_functions(
-        field='entry_signal_setups',
+    system = extract_non_singular_strategy_setup(
+        setup_name='entry_signal_setups',
         config=load(r'Application/configs/strategy.json'),
         setup_functions_module_path='Application.trading.signals.setup_functions',
         indicator_functions_module_path='Application.trading.analysis.indicator_functions',
@@ -340,6 +361,7 @@ if __name__ == '__main__':
     )
 
     print(system)
+
 
     def test_has_signal():
         data = {
@@ -364,5 +386,9 @@ if __name__ == '__main__':
 
         print("All tests passed.")
 
-
     test_has_signal()
+
+
+    field = 'risk_per_trade'
+    value = extract_strategy_field_value(field)
+    print(field, ': \t', value)
