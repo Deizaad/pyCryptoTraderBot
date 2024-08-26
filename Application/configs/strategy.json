@@ -1,4 +1,9 @@
 {
+    "trading_pair": {
+        "src_currency": "usdt",
+        "dst_currency": "rls"
+    },
+
     "active_times": 247,
 
     "recovery_mechanisms":[
@@ -45,16 +50,16 @@
         }
     ],
     
-    "take_profit_signal_setups":[
-        
-    ],
+    "take_profit_signal_setup":{
 
-    "stop_loss_signal_setups":[
+    },
 
-    ],
+    "stop_loss_signal_setup":{
+
+    },
 
 
-    "trading_approach": {
+    "trading_workflow_approach": {
         "name": "approach_01",
         "properties": {}
     },
