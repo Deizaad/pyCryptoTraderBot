@@ -1189,6 +1189,10 @@ class Trade:
 
 # =================================================================================================
 class Account:
+    def __init__(self):
+        self.market = Market(api_service=APIService())
+    # ____________________________________________________________________________ . . .
+
 
     async def wallets(self,
                       http_agent  : httpx.AsyncClient,
@@ -1206,7 +1210,7 @@ class Account:
         Returns:
             wallets_df (DataFrame): Client's wallets data.
         """
-        payload: dict = {'type': 'spot'}
+        payload: dict = {'type': 'margin'}
         headers: dict = {'Authorization': 'Token ' + token}
 
         api = APIService()
@@ -1222,6 +1226,44 @@ class Account:
         df = parse_wallets_to_df(raw_wallets=data, drop_void=drop_void)
 
         return df
+    # ____________________________________________________________________________ . . .
+
+
+    async def live_fetch_portfolio_balance(self) -> AsyncGenerator[tuple[float, float], Any]:
+        """
+        It's an async generator function which constantly fetches portfolio balance of user.
+
+        Yields:
+            portfolio_balance (float): The sum of user's wallet balances in Rial.
+        """
+        last_fetch_time: float = 0.0
+        limiter = AsyncLimiter(max_rate=nb.Endpoint.WALLETS_MI, time_period=nb.Endpoint.WALLETS_RP)
+
+        async with httpx.AsyncClient() as http_agent:
+            while True:
+                await limiter.acquire()
+                wait = wait_time(nb.Endpoint.WALLETS_MI, time.time(), last_fetch_time)
+                await asyncio.sleep(wait) if (wait > 0) else None
+
+                wallets_coroutine = self.wallets(http_agent = http_agent,
+                                                 token      = User.TOKEN, # type: ignore
+                                                 drop_void  = True)
+
+                usd_price_rate_coroutine = anext(self.market.live_fetch_market_price(
+                    http_agent   = http_agent,
+                    src_currency = 'usdt',
+                    dst_currency = 'rls'
+                ))
+
+                wallets_df, usd_price_rate = await asyncio.gather(wallets_coroutine,
+                                                                  usd_price_rate_coroutine)
+
+                last_fetch_time = time.time()
+
+                portfolio_balance_rial = wallets_df['rial_balance'].sum()
+                portfolio_balance_usd  = round((portfolio_balance_rial / usd_price_rate), 2)
+
+                yield portfolio_balance_rial, portfolio_balance_usd
     # ____________________________________________________________________________ . . .
 
 
@@ -1280,10 +1322,12 @@ class Transaction:
 
 if __name__ == '__main__':
 
-    async def fetch_market_price_test():
+    async def live_fetch_market_price_test():
         market = Market(APIService())
-        result = await anext(market.live_fetch_market_price(httpx.AsyncClient(), 'btc', 'rls'))
+        result = await anext(market.live_fetch_market_price(httpx.AsyncClient(), 'usdt', 'rls'))
         print(result)
+
+    asyncio.run(live_fetch_market_price_test())
 
 
     async def fetch_orders_test():
@@ -1318,6 +1362,17 @@ if __name__ == '__main__':
                                          drop_void  = True)
 
         print(response)
+
+    # asyncio.run(fetch_wallets_test())
+
+
+    async def live_fetch_portfolio_balance_test():
+        account = Account()
+        rls, usd = await anext(account.live_fetch_portfolio_balance())
+        print('rial_balance:\t', rls, '\nusd_balance:\t', usd)
+
+    # asyncio.run(live_fetch_portfolio_balance_test())
+
 
     async def fetch_balance_test():
         account = Account()
@@ -1519,13 +1574,12 @@ if __name__ == '__main__':
 
 
 
-    # asyncio.run(fetch_market_price_test())
+
     # asyncio.run(oredr_test())
 
     # asyncio.run(fetch_orders_test())
     # asyncio.run(fetch_positions_test())
 
-    asyncio.run(fetch_wallets_test())
     # asyncio.run(fetch_balance_test())
 
     # asyncio.run(cancel_all_orders_test())
