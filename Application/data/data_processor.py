@@ -48,6 +48,7 @@ class DataProcessor:
 
     def __init__(self) -> None:
         self.jarchi = EventHandler()
+        self.account = NB_API.Account()
         self.market = NB_API.Market(APIService())
 
         self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df'])
@@ -74,6 +75,7 @@ class DataProcessor:
         self.market_price             : float               = 0.0
         self.indicator_df             : pd.DataFrame        = pd.DataFrame()
         self.positions_df             : pd.DataFrame        = pd.DataFrame()
+        self.portfolio_balance        : tuple[float, float] = (0, 0)
         self.validation_indicators_df : pd.DataFrame        = pd.DataFrame()
         
         logging.info('DataProcessor initialized data with empty DataFrames!')
@@ -280,6 +282,32 @@ class DataProcessor:
         Returns the market price.
         """
         return self.market_price
+    # ____________________________________________________________________________ . . .
+
+
+
+
+
+    async def start_fetching_portfolio_balance(self):
+        """
+        Starts a mechanism that constantly fetches user's portfolio balance.
+        """
+        await self._live_portfolio_balance()
+    # ____________________________________________________________________________ . . .
+
+
+    async def _live_portfolio_balance(self):
+        async for data in self.account.live_fetch_portfolio_balance():
+            if data != self.portfolio_balance:
+                self.portfolio_balance = data
+    # ____________________________________________________________________________ . . .
+
+
+    def get_portfolio_balance(self) -> tuple[float, float]:
+        """
+        Returns the wallets DataFrame.
+        """
+        return self.portfolio_balance
     # ____________________________________________________________________________ . . .
 
 
