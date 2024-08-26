@@ -7,81 +7,89 @@ import numpy as np
 import pandas as pd
 from dotenv import dotenv_values
 from aiolimiter import AsyncLimiter
+from typing import Any, AsyncGenerator
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.data.user import User    # noqa: E402
-from Application.api.utils import wait_time    # noqa: E402
-import Application.configs.admin_config as aconfig    # noqa: E402
-from Application.api.api_service import APIService    # noqa: E402
-from Application.data.exchange import Nobitex as nb    # noqa: E402
-# from Application.configs.config import MarketData as md    # noqa: E402
+from Application.data.user import User                      # noqa: E402
+from Application.api.utils import wait_time                 # noqa: E402
+import Application.configs.admin_config as aconfig          # noqa: E402
+from Application.api.api_service import APIService          # noqa: E402
+from Application.data.exchange import Nobitex as nb         # noqa: E402
+# from Application.configs.config import MarketData as md   # noqa: E402
 from Application.data.data_tools import parse_orders,\
                                         parse_positions,\
                                         Tehran_timestamp,\
-                                        parse_wallets_to_df    # noqa: E402
+                                        parse_wallets_to_df # noqa: E402
 
 
 
 # =================================================================================================
 class Market:
-    def __init__(self, api_service: APIService, client: httpx.AsyncClient):
+    def __init__(self, api_service: APIService):
         self.service = api_service
-        self.client = client
     # ____________________________________________________________________________ . . .
 
 
-    async def fetch_market_price(self,
-                                 http_agent: httpx.AsyncClient,
-                                 src_currency: str,
-                                 dst_currency: str) -> float | int:
+    async def live_fetch_market_price(self,
+                                      http_agent   : httpx.AsyncClient,
+                                      src_currency : str,
+                                      dst_currency : str) -> AsyncGenerator[float | int, Any]:
         """
-        Fetches market price for given trading pair.
+        It's an async generator function which constantly fetches the market price of given trading
+        pair.
 
         Parameters:
-            http_agent (AsyncClient): The HTTP agent.
             src_currecy (str): Source currency.
             dst_currency (str): Destination currency is eather 'usdt' | 'rls'.
 
-        Returns:
-            market_price (float): Market price for givan trading pair.
+        Yields:
+            market_price (float | int): Market price for given trading pair.
         """
+        last_fetch_time: float = 0.0
+        limiter = AsyncLimiter(max_rate    = nb.Endpoint.MARKET_STATS_RL,
+                               time_period = nb.Endpoint.MARKET_STATS_RP)
+
         payload = {'srcCurrency': src_currency,
                    'dstCurrency': dst_currency}
         
-        data = await self.service.get(client         = http_agent,
-                                      url            = nb.URL,
-                                      endpoint       = nb.Endpoint.MARKET_STATS,
-                                      timeout        = aconfig.OHLC.TIMEOUT,
-                                      tries_interval = nb.Endpoint.MARKET_STATS_MI,
-                                      tries          = aconfig.OHLC.TRIES,
-                                      params         = payload)
-        
-        market_price = data['stats'][f'{src_currency}-{dst_currency}']['latest']
-        if '.' in str(market_price):
-            market_price = float(market_price)
-        else:
-            market_price = int(market_price)
+        async with http_agent:
+            while True:
+                await limiter.acquire()
+                wait = wait_time(nb.Endpoint.MARKET_STATS_MI, time.time(), last_fetch_time)
+                await asyncio.sleep(wait) if (wait > 0) else None
 
-        return market_price
+                response = await self.service.get(client         = http_agent,
+                                                  url            = nb.URL,
+                                                  endpoint       = nb.Endpoint.MARKET_STATS,
+                                                  timeout        = aconfig.OHLC.TIMEOUT,
+                                                  tries_interval = nb.Endpoint.MARKET_STATS_MI,
+                                                  tries          = aconfig.OHLC.TRIES,
+                                                  params         = payload)
+                
+                last_fetch_time = time.time()
+
+                market_price = response['stats'][f'{src_currency}-{dst_currency}']['latest']
+                yield market_price
     # ____________________________________________________________________________ . . .
 
 
     async def kline(self,
-                    symbol: str,
-                    resolution: str,
-                    end: int,
-                    timeout: float,
-                    tries_interval: float,
-                    tries: int,
+                    http_agent     : httpx.AsyncClient,
+                    symbol         : str,
+                    resolution     : str,
+                    end            : int,
+                    timeout        : float,
+                    tries_interval : float,
+                    tries          : int,
                     *,
-                    page: int | None = None,
-                    countback: int | None = None,
-                    start: int | None = None,
-                    url: str = nb.URL, 
-                    endpoint: str = nb.Endpoint.OHLC) -> dict:
+                    url            : str        = nb.URL, 
+                    endpoint       : str        = nb.Endpoint.OHLC,
+                    page           : int | None = None,
+                    countback      : int | None = None,
+                    start          : int | None = None,) -> dict:
         """
         Fetches Kline data for a given symbol.
 
@@ -138,7 +146,7 @@ class Market:
 
         payload = {key: value for key, value in payload.items() if is_valid(value)}
 
-        data = await self.service.get(client=self.client,
+        data = await self.service.get(client=http_agent,
                                       url=url,
                                       endpoint=endpoint,
                                       timeout=timeout,
@@ -151,7 +159,6 @@ class Market:
 
 
     async def initiate_kline(self,
-                             client: httpx.AsyncClient,
                              symbol: str,
                              resolution: str,
                              required_candles: int,
@@ -159,21 +166,21 @@ class Market:
                              tries_interval: float,
                              tries: int):
 
-        async with client:
-            data = await self.kline(symbol,
-                                    resolution,
-                                    Tehran_timestamp(),
-                                    timeout,
-                                    tries_interval,
-                                    tries,
-                                    countback=required_candles)
+        async with httpx.AsyncClient() as http_agent:
+            data = await self.kline(http_agent     = http_agent,
+                                    symbol         = symbol,
+                                    resolution     = resolution,
+                                    end            = Tehran_timestamp(),
+                                    timeout        = timeout,
+                                    tries_interval = tries_interval,
+                                    tries          = tries,
+                                    countback      = required_candles)
                 
         return data
     # ____________________________________________________________________________ . . .
 
 
     async def populate_kline(self,
-                             client: httpx.AsyncClient,
                              initial_df: pd.DataFrame,
                              symbol: str,
                              resolution: str,
@@ -199,7 +206,7 @@ class Market:
         fetched_count: int = initial_df.shape[0]
         is_first_iteration = True
 
-        async with client:
+        async with httpx.AsyncClient() as http_agent:
             async with AsyncLimiter(max_rate, rate_period):
                 while fetched_count < required_candles:
                     countback = required_candles - fetched_count
@@ -213,13 +220,14 @@ class Market:
                     wait = wait_time(max_interval, time.time(), last_fetch_time)
                     await asyncio.sleep(wait) if (wait > 0) else None
 
-                    data = await self.kline(symbol,
-                                            resolution,
-                                            end,
-                                            timeout,
-                                            tries_interval,
-                                            tries,
-                                            countback=countback)
+                    data = await self.kline(http_agent     = http_agent,
+                                            symbol         = symbol,
+                                            resolution     = resolution,
+                                            end            = end,
+                                            timeout        = timeout,
+                                            tries_interval = tries_interval,
+                                            tries          = tries,
+                                            countback      = countback)
                     
                     last_fetch_time = time.time()
                     fetched_count += len(data['t'])
@@ -229,7 +237,6 @@ class Market:
 
 
     async def update_kline(self,
-                           client: httpx.AsyncClient,
                            current_data: pd.DataFrame,
                            symbol: str,
                            resolution: str,
@@ -248,13 +255,14 @@ class Market:
 
         start = self._last_timestamp(current_data)
 
-        async with client:
+        async with httpx.AsyncClient() as http_agent:
             async with AsyncLimiter(max_rate, rate_period):
                 while True:
                     wait = wait_time(max_interval, time.time(), last_fetch_time)
                     await asyncio.sleep(wait) if (wait > 0) else None
 
-                    new_data = await self.kline(symbol         = symbol,
+                    new_data = await self.kline(http_agent     = http_agent,
+                                                symbol         = symbol,
                                                 resolution     = resolution,
                                                 end            = Tehran_timestamp(),
                                                 timeout        = timeout,
@@ -735,9 +743,9 @@ class Trade:
                            client       : httpx.AsyncClient,
                            token        : str,
                            *,
-                           req_interval: float,
-                           max_rate    : int,
-                           rate_period : int,
+                           req_interval : float,
+                           max_rate     : int,
+                           rate_period  : int,
                            status       : str = 'all',
                            src_currency : str | None = None,
                            dst_currency : str | None = None):
@@ -1106,14 +1114,15 @@ class Trade:
 
 
         # Fetch market price for trading pairs
-        market = Market(APIService(), httpx.AsyncClient())
+        market = Market(APIService())
         market_prices: dict = {}
+
         for src, dst in positions_pairs:
-            market_prices[f'{src}-{dst}'] = await market.fetch_market_price(
-                http_agent   = httpx.AsyncClient(),
+            market_prices[f'{src}-{dst}'] = await anext(market.live_fetch_market_price(
+                http_agent=httpx.AsyncClient(),
                 src_currency = src,
                 dst_currency = dst
-            )
+            ))
 
 
         # Prepare coroutines for closing positions
@@ -1272,8 +1281,8 @@ class Transaction:
 if __name__ == '__main__':
 
     async def fetch_market_price_test():
-        market = Market(APIService(), httpx.AsyncClient())
-        result = await market.fetch_market_price(httpx.AsyncClient(), 'btc', 'rls')
+        market = Market(APIService())
+        result = await anext(market.live_fetch_market_price(httpx.AsyncClient(), 'btc', 'rls'))
         print(result)
 
 
@@ -1304,9 +1313,9 @@ if __name__ == '__main__':
     async def fetch_wallets_test():
         account = Account()
 
-        response = await account.wallets(http_agent  = httpx.AsyncClient(),
-                                        token       = User.TOKEN,    # type: ignore
-                                        drop_void   = True)
+        response = await account.wallets(http_agent = httpx.AsyncClient(),
+                                         token      = User.TOKEN,    # type: ignore
+                                         drop_void  = True)
 
         print(response)
 
