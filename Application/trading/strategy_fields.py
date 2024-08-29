@@ -29,6 +29,14 @@ ENTRY_SYSTEM: list = extract_non_singular_strategy_setup(
 # ________________________________________________________________________________ . . .
 
 
+STATIC_SL_APPROACH: dict = extract_singular_strategy_setup(
+    setup_name                  = 'static_stop_loss_setup',
+    config                      = load(r'Application/configs/strategy.json'),
+    setup_functions_module_path = 'Application.trading.stop_loss.setup_functions'
+)
+# ________________________________________________________________________________ . . .
+
+
 RISK_PER_TRADE: float = extract_strategy_field_value('risk_per_trade')
 # ________________________________________________________________________________ . . .
 
