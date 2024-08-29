@@ -35,6 +35,11 @@ class Nobitex:
         OHLC_RL: int = 60    # Rate Limit = 60p/m
         OHLC_RP: int = 60    # Rate period = 60 second
 
+        ORDER_BOOK: str = '/v2/orderbook/'
+        ORDER_BOOK_MI: float = 0.2
+        ORDER_BOOK_RL: int = 300
+        ORDER_BOOK_RP: int = 60
+
         POSITIONS: str = '/positions/list'
         POSITIONS_MI: float = 2.0
         POSITIONS_RL: int = 30

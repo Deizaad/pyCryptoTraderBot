@@ -1,6 +1,12 @@
-class OHLC:
-    TRIES=3
-    TIMEOUT=3.5
+class Market:
+    class OHLC:
+        TRIES=3
+        TIMEOUT=3.5
+
+    class OrderBook:
+        TRIES=2
+        TIMEOUT=3
+
 
 class Trade:
     class Fetch:

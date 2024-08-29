@@ -13,16 +13,17 @@ from persiantools.jdatetime import JalaliDateTime    # type: ignore
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.data.user import User                      # noqa: E402
-from Application.api.utils import wait_time                 # noqa: E402
-import Application.configs.admin_config as aconfig          # noqa: E402
-from Application.api.api_service import APIService          # noqa: E402
-from Application.data.exchange import Nobitex as nb         # noqa: E402
-# from Application.configs.config import MarketData as md   # noqa: E402
+from Application.data.user import User                         # noqa: E402
+from Application.api.utils import wait_time                    # noqa: E402
+import Application.configs.admin_config as aconfig             # noqa: E402
+from Application.api.api_service import APIService             # noqa: E402
+from Application.data.exchange import Nobitex as nb            # noqa: E402
+# from Application.configs.config import MarketData as md      # noqa: E402
 from Application.data.data_tools import parse_orders,\
                                         parse_positions,\
                                         Tehran_timestamp,\
-                                        parse_wallets_to_df # noqa: E402
+                                        parse_wallets_to_df,\
+                                        parse_order_book_to_df # noqa: E402
 
 
 
@@ -42,6 +43,7 @@ class Market:
         pair.
 
         Parameters:
+            http_agent (AsyncClient): The HTTP client used to make the request.
             src_currecy (str): Source currency.
             dst_currency (str): Destination currency is eather 'usdt' | 'rls'.
 
@@ -64,9 +66,9 @@ class Market:
                 response = await self.service.get(client         = http_agent,
                                                   url            = nb.URL,
                                                   endpoint       = nb.Endpoint.MARKET_STATS,
-                                                  timeout        = aconfig.OHLC.TIMEOUT,
+                                                  timeout        = aconfig.Market.OHLC.TIMEOUT,
                                                   tries_interval = nb.Endpoint.MARKET_STATS_MI,
-                                                  tries          = aconfig.OHLC.TRIES,
+                                                  tries          = aconfig.Market.OHLC.TRIES,
                                                   params         = payload)
                 
                 last_fetch_time = time.time()
@@ -94,7 +96,7 @@ class Market:
         Fetches Kline data for a given symbol.
 
         Parameters:
-            client (AsyncClient): The HTTP client used to make the request.
+            http_agent (AsyncClient): The HTTP client used to make the request.
             symbol (str): The trading symbol (e.g., 'BTCUSDT').
             resolution (str): The time interval for the data ('1', '5', '15', '30', '60', '180', 
             '240', '360', '720', 'D', '2D', '3D').
@@ -146,13 +148,13 @@ class Market:
 
         payload = {key: value for key, value in payload.items() if is_valid(value)}
 
-        data = await self.service.get(client=http_agent,
-                                      url=url,
-                                      endpoint=endpoint,
-                                      timeout=timeout,
-                                      tries_interval=tries_interval,
-                                      tries=tries,
-                                      params=payload)    # type: ignore
+        data = await self.service.get(client         = http_agent,
+                                      url            = url,
+                                      endpoint       = endpoint,
+                                      timeout        = timeout,
+                                      tries_interval = tries_interval,
+                                      tries          = tries,
+                                      params         = payload)    # type: ignore
 
         return data
     # ____________________________________________________________________________ . . .
@@ -273,6 +275,50 @@ class Market:
                     last_fetch_time = time.time()
                     start = self._last_timestamp(new_data)
                     yield new_data
+    # ____________________________________________________________________________ . . .
+
+
+    async def live_fetch_order_book(self,
+                                    http_agent: httpx.AsyncClient,
+                                    src_currency: str,
+                                    dst_currency: str):
+        """
+        It's an async generator function which constantly fetches the market order book of given
+        trading pair.
+
+        Parameters:
+            http_agent (AsyncClient): The HTTP client used to make the request.
+            src_currecy (str): Source currency.
+            dst_currency (str): Destination currency is eather 'usdt' | 'rls'.
+
+        Yields:
+            order_book (): Market price for given trading pair.
+        """
+        last_fetch_time: float = 0.0
+        limiter = AsyncLimiter(max_rate    = nb.Endpoint.ORDER_BOOK_RL,
+                               time_period = nb.Endpoint.ORDER_BOOK_RP)
+
+        endpoint = nb.Endpoint.ORDER_BOOK +  f'{src_currency.upper() + dst_currency.upper()}'
+
+        async with http_agent:
+            while True:
+                await limiter.acquire()
+                wait = wait_time(nb.Endpoint.ORDER_BOOK_MI, time.time(), last_fetch_time)
+                await asyncio.sleep(wait) if (wait > 0) else None
+
+                response = await self.service.get(
+                    client         = http_agent,
+                    url            = nb.URL,
+                    endpoint       = endpoint,
+                    timeout        = aconfig.Market.OrderBook.TIMEOUT,
+                    tries_interval = nb.Endpoint.ORDER_BOOK_MI,
+                    tries          = aconfig.Market.OrderBook.TRIES
+                )
+
+                last_fetch_time = time.time()
+
+                order_book = parse_order_book_to_df(raw_order_book = response)
+                yield order_book
     # ____________________________________________________________________________ . . .
 
 
@@ -1326,8 +1372,13 @@ if __name__ == '__main__':
         market = Market(APIService())
         result = await anext(market.live_fetch_market_price(httpx.AsyncClient(), 'usdt', 'rls'))
         print(result)
+    # asyncio.run(live_fetch_market_price_test())
 
-    asyncio.run(live_fetch_market_price_test())
+    async def live_fetch_order_book_test():
+        market = Market(APIService())
+        result = await anext(market.live_fetch_order_book(httpx.AsyncClient(), 'usdt', 'irt'))
+        print(result)
+    asyncio.run(live_fetch_order_book_test())
 
 
     async def fetch_orders_test():
@@ -1342,6 +1393,7 @@ if __name__ == '__main__':
                                             status = 'all'))
 
         print(data)
+    # asyncio.run(fetch_orders_test())
 
     async def fetch_positions_test():
         service = APIService()
@@ -1352,6 +1404,7 @@ if __name__ == '__main__':
                                             status      = 'active',
                                             page        = 1)
         print(response)
+    # asyncio.run(fetch_positions_test())
 
 
     async def fetch_wallets_test():
@@ -1362,7 +1415,6 @@ if __name__ == '__main__':
                                          drop_void  = True)
 
         print(response)
-
     # asyncio.run(fetch_wallets_test())
 
 
@@ -1370,7 +1422,6 @@ if __name__ == '__main__':
         account = Account()
         rls, usd = await anext(account.live_fetch_portfolio_balance())
         print('rial_balance:\t', rls, '\nusd_balance:\t', usd)
-
     # asyncio.run(live_fetch_portfolio_balance_test())
 
 
@@ -1382,6 +1433,7 @@ if __name__ == '__main__':
                                         currency   = 'usdt')
 
         print(response)
+    # asyncio.run(fetch_balance_test())
 
 
     async def cancel_all_orders_test():
@@ -1391,6 +1443,7 @@ if __name__ == '__main__':
                                                 token  = User.TOKEN)    # type: ignore
 
         print(response)
+    # asyncio.run(cancel_all_orders_test())
 
     async def close_position_test():
         trade = Trade(APIService())
@@ -1405,11 +1458,13 @@ if __name__ == '__main__':
                                             price=360000003)
         
         print(result)
+    # asyncio.run(close_position_test())
 
     async def close_all_positions_test():
         trade = Trade(APIService())
         results = await trade.close_all_positions(User.TOKEN)    # type: ignore
         print(results)
+    # asyncio.run(close_all_positions_test())
 
 
     async def place_spot_limit_order_test():
@@ -1426,6 +1481,7 @@ if __name__ == '__main__':
                                                 client_oid   = 'orderTEST01')
 
         print(response)
+    # asyncio.run(place_spot_limit_order_test())
 
     async def place_spot_market_order_test():
         service = APIService()
@@ -1440,6 +1496,7 @@ if __name__ == '__main__':
                                                 client_oid   = 'orderTEST01')
         
         print(response)
+    # asyncio.run(place_spot_market_order_test())
 
     async def place_spot_stop_limit_order_test():
         service = APIService()
@@ -1456,6 +1513,7 @@ if __name__ == '__main__':
                                                     client_oid   = 'orderTEST01')
 
         print(response)
+    # asyncio.run(place_spot_stop_limit_order_test())
 
     async def place_spot_stop_market_order_test():
         service = APIService()
@@ -1471,6 +1529,7 @@ if __name__ == '__main__':
                                                             client_oid   = 'orderTEST01')
         
         print(response)
+    # asyncio.run(place_spot_stop_market_order_test())
 
     async def place_spot_oco_order_test():
         service = APIService()
@@ -1488,6 +1547,7 @@ if __name__ == '__main__':
                                                     client_oid     = 'orderTest01')
 
         print(response)
+    # asyncio.run(place_spot_oco_order_test())
 
 
     async def place_futures_limit_order_test():
@@ -1505,6 +1565,7 @@ if __name__ == '__main__':
                                                 client_oid   = 'orderTest01')
 
         print(response)
+    # asyncio.run(place_futures_limit_order_test())
 
     async def place_futures_market_order_test():
         service = APIService()
@@ -1520,6 +1581,7 @@ if __name__ == '__main__':
                                                         client_oid   = 'orderTest01')
 
         print(response)
+    # asyncio.run(place_futures_market_order_test())
 
     async def place_futures_stop_limit_order_test():
         service = APIService()
@@ -1537,6 +1599,7 @@ if __name__ == '__main__':
                                                             client_oid   = 'orderTest01')
 
         print(response)
+    # asyncio.run(place_futures_stop_limit_order_test())
 
     async def place_futures_stop_market_order_test():
         service = APIService()
@@ -1553,6 +1616,7 @@ if __name__ == '__main__':
                                                             client_oid   = 'orderTest01')
 
         print(response)
+    # asyncio.run(place_futures_stop_market_order_test())
 
     async def place_futures_oco_order_test():
         service = APIService()
@@ -1571,29 +1635,4 @@ if __name__ == '__main__':
                                                     client_oid     = 'orderTest01')
 
         print(response)
-
-
-
-
-    # asyncio.run(oredr_test())
-
-    # asyncio.run(fetch_orders_test())
-    # asyncio.run(fetch_positions_test())
-
-    # asyncio.run(fetch_balance_test())
-
-    # asyncio.run(cancel_all_orders_test())
-    # asyncio.run(close_position_test())
-    # asyncio.run(close_all_positions_test())
-
-    # asyncio.run(place_spot_limit_order_test())
-    # asyncio.run(place_spot_market_order_test())
-    # asyncio.run(place_spot_stop_limit_order_test())
-    # asyncio.run(place_spot_stop_market_order_test())
-    # asyncio.run(place_spot_oco_order_test())
-
-    # asyncio.run(place_futures_limit_order_test())
-    # asyncio.run(place_futures_market_order_test())
-    # asyncio.run(place_futures_stop_limit_order_test())
-    # asyncio.run(place_futures_stop_market_order_test())
     # asyncio.run(place_futures_oco_order_test())
