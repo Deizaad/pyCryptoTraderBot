@@ -1,4 +1,5 @@
 {
-    "profile": "base_live",
-    "setting": "MAIN" 
+    "profile"  : "base_live",
+    "setting"  : "MAIN",
+    "log_level": "INFO"
 }
