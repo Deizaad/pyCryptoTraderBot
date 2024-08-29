@@ -24,8 +24,9 @@ from Application.data.data_tools import has_signal,\
 from Application.trading import strategy_fields as strategy                                 # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler                         # noqa: E402
 from Application.trading.signals.signal_generator import ENTRY_SYSTEM,\
-                                                          generate_signals                  # noqa: E402
+                                                         generate_signals                  # noqa: E402
 from Application.trading.market.validator import MARKET_VALIDATION_SYSTEM                   # noqa: E402
+from Application.trading.stop_loss.stop_loss import declare_static_sl_price                 # noqa: E402
 from Application.trading.analysis.indicator_supervisor import compute_indicators,\
                                                               compute_validation_indicators # noqa: E402
 
@@ -72,13 +73,14 @@ class DataProcessor:
     def _initialize_data(self):
         self.kline_df                 : pd.DataFrame        = pd.DataFrame()
         self.signal_df                : pd.DataFrame        = pd.DataFrame()
+        self.next_trade_df            : pd.DataFrame        = pd.DataFrame()
         self.market_price             : float               = 0.0
         self.indicator_df             : pd.DataFrame        = pd.DataFrame()
         self.positions_df             : pd.DataFrame        = pd.DataFrame()
         self.portfolio_balance        : tuple[float, float] = (0, 0)
         self.validation_indicators_df : pd.DataFrame        = pd.DataFrame()
         
-        logging.info('DataProcessor initialized data with empty DataFrames!')
+        logging.info('"DataProcessor" has initialized data values.')
     # ____________________________________________________________________________ . . .
 
 
@@ -248,7 +250,7 @@ class DataProcessor:
     # ____________________________________________________________________________ . . .
 
 
-    async def get_kline_df(self):
+    def get_kline_df(self):
         """
         Returns kline dataframe.
         """
@@ -338,7 +340,7 @@ class DataProcessor:
     # ____________________________________________________________________________ . . .
 
 
-    async def get_indicators_df(self):
+    def get_indicators_df(self):
         """
         Returns indicators DataFrame.
         """
@@ -376,7 +378,7 @@ class DataProcessor:
     # ____________________________________________________________________________ . . .
 
 
-    async def get_validation_indicators_df(self):
+    def get_validation_indicators_df(self):
         """
         Returns validation indicators dataframe.
         """
@@ -422,6 +424,29 @@ class DataProcessor:
         except Exception as err:
             logging.error('Inside "DataProcessor.generating_signals()" method of DataProcessor: ',
                           err)
+    # ____________________________________________________________________________ . . .
+
+
+
+
+    async def set_next_trade_init_sl(self, trade_side: str):
+        """
+        Declares next trades's initial stop loss (by executing the chosen function) and stores it
+        in the "next_trade_df".
+
+        Parameters:
+            trade_side (str): Direction of trade is eather "buy" | "sell".
+        """
+        init_sl_price = declare_static_sl_price(trade_side = trade_side)
+        self.next_trade_df.at[0, 'init_sl'] = init_sl_price
+    # ____________________________________________________________________________ . . .
+
+
+    def get_next_trade(self):
+        """
+        Returns the next_trade_df
+        """
+        return self.next_trade_df
     # ____________________________________________________________________________ . . .
 
 
