@@ -58,6 +58,13 @@
 
     },
 
+    "static_stop_loss_setup": {
+        "name": "supertrend_static_sl_price",
+        "properties": {
+            "atr_offset_multiplier": 1.0
+        }
+    },
+
 
     "trading_workflow_approach": {
         "name": "approach_01",
