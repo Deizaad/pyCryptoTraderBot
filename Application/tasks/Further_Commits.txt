@@ -175,3 +175,9 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 ** at the time, the signal validation mechanism is not compatible with having more than one setup (including all setups: Entry, take_profit, and stop_loss) because it gets applied on all new and late signals and only emits on NEW_VALID_SIGNAL event channel without considering which setup it is checking and which setup it is emitting for. Solve this.
 
 * Try to refactor the 'nobitex.Trade.close_all_positions()' method in order to stop using fetch_market_price() method.
+
+* Rename repository to "boniad" or "root"
+
+** Attach the DataProcessor.set_next_trade_init_sl() method to NEW_VALID_SIGNAL event channel.
+
+* fix the botlogger.py to read the log level from config.json file.
