@@ -37,6 +37,7 @@ def _attach_to_events():
     jarchi.attach(start_signals_engine, Event.RECOVERY_MECHANISM_ACCOMPLISHED)
 
     # listeners of START_ACTIVITY event channel
-    jarchi.attach(start_trade_engine, Event.START_ACTIVITY)
     jarchi.attach(data.start_fetching_kline, Event.START_ACTIVITY)
+    jarchi.attach(data.start_fetching_portfolio_balance, Event.START_ACTIVITY)
+    jarchi.attach(start_trade_engine, Event.START_ACTIVITY)
 # =================================================================================================
