@@ -160,14 +160,15 @@ def extract_singular_strategy_setup(setup_name            : str,
         logging.error(f"Module '{funcs_module}' has no function named '{name}'. {err} ")
         return {}
     except ModuleNotFoundError as err:
-        logging.error(f"There is no module with path '{setup_functions_module_path}', perhaps you misspelled it? {err}")
+        logging.error(f"There is no module with path '{setup_functions_module_path}', perhaps you"
+                      f"misspelled it? {err}")
         return {}
 # ________________________________________________________________________________ . . .
 
 
 def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
     """
-    This function turns raw kline dict to pandas DataFrame.
+    Converts raw kline data into pandas DataFrame shape.
     """
     tz = pytz.timezone('Asia/Tehran')
 
@@ -181,6 +182,35 @@ def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
     }).set_index('time')
 
     return kline_df
+# ________________________________________________________________________________ . . .
+
+def parse_order_book_to_df(raw_order_book: dict):
+    """
+    Converts raw order book data received from exchange API into pandas DataFrame shape.
+
+    Parameters:
+        raw_order_book (dict): The order book data from the exchange API.
+
+    Returns:
+        order_book_df (pd.DataFrame): DataFrame containing the order book with columns ['price', 'volume', 'side'].
+    """
+    # Convert 'asks' and 'bids' to DataFrames and add 'side' column
+    asks_df = pd.DataFrame(raw_order_book['asks'], columns=['price', 'volume'])
+    asks_df['side'] = 'ask'
+
+    bids_df = pd.DataFrame(raw_order_book['bids'], columns=['price', 'volume'])
+    bids_df['side'] = 'bid'
+
+    # Convert price and volume columns to numeric types
+    asks_df['price'] = pd.to_numeric(asks_df['price'])
+    asks_df['volume'] = pd.to_numeric(asks_df['volume'])
+    bids_df['price'] = pd.to_numeric(bids_df['price'])
+    bids_df['volume'] = pd.to_numeric(bids_df['volume'])
+
+    # Concatenate the asks and bids DataFrames into a single DataFrame
+    order_book_df = pd.concat([asks_df, bids_df], ignore_index=True)
+
+    return order_book_df
 # ________________________________________________________________________________ . . .
 
 
