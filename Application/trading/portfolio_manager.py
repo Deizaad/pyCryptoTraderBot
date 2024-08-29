@@ -13,7 +13,7 @@ from Application.api.nobitex_api import Account    # noqa: E402
 from Application.api.api_service import APIService # noqa: E402
 
 account = Account()
-market = Market(APIService(), httpx.AsyncClient())
+market = Market(APIService())
 
 
 
@@ -33,9 +33,9 @@ async def fetch_portfolio_balance() -> tuple[int, float]:
                                             token      = User.TOKEN,    # type: ignore
                                             drop_void  = True)
 
-        price_rate_coroutine = market.fetch_market_price(http_agent  = http_client,
-                                                        src_currency = 'usdt',
-                                                        dst_currency = 'rls')
+        price_rate_coroutine = anext(market.live_fetch_market_price(http_agent  = http_client,
+                                                                    src_currency = 'usdt',
+                                                                    dst_currency = 'rls'))
 
         wallets_df, usdt_rate = await asyncio.gather(wallets_coroutine, price_rate_coroutine)
 
