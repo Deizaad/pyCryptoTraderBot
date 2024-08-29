@@ -10,13 +10,13 @@ from Application.data.data_tools import extract_singular_strategy_setup # noqa: 
 POSITION_SIZING_APPROACH = extract_singular_strategy_setup(
     setup_name = 'position_sizing_approach',
     config = load(r'Application/configs/strategy.json'),
-    functions_module_path = 'Application.trading.position_sizing.position_sizing_functions'
+    setup_functions_module_path = 'Application.trading.position_sizing.position_sizing_functions'
 )
 
 
 
 # =================================================================================================
-async def compute_position_margin_size(portfolio_balance  : float,
+async def compute_position_margin_size(portfolio_balance  : tuple[float, float],
                                        risk_per_trade_pct : float,
                                        entry_price        : float,
                                        stop_loss_price    : float,
@@ -28,6 +28,12 @@ async def compute_position_margin_size(portfolio_balance  : float,
                                        funding_rate_fee   : float | None = None):
     """
     Executes the chosen position sizing function to return the position size.
+
+    Parameters:
+        portfolio_balance (tuple[float, float]): 
+    
+    Returns:
+
     """
     position_sizing_func = POSITION_SIZING_APPROACH['function']
 

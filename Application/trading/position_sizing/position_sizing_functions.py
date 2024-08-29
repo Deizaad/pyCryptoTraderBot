@@ -51,7 +51,7 @@ def risk_adjusted_with_kelly_criterion_margin_sizing():
 # ________________________________________________________________________________ . . .
 
 
-async def risk_adjusted_position_sizing(portfolio_balance  : float,
+async def risk_adjusted_position_sizing(portfolio_balance  : tuple[float, float],
                                         risk_per_trade_pct : float,
                                         entry_price        : float,
                                         stop_loss_price    : float,
@@ -70,7 +70,12 @@ async def risk_adjusted_position_sizing(portfolio_balance  : float,
     Returns:
         position_size (float): 
     """
-    max_risk_per_trade_value = risk_per_trade_pct * portfolio_balance
+    capital_rial, capital_usd = portfolio_balance#[0], portfolio_balance[1]
+    if dst_currency == 'usdt':
+        max_risk_per_trade_value = risk_per_trade_pct * capital_usd
+    elif dst_currency == 'rls':
+        max_risk_per_trade_value = risk_per_trade_pct * capital_rial
+
     fee_factors = (maker_fee * entry_price) + (taker_fee * stop_loss_price)
     stop_loss_distance = abs(entry_price - stop_loss_price) + (slippage_pct * stop_loss_price)
 
@@ -148,7 +153,7 @@ if __name__ == '__main__':
     #     probable_slippage_pct = 0.005)
     # )
     
-    position_size = asyncio.run(risk_adjusted_position_sizing(portfolio_balance  = 10000.0,
+    position_size = asyncio.run(risk_adjusted_position_sizing(portfolio_balance  = (10000.0, 200.0),
                                                               risk_per_trade_pct = 0.02,
                                                               entry_price        = 256,
                                                               stop_loss_price    = 250,
