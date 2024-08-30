@@ -55,11 +55,11 @@ async def risk_adjusted_position_sizing(portfolio_balance  : tuple[float, float]
                                         risk_per_trade_pct : float,
                                         entry_price        : float,
                                         stop_loss_price    : float,
-                                        slippage_pct       : float,
                                         maker_fee          : float,
                                         taker_fee          : float,
                                         src_currency       : str,
                                         dst_currency       : str,
+                                        slippage           : float | None = None,
                                         funding_rate_fee   : float | None = None):
     """
     Calculates position size in a way that the total risk dosn't exceed the pre defined resk per
@@ -70,14 +70,17 @@ async def risk_adjusted_position_sizing(portfolio_balance  : tuple[float, float]
     Returns:
         position_size (float): 
     """
-    capital_rial, capital_usd = portfolio_balance#[0], portfolio_balance[1]
+    capital_rial, capital_usd = portfolio_balance
     if dst_currency == 'usdt':
         max_risk_per_trade_value = risk_per_trade_pct * capital_usd
     elif dst_currency == 'rls':
         max_risk_per_trade_value = risk_per_trade_pct * capital_rial
 
     fee_factors = (maker_fee * entry_price) + (taker_fee * stop_loss_price)
-    stop_loss_distance = abs(entry_price - stop_loss_price) + (slippage_pct * stop_loss_price)
+    if slippage:
+        stop_loss_distance = abs(entry_price - stop_loss_price) + slippage
+    else:
+        stop_loss_distance = abs(entry_price - stop_loss_price)
 
     position_size_by_risk = max_risk_per_trade_value / (stop_loss_distance + fee_factors)
 
@@ -157,7 +160,7 @@ if __name__ == '__main__':
                                                               risk_per_trade_pct = 0.02,
                                                               entry_price        = 256,
                                                               stop_loss_price    = 250,
-                                                              slippage_pct       = 0.002,
+                                                              slippage           = 0.002,
                                                               maker_fee          = 0.001,
                                                               taker_fee          = 0.0013,
                                                               src_currency       = 'usdt',
