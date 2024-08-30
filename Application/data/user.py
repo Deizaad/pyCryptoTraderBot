@@ -14,6 +14,10 @@ setting_token = 'TEST_TOKEN' if config['setting'] == "TEST" else 'MAIN_TOKEN'
 # =================================================================================================
 class User:
     TOKEN = dotenv_values('secrets.env').get(setting_token, '')
+
+    class Fee:
+        MAKER: float = 0.1
+        TAKER: float = 0.2
 # =================================================================================================
 
 
