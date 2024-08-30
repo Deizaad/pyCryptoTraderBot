@@ -24,7 +24,7 @@ from Application.data.data_tools import has_signal,\
 from Application.trading import strategy_fields as strategy                                 # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler                         # noqa: E402
 from Application.trading.signals.signal_generator import ENTRY_SYSTEM,\
-                                                         generate_signals                  # noqa: E402
+                                                         generate_signals                   # noqa: E402
 from Application.trading.market.validator import MARKET_VALIDATION_SYSTEM                   # noqa: E402
 from Application.trading.stop_loss.stop_loss import declare_static_sl_price                 # noqa: E402
 from Application.trading.analysis.indicator_supervisor import compute_indicators,\
@@ -45,7 +45,6 @@ class DataProcessor:
         
         return cls._instance
     # ____________________________________________________________________________ . . .
-
 
     def __init__(self) -> None:
         self.jarchi = EventHandler()
@@ -69,7 +68,6 @@ class DataProcessor:
         self.jarchi.register_event(Event.NEW_INDICATORS_DATA, ['kline_df', 'indicator_df'])
     # ____________________________________________________________________________ . . .
 
-
     def _initialize_data(self):
         self.kline_df                 : pd.DataFrame        = pd.DataFrame()
         self.signal_df                : pd.DataFrame        = pd.DataFrame()
@@ -82,7 +80,6 @@ class DataProcessor:
         
         logging.info('"DataProcessor" has initialized data values.')
     # ____________________________________________________________________________ . . .
-
 
     async def initiate(self):
         """
@@ -113,7 +110,6 @@ class DataProcessor:
             logging.error(f'Error while initiating data: {err}')
     # ____________________________________________________________________________ . . .
 
-
     async def live(self):
         try:
             kline_coroutine     = self._live_kline()
@@ -142,7 +138,6 @@ class DataProcessor:
 
         await self._live_kline()
     # ____________________________________________________________________________ . . .
-
 
     async def _initiate_kline(self,
                               market: NB_API.Market,
@@ -216,7 +211,6 @@ class DataProcessor:
             logging.error(f'Error in requesting subsequent initial_fetches: {err}')
     # ____________________________________________________________________________ . . .
 
-
     async def _live_kline(self):
         logging.info('Sending live_fetch requests for Kline data ...')
         try:
@@ -249,13 +243,13 @@ class DataProcessor:
             logging.error(f'Error during live kline fetching: {err}')
     # ____________________________________________________________________________ . . .
 
-
     def get_kline_df(self):
         """
         Returns kline dataframe.
         """
         return self.kline_df
     # ____________________________________________________________________________ . . .
+
 
 
 
@@ -267,7 +261,6 @@ class DataProcessor:
         await self._live_fetch_market_price()
     # ____________________________________________________________________________ . . .
 
-
     async def _live_fetch_market_price(self):
         async for data in self.market.live_fetch_market_price(
             http_agent   = httpx.AsyncClient(),
@@ -277,7 +270,6 @@ class DataProcessor:
             if data != self.market_price:
                 self.market_price = data
     # ____________________________________________________________________________ . . .
-
 
     def get_market_price(self) -> float:
         """
@@ -297,13 +289,11 @@ class DataProcessor:
         await self._live_portfolio_balance()
     # ____________________________________________________________________________ . . .
 
-
     async def _live_portfolio_balance(self):
         async for data in self.account.live_fetch_portfolio_balance():
             if data != self.portfolio_balance:
                 self.portfolio_balance = data
     # ____________________________________________________________________________ . . .
-
 
     def get_portfolio_balance(self) -> tuple[float, float]:
         """
@@ -338,7 +328,6 @@ class DataProcessor:
         except Exception as err:
             logging.error(f'Inside "DataProcessor.computing_indicators()" method: {err}')
     # ____________________________________________________________________________ . . .
-
 
     def get_indicators_df(self):
         """
@@ -376,7 +365,6 @@ class DataProcessor:
         except Exception as err:
             logging.error('Inside "DataProcessor.computing_validation_indicators()" method: ', err)
     # ____________________________________________________________________________ . . .
-
 
     def get_validation_indicators_df(self):
         """
@@ -429,6 +417,7 @@ class DataProcessor:
 
 
 
+
     async def set_next_trade_init_sl(self, trade_side: str):
         """
         Declares next trades's initial stop loss (by executing the chosen function) and stores it
@@ -440,7 +429,6 @@ class DataProcessor:
         init_sl_price = declare_static_sl_price(trade_side = trade_side)
         self.next_trade_df.at[0, 'init_sl'] = init_sl_price
     # ____________________________________________________________________________ . . .
-
 
     def get_next_trade(self):
         """
