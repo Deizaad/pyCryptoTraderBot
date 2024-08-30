@@ -184,7 +184,8 @@ def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
     return kline_df
 # ________________________________________________________________________________ . . .
 
-def parse_order_book_to_df(raw_order_book: dict):
+
+def parse_order_book(raw_order_book: dict) -> tuple[pd.DataFrame, pd.DataFrame, float]:
     """
     Converts raw order book data received from exchange API into pandas DataFrame shape.
 
@@ -192,14 +193,14 @@ def parse_order_book_to_df(raw_order_book: dict):
         raw_order_book (dict): The order book data from the exchange API.
 
     Returns:
-        order_book_df (pd.DataFrame): DataFrame containing the order book with columns ['price', 'volume', 'side'].
+    - asks_df (pd.DataFrame): 
+    - bids_df (pd.DataFrame): 
+    - mid_price (float): 
     """
     # Convert 'asks' and 'bids' to DataFrames and add 'side' column
     asks_df = pd.DataFrame(raw_order_book['asks'], columns=['price', 'volume'])
-    asks_df['side'] = 'ask'
 
     bids_df = pd.DataFrame(raw_order_book['bids'], columns=['price', 'volume'])
-    bids_df['side'] = 'bid'
 
     # Convert price and volume columns to numeric types
     asks_df['price'] = pd.to_numeric(asks_df['price'])
@@ -207,10 +208,12 @@ def parse_order_book_to_df(raw_order_book: dict):
     bids_df['price'] = pd.to_numeric(bids_df['price'])
     bids_df['volume'] = pd.to_numeric(bids_df['volume'])
 
-    # Concatenate the asks and bids DataFrames into a single DataFrame
-    order_book_df = pd.concat([asks_df, bids_df], ignore_index=True)
+    asks_df = asks_df.sort_values(by='price', ascending=False)
+    bids_df = bids_df.sort_values(by='price', ascending=True)
 
-    return order_book_df
+    mid_price = (asks_df['price'].iloc[0] + bids_df['price'].iloc[0]) / 2
+
+    return asks_df, bids_df, mid_price
 # ________________________________________________________________________________ . . .
 
 

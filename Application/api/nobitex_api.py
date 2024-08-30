@@ -21,9 +21,9 @@ from Application.data.exchange import Nobitex as nb            # noqa: E402
 # from Application.configs.config import MarketData as md      # noqa: E402
 from Application.data.data_tools import parse_orders,\
                                         parse_positions,\
+                                        parse_order_book,\
                                         Tehran_timestamp,\
-                                        parse_wallets_to_df,\
-                                        parse_order_book_to_df # noqa: E402
+                                        parse_wallets_to_df # noqa: E402
 
 
 
@@ -287,12 +287,14 @@ class Market:
         trading pair.
 
         Parameters:
-            http_agent (AsyncClient): The HTTP client used to make the request.
+            http_agent (AsyncClient): The HTTP agent which is used to make the request call.
             src_currecy (str): Source currency.
             dst_currency (str): Destination currency is eather 'usdt' | 'rls'.
 
         Yields:
-            order_book (): Market price for given trading pair.
+        - order_book_asks_df (DataFrame): Ask orders DataFrame with columns 'price' and 'volume'.
+        - order_book_bids_df (DataFrame): Bid orders DataFrame with columns 'price' and 'volume'.
+        - midprice (float):
         """
         last_fetch_time: float = 0.0
         limiter = AsyncLimiter(max_rate    = nb.Endpoint.ORDER_BOOK_RL,
@@ -317,8 +319,11 @@ class Market:
 
                 last_fetch_time = time.time()
 
-                order_book = parse_order_book_to_df(raw_order_book = response)
-                yield order_book
+                order_book_asks_df, order_book_bids_df, midprice = parse_order_book(
+                    raw_order_book = response
+                )
+
+                yield order_book_asks_df, order_book_bids_df, midprice
     # ____________________________________________________________________________ . . .
 
 
@@ -1376,8 +1381,8 @@ if __name__ == '__main__':
 
     async def live_fetch_order_book_test():
         market = Market(APIService())
-        result = await anext(market.live_fetch_order_book(httpx.AsyncClient(), 'usdt', 'irt'))
-        print(result)
+        asks, bids, midprice = await anext(market.live_fetch_order_book(httpx.AsyncClient(), 'usdt', 'irt'))
+        print('asks_df:\n', asks, '\n\nbids_df:\n', bids, '\n\nmid_price:\n', midprice)
     asyncio.run(live_fetch_order_book_test())
 
 
