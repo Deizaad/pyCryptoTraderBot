@@ -5,7 +5,11 @@ path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
 from Application.utils.load_json import load                            # noqa: E402
+from Application.data.data_processor import DataProcessor               # noqa: E402
+from Application.trading.slippage import compute_slippage               # noqa: E402
 from Application.data.data_tools import extract_singular_strategy_setup # noqa: E402
+
+data = DataProcessor()
 
 POSITION_SIZING_APPROACH = extract_singular_strategy_setup(
     setup_name = 'position_sizing_approach',
@@ -36,19 +40,26 @@ async def compute_position_margin_size(portfolio_balance  : tuple[float, float],
 
     """
     position_sizing_func = POSITION_SIZING_APPROACH['function']
+    params = {'portfolio_balance'  : portfolio_balance,
+              'risk_per_trade_pct' : risk_per_trade_pct,
+              'entry_price'        : entry_price,
+              'stop_loss_price'    : stop_loss_price,
+              'maker_fee'          : maker_fee,
+              'taker_fee'          : taker_fee,
+              'src_currency'       : src_currency,
+              'dst_currency'       : dst_currency,
+              'funding_rate_fee'   : funding_rate_fee}
 
-    result = await position_sizing_func(portfolio_balance,
-                                        risk_per_trade_pct,
-                                        entry_price,
-                                        stop_loss_price,
-                                        slippage,
-                                        maker_fee,
-                                        taker_fee,
-                                        src_currency,
-                                        dst_currency,
-                                        funding_rate_fee)
+    if not slippage:
+        position_size = await position_sizing_func(**params)
     
-    return result
+    elif slippage:
+        initial_size = await position_sizing_func(**params)
+        slippage = compute_slippage(position_size=initial_size, order_book=data.get)
+
+        params['slippage'] = slippage
+
+    return position_size
 # ________________________________________________________________________________ . . .
 
 
