@@ -10,7 +10,6 @@ sys.path.append(path) if path else None
 
 from Application.data.user import User                                                      # noqa: E402
 from Application.configs import config                                                      # noqa: E402
-# from Application.utils.load_json import load                                              # noqa: E402
 from Application.data.exchange import Nobitex                                               # noqa: E402
 from Application.api import nobitex_api as NB_API                                           # noqa: E402
 from Application.utils.event_channels import Event                                          # noqa: E402
@@ -71,12 +70,15 @@ class DataProcessor:
     def _initialize_data(self):
         self.kline_df                 : pd.DataFrame        = pd.DataFrame()
         self.signal_df                : pd.DataFrame        = pd.DataFrame()
-        self.next_trade_df            : pd.DataFrame        = pd.DataFrame()
         self.market_price             : float               = 0.0
         self.indicator_df             : pd.DataFrame        = pd.DataFrame()
         self.positions_df             : pd.DataFrame        = pd.DataFrame()
+        self.next_trade_df            : pd.DataFrame        = pd.DataFrame()
         self.portfolio_balance        : tuple[float, float] = (0, 0)
         self.validation_indicators_df : pd.DataFrame        = pd.DataFrame()
+        self.order_book: tuple[pd.DataFrame, pd.DataFrame, float] = (pd.DataFrame(),
+                                                                     pd.DataFrame(),
+                                                                     0.0)
         
         logging.info('"DataProcessor" has initialized data values.')
     # ____________________________________________________________________________ . . .
@@ -91,9 +93,9 @@ class DataProcessor:
                                               config.MarketData.OHLC.SYMBOL,
                                               config.MarketData.OHLC.RESOLUTION,
                                               config.MarketData.OHLC.SIZE,
-                                              Aconfig.OHLC.TIMEOUT,
+                                              Aconfig.Market.OHLC.TIMEOUT,
                                               Nobitex.Endpoint.OHLC_MI,
-                                              Aconfig.OHLC.TRIES)
+                                              Aconfig.Market.OHLC.TRIES)
 
             # self.analysis = IndicatorChief()
             # indicator_task = self._awake_indicators(self.analysis)
@@ -132,9 +134,9 @@ class DataProcessor:
                                    config.MarketData.OHLC.SYMBOL,
                                    config.MarketData.OHLC.RESOLUTION,
                                    config.MarketData.OHLC.SIZE,
-                                   Aconfig.OHLC.TIMEOUT,
+                                   Aconfig.Market.OHLC.TIMEOUT,
                                    Nobitex.Endpoint.OHLC_MI,
-                                   Aconfig.OHLC.TRIES)
+                                   Aconfig.Market.OHLC.TRIES)
 
         await self._live_kline()
     # ____________________________________________________________________________ . . .
@@ -218,9 +220,9 @@ class DataProcessor:
                 current_data   = self.kline_df,
                 symbol         = config.MarketData.OHLC.SYMBOL,
                 resolution     = config.MarketData.OHLC.RESOLUTION,
-                timeout        = Aconfig.OHLC.TIMEOUT,
+                timeout        = Aconfig.Market.OHLC.TIMEOUT,
                 tries_interval = Nobitex.Endpoint.OHLC_MI,
-                tries          = Aconfig.OHLC.TRIES,
+                tries          = Aconfig.Market.OHLC.TRIES,
                 max_interval   = Nobitex.Endpoint.OHLC_MI,
                 max_rate       = Nobitex.Endpoint.OHLC_RL,
                 rate_period    = Nobitex.Endpoint.OHLC_RP
@@ -300,6 +302,33 @@ class DataProcessor:
         Returns the wallets DataFrame.
         """
         return self.portfolio_balance
+    # ____________________________________________________________________________ . . .
+
+
+
+
+    async def start_fetching_order_book(self):
+        """
+        Starts a mechanism that constantly fetches the order book data.
+        """
+        await self._live_order_book()
+    # ____________________________________________________________________________ . . .
+
+    async def _live_order_book(self):
+        async for data in self.market.live_fetch_order_book(
+            http_agent=httpx.AsyncClient(),
+            src_currency=strategy.TRADING_PAIR['src_currency'],
+            dst_currency=strategy.TRADING_PAIR['dst_currency']
+        ):
+            if data != self.order_book:
+                self.order_book = data
+    # ____________________________________________________________________________ . . .
+
+    def get_order_book(self) -> tuple[pd.DataFrame, pd.DataFrame, float]:
+        """
+        Returns the order book in shape of a tuple (asks_df, bids_df, mid_price).
+        """
+        return self.order_book
     # ____________________________________________________________________________ . . .
 
 
