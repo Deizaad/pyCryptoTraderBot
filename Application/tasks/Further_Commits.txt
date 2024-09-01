@@ -181,3 +181,5 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 ** Attach the DataProcessor.set_next_trade_init_sl() method to NEW_VALID_SIGNAL event channel.
 
 * fix the botlogger.py to read the log level from config.json file.
+
+* Include Funding rate fee in position sizing.
