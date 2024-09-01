@@ -22,14 +22,15 @@ POSITION_SIZING_APPROACH = extract_singular_strategy_setup(
 
 
 # =================================================================================================
-async def compute_position_margin_size(slippage_application_tolerance_pct: float):
+async def compute_position_margin_size():
     """
     Executes the chosen position sizing function to return the position size.
 
     Parameters:
-        portfolio_balance (tuple[float, float]): 
+        slippage_adjusted_position_size_tolerance_pct (float): The Acceptable tolerance percentage for slippage-adjusted position size.
     
     Returns:
+        position_size (float):
 
     """
     position_sizing_func = POSITION_SIZING_APPROACH['function']
@@ -40,18 +41,21 @@ async def compute_position_margin_size(slippage_application_tolerance_pct: float
               'maker_fee'          : User.Fee.MAKER,
               'taker_fee'          : User.Fee.TAKER,
               'src_currency'       : strategy.TRADING_PAIR['src_currency'],
-              'dst_currency'       : strategy.TRADING_PAIR['dst_currency'],
-              'funding_rate_fee'   : funding_rate_fee}
+              'dst_currency'       : strategy.TRADING_PAIR['dst_currency']}
+
+    tolerance_pct = POSITION_SIZING_APPROACH.get(
+        'properties'
+    )['slippage_adjusted_position_size_tolerace_pct']
 
     initial_size = await position_sizing_func(**params)
-
     slippage = compute_slippage(position_size=initial_size, order_book=data.get_order_book())
     params['slippage'] = slippage
 
     final_size = await position_sizing_func(**params)
 
-    while abs(final_size - initial_size) > (slippage_application_tolerance_pct * final_size):
+    while abs(final_size - initial_size) > (tolerance_pct * final_size):
         slippage = compute_slippage(position_size=final_size, order_book=data.get_order_book())
+        params['slippage'] = slippage
 
         final_size = await position_sizing_func(**params)
 
