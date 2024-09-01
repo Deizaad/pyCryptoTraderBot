@@ -15,7 +15,8 @@ from Application.data.data_tools import extract_strategy_field_value,\
 # =================================================================================================
 TRADING_PAIR: dict = {
     'src_currency': extract_strategy_field_value('trading_pair')['src_currency'],
-    'dst_currency': extract_strategy_field_value('trading_pair')['dst_currency']}
+    'dst_currency': extract_strategy_field_value('trading_pair')['dst_currency']
+}
 # ________________________________________________________________________________ . . .
 
 
@@ -38,6 +39,14 @@ STATIC_SL_APPROACH: dict = extract_singular_strategy_setup(
 
 
 RISK_PER_TRADE: float = extract_strategy_field_value('risk_per_trade')
+# ________________________________________________________________________________ . . .
+
+
+POSITION_SIZING_APPROACH: dict = extract_singular_strategy_setup(
+    setup_name                  = 'position_sizing_approach',
+    config                      = load(r'Application/configs/strategy.json'),
+    setup_functions_module_path = 'Application.trading.position_sizing.position_sizing_functions'
+)
 # ________________________________________________________________________________ . . .
 
 

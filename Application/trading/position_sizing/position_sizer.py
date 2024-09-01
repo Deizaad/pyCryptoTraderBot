@@ -5,19 +5,11 @@ path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
 from Application.data.user import User                                  # noqa: E402
-from Application.utils.load_json import load                            # noqa: E402
 from Application.data.data_processor import DataProcessor               # noqa: E402
 from Application.trading.slippage import compute_slippage               # noqa: E402
 from Application.trading import strategy_fields as strategy             # noqa: E402
-from Application.data.data_tools import extract_singular_strategy_setup # noqa: E402
 
 data = DataProcessor()
-
-POSITION_SIZING_APPROACH = extract_singular_strategy_setup(
-    setup_name = 'position_sizing_approach',
-    config = load(r'Application/configs/strategy.json'),
-    setup_functions_module_path = 'Application.trading.position_sizing.position_sizing_functions'
-)
 
 
 
@@ -33,7 +25,7 @@ async def compute_position_margin_size():
         position_size (float):
 
     """
-    position_sizing_func = POSITION_SIZING_APPROACH['function']
+    position_sizing_func = strategy.POSITION_SIZING_APPROACH['function']
     params = {'portfolio_balance'  : data.get_portfolio_balance(),
               'risk_per_trade_pct' : strategy.RISK_PER_TRADE,
               'entry_price'        : data.get_next_trade().at[0, 'entry_price'],
@@ -43,8 +35,8 @@ async def compute_position_margin_size():
               'src_currency'       : strategy.TRADING_PAIR['src_currency'],
               'dst_currency'       : strategy.TRADING_PAIR['dst_currency']}
 
-    tolerance_pct = POSITION_SIZING_APPROACH.get(
-        'properties'
+    tolerance_pct = strategy.POSITION_SIZING_APPROACH.get(
+        'properties', []
     )['slippage_adjusted_position_size_tolerace_pct']
 
     initial_size = await position_sizing_func(**params)

@@ -447,6 +447,20 @@ class DataProcessor:
 
 
 
+    async def set_next_trade_position_size(self):
+        """
+        
+        """
+        pass
+    # ____________________________________________________________________________ . . .
+
+    async def set_next_trade_entry_price(self):
+        """
+        
+        """
+        pass
+    # ____________________________________________________________________________ . . .
+
     async def set_next_trade_init_sl(self, trade_side: str):
         """
         Declares next trades's initial stop loss (by executing the chosen function) and stores it
