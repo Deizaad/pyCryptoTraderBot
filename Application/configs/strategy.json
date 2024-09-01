@@ -77,6 +77,8 @@
 
     "position_sizing_approach":{
         "name": "risk_adjusted_position_sizing",
-        "properties": {}
+        "properties": {
+            "slippage_adjusted_position_size_tolerace_pct": 0.05
+        }
     }
 }
