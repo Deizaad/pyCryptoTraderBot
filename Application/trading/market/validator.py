@@ -7,19 +7,11 @@ from dotenv import dotenv_values
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.utils.load_json import load    # noqa: E402
-from Application.utils.event_channels import Event    # noqa: E402
-from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
-from Application.data.data_tools import extract_strategy_fields_functions  # noqa: E402
+from Application.utils.event_channels import Event                  # noqa: E402
+from Application.trading import strategy_fields as strategy         # noqa: E402
+from Application.utils.simplified_event_handler import EventHandler # noqa: E402
 
 jarchi = EventHandler()
-
-MARKET_VALIDATION_SYSTEM = extract_strategy_fields_functions(
-    field                           = 'market_validation',
-    config                          = load(r'Application/configs/strategy.json'),
-    setup_functions_module_path     = 'Application.trading.market.validation_functions',
-    indicator_functions_module_path = 'Application.trading.analysis.indicator_functions'
-)
 
 
 
@@ -34,7 +26,7 @@ async def execute_validator_functions(kline_df                 : pd.DataFrame,
     """
     try:
         coroutines = set()
-        for setup in MARKET_VALIDATION_SYSTEM:
+        for setup in strategy.MARKET_VALIDATION_SYSTEM:
             coroutines.add(setup["function"](
                 kline_df                 = kline_df,
                 validation_indicators_df = validation_indicators_df,

@@ -50,5 +50,14 @@ POSITION_SIZING_APPROACH: dict = extract_singular_strategy_setup(
 # ________________________________________________________________________________ . . .
 
 
+MARKET_VALIDATION_SYSTEM = extract_non_singular_strategy_setup(
+    setup_name                      = 'market_validation',
+    config                          = load(r'Application/configs/strategy.json'),
+    setup_functions_module_path     = 'Application.trading.market.validation_functions',
+    indicator_functions_module_path = 'Application.trading.analysis.indicator_functions'
+)
+# ________________________________________________________________________________ . . .
+
+
 
 # =================================================================================================

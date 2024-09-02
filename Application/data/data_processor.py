@@ -22,12 +22,11 @@ from Application.data.data_tools import has_signal,\
                                         parse_kline_to_df                                   # noqa: E402
 from Application.trading import strategy_fields as strategy                                 # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler                         # noqa: E402
-from Application.trading.signals.signal_generator import ENTRY_SYSTEM,\
-                                                         generate_signals                   # noqa: E402
-from Application.trading.market.validator import MARKET_VALIDATION_SYSTEM                   # noqa: E402
+from Application.trading.signals.signal_generator import generate_signals                   # noqa: E402
 from Application.trading.stop_loss.stop_loss import declare_static_sl_price                 # noqa: E402
 from Application.trading.analysis.indicator_supervisor import compute_indicators,\
                                                               compute_validation_indicators # noqa: E402
+from Application.trading.position_sizing.position_sizer import compute_position_margin_size # noqa: E402
 
 
 
@@ -73,7 +72,11 @@ class DataProcessor:
         self.market_price             : float               = 0.0
         self.indicator_df             : pd.DataFrame        = pd.DataFrame()
         self.positions_df             : pd.DataFrame        = pd.DataFrame()
-        self.next_trade_df            : pd.DataFrame        = pd.DataFrame()
+        self.next_trade_df            : pd.DataFrame        = pd.DataFrame(columns=['signal_time',
+                                                                                    'entry_signal',
+                                                                                    'entry',
+                                                                                    'init_sl',
+                                                                                    'size'])
         self.portfolio_balance        : tuple[float, float] = (0, 0)
         self.validation_indicators_df : pd.DataFrame        = pd.DataFrame()
         self.order_book: tuple[pd.DataFrame, pd.DataFrame, float] = (pd.DataFrame(),
@@ -343,7 +346,7 @@ class DataProcessor:
             trading_system (list): 
         """
         try:
-            self.indicator_df = await compute_indicators(trading_system = ENTRY_SYSTEM,
+            self.indicator_df = await compute_indicators(trading_system = strategy.ENTRY_SYSTEM,
                                                          kline_df       = self.kline_df)
             
             logging.info(f'Broadcasting "{Event.NEW_INDICATORS_DATA}" event from '\
@@ -379,7 +382,7 @@ class DataProcessor:
         """
         try:
             self.validation_indicators_df = await compute_validation_indicators(
-                validation_system = MARKET_VALIDATION_SYSTEM,
+                validation_system = strategy.MARKET_VALIDATION_SYSTEM,
                 kline_df          = self.kline_df
             )
 
@@ -414,7 +417,7 @@ class DataProcessor:
         Parameters:
         """
         try:
-            self.signal_df = await generate_signals(trading_system = ENTRY_SYSTEM,
+            self.signal_df = await generate_signals(trading_system = strategy.ENTRY_SYSTEM,
                                                     kline_df       = self.kline_df,
                                                     indicators_df  = self.indicator_df)
             
@@ -449,11 +452,15 @@ class DataProcessor:
 
     async def set_next_trade_position_size(self):
         """
-        
+        Calls the position size computer function from 'position_sizer.py'.
         """
-        pass
+        self.next_trade_df.at[0, 'size'] = await compute_position_margin_size(
+            portfolio_balance = self.portfolio_balance,
+            entry_price       = self.next_trade_df.at[0, 'entry'],
+            stop_loss_price   = self.next_trade_df.at[0, 'init_sl']
+        )
     # ____________________________________________________________________________ . . .
-
+    
     async def set_next_trade_entry_price(self):
         """
         
@@ -505,7 +512,6 @@ class DataProcessor:
             
             await self.jarchi.emit(event=Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
     # ____________________________________________________________________________ . . .
-
 
     async def _live_positions(self):
         """
