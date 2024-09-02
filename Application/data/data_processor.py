@@ -457,7 +457,8 @@ class DataProcessor:
         self.next_trade_df.at[0, 'size'] = await compute_position_margin_size(
             portfolio_balance = self.portfolio_balance,
             entry_price       = self.next_trade_df.at[0, 'entry'],
-            stop_loss_price   = self.next_trade_df.at[0, 'init_sl']
+            stop_loss_price   = self.next_trade_df.at[0, 'init_sl'],
+            order_book        = self.order_book
         )
     # ____________________________________________________________________________ . . .
     
