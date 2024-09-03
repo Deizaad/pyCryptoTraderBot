@@ -477,7 +477,9 @@ class DataProcessor:
         Parameters:
             trade_side (str): Direction of trade is eather "buy" | "sell".
         """
-        init_sl_price = declare_static_sl_price(trade_side = trade_side)
+        init_sl_price = declare_static_sl_price(trade_side    = trade_side,
+                                                indicators_df = self.indicator_df)
+
         self.next_trade_df.at[0, 'init_sl'] = init_sl_price
     # ____________________________________________________________________________ . . .
 

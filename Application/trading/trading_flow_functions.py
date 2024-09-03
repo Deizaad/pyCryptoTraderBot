@@ -5,7 +5,6 @@ from dotenv import dotenv_values
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.data.data_processor import DataProcessor                                   # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler                         # noqa: E402
 from Application.trading.orders.order_executioner import stop_loss_executioner,\
                                                          trade_entry_executioner,\
@@ -13,7 +12,6 @@ from Application.trading.orders.order_executioner import stop_loss_executioner,\
                                                          combo_tp_sl_executioner            # noqa: E402
 
 jarchi = EventHandler()
-data = DataProcessor()
 
 
 

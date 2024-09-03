@@ -4,14 +4,12 @@ from dotenv import dotenv_values
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.data.data_tools import extract_trading_approach    # noqa: E402
-
-TRADING_APPROACH_CONFIG = extract_trading_approach()
+from Application.trading.strategy_fields import TRADING_FLOW_APPROACH # noqa: E402
 
 
 
-def start_live_trading_flow(trading_approach_config: dict):
+def start_live_trading_flow():
     """
     Executes the chosen trading approach.
     """
-    return trading_approach_config['function'](properties=trading_approach_config['properties'])
+    return TRADING_FLOW_APPROACH['function'](properties=TRADING_FLOW_APPROACH['properties'])

@@ -1,16 +1,16 @@
 import sys
+import pandas as pd
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.data.data_processor import DataProcessor # noqa: E402
-
-data = DataProcessor()
 
 
 
-def supertrend_static_sl_price(atr_offset_multiplier: float, trade_side: str):
+def supertrend_static_sl_price(atr_offset_multiplier : float,
+                               trade_side            : str,
+                               indicators_df         : pd.DataFrame):
     """
     Declares price of static stop_loss order based on supertrend indicator by including an atr
     offset.
@@ -26,8 +26,6 @@ def supertrend_static_sl_price(atr_offset_multiplier: float, trade_side: str):
         raise ValueError(f'Wrong value of "{trade_side}" is provided for "trade_side", it must be'
                          ' eather "buy" | "sell".')
 
-    # bring the value of supertrend indicator
-    indicators_df = data.get_indicators_df()
     supertrend_value = indicators_df.at[-1, 'supertrend_value']
     atr_value = indicators_df.at[-1, 'atr_value']
 
