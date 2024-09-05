@@ -1,10 +1,5 @@
-import sys
 import httpx
 import asyncio
-from dotenv import dotenv_values
-
-path = dotenv_values('project_path.env').get('PYTHONPATH')
-sys.path.append(path) if path else None
 
 
 
