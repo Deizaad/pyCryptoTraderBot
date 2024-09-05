@@ -15,9 +15,18 @@ strategy_config = load(r'Application/configs/strategy.json')
 # try @memoization or caching these constants...
 # =================================================================================================
 TRADING_PAIR: dict = {
-    'src_currency': extract_strategy_field_value('trading_pair')['src_currency'],
-    'dst_currency': extract_strategy_field_value('trading_pair')['dst_currency']
+    'symbol'       : extract_strategy_field_value('trading_pair')['symbol'],
+    'src_currency' : extract_strategy_field_value('trading_pair')['src_currency'],
+    'dst_currency' : extract_strategy_field_value('trading_pair')['dst_currency']
 }
+# ________________________________________________________________________________ . . .
+
+
+TRADING_TIMEFRAME: str = extract_strategy_field_value('trading_timeframe')
+# ________________________________________________________________________________ . . .
+
+
+COMPUTION_SIZE: int = extract_strategy_field_value('candles_compution_size')
 # ________________________________________________________________________________ . . .
 
 

@@ -9,7 +9,6 @@ path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
 from Application.data.user import User                                                      # noqa: E402
-from Application.configs import config                                                      # noqa: E402
 from Application.data.exchange import Nobitex                                               # noqa: E402
 from Application.api import nobitex_api as NB_API                                           # noqa: E402
 from Application.utils.event_channels import Event                                          # noqa: E402
@@ -92,13 +91,15 @@ class DataProcessor:
         """
         try:
             self.market = NB_API.Market(APIService())
-            kline_task = self._initiate_kline(self.market,
-                                              config.MarketData.OHLC.SYMBOL,
-                                              config.MarketData.OHLC.RESOLUTION,
-                                              config.MarketData.OHLC.SIZE,
-                                              Aconfig.Market.OHLC.TIMEOUT,
-                                              Nobitex.Endpoint.OHLC_MI,
-                                              Aconfig.Market.OHLC.TRIES)
+            kline_task = self._initiate_kline(
+                market           = self.market,
+                symbol           = strategy.TRADING_PAIR['symbol'],
+                resolution       = strategy.TRADING_TIMEFRAME,
+                required_candles = strategy.COMPUTION_SIZE,
+                timeout          = Aconfig.Market.OHLC.TIMEOUT,
+                tries_interval   = Nobitex.Endpoint.OHLC_MI,
+                tries            = Aconfig.Market.OHLC.TRIES
+            )
 
             # self.analysis = IndicatorChief()
             # indicator_task = self._awake_indicators(self.analysis)
@@ -133,13 +134,15 @@ class DataProcessor:
         """
         Starts a mechanism that constantly fetches kline data.
         """
-        await self._initiate_kline(self.market,
-                                   config.MarketData.OHLC.SYMBOL,
-                                   config.MarketData.OHLC.RESOLUTION,
-                                   config.MarketData.OHLC.SIZE,
-                                   Aconfig.Market.OHLC.TIMEOUT,
-                                   Nobitex.Endpoint.OHLC_MI,
-                                   Aconfig.Market.OHLC.TRIES)
+        await self._initiate_kline(
+            market=self.market,
+            symbol=strategy.TRADING_PAIR['symbol'],
+            resolution=strategy.TRADING_TIMEFRAME,
+            required_candles=strategy.COMPUTION_SIZE,
+            timeout=Aconfig.Market.OHLC.TIMEOUT,
+            tries_interval=Nobitex.Endpoint.OHLC_MI,
+            tries=Aconfig.Market.OHLC.TRIES
+        )
 
         await self._live_kline()
     # ____________________________________________________________________________ . . .
@@ -221,8 +224,8 @@ class DataProcessor:
         try:
             async for data in self.market.update_kline(
                 current_data   = self.kline_df,
-                symbol         = config.MarketData.OHLC.SYMBOL,
-                resolution     = config.MarketData.OHLC.RESOLUTION,
+                symbol         = strategy.TRADING_PAIR['symbol'],
+                resolution     = strategy.TRADING_TIMEFRAME,
                 timeout        = Aconfig.Market.OHLC.TIMEOUT,
                 tries_interval = Nobitex.Endpoint.OHLC_MI,
                 tries          = Aconfig.Market.OHLC.TRIES,
@@ -232,9 +235,9 @@ class DataProcessor:
             ):
                 data = parse_kline_to_df(data)
                 if not data.equals(self.kline_df) and df_has_news(self.kline_df, data):
-                    self.kline_df = update_dataframe(self.kline_df,
-                                                     data,
-                                                     config.MarketData.OHLC.SIZE)
+                    self.kline_df = update_dataframe(origin_df=self.kline_df,
+                                                     late_df=data,
+                                                     size=strategy.COMPUTION_SIZE)
                     
                     # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
                     func_name=self._live_kline.__qualname__

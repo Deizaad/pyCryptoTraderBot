@@ -1,8 +1,13 @@
 {
     "trading_pair": {
+        "symbol": "USDTIRT",
         "src_currency": "usdt",
         "dst_currency": "rls"
     },
+
+    "trading_timeframe": "1",
+
+    "candles_compution_size": 1000,
 
     "active_times": 247,
 
