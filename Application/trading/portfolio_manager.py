@@ -33,8 +33,7 @@ async def fetch_portfolio_balance() -> tuple[int, float]:
                                             token      = User.TOKEN,    # type: ignore
                                             drop_void  = True)
 
-        price_rate_coroutine = anext(market.live_fetch_market_price(http_agent  = http_client,
-                                                                    src_currency = 'usdt',
+        price_rate_coroutine = await anext(market.live_fetch_market_price(src_currency = 'usdt',
                                                                     dst_currency = 'rls'))
 
         wallets_df, usdt_rate = await asyncio.gather(wallets_coroutine, price_rate_coroutine)

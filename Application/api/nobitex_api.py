@@ -35,7 +35,6 @@ class Market:
 
 
     async def live_fetch_market_price(self,
-                                      http_agent   : httpx.AsyncClient,
                                       src_currency : str,
                                       dst_currency : str) -> AsyncGenerator[float | int, Any]:
         """
@@ -57,7 +56,7 @@ class Market:
         payload = {'srcCurrency': src_currency,
                    'dstCurrency': dst_currency}
         
-        async with http_agent:
+        async with httpx.AsyncClient() as http_agent:
             while True:
                 await limiter.acquire()
                 wait = wait_time(nb.Endpoint.MARKET_STATS_MI, time.time(), last_fetch_time)
@@ -1170,7 +1169,6 @@ class Trade:
 
         for src, dst in positions_pairs:
             market_prices[f'{src}-{dst}'] = await anext(market.live_fetch_market_price(
-                http_agent=httpx.AsyncClient(),
                 src_currency = src,
                 dst_currency = dst
             ))
@@ -1301,7 +1299,6 @@ class Account:
                                                  drop_void  = True)
 
                 usd_price_rate_coroutine = anext(self.market.live_fetch_market_price(
-                    http_agent   = http_agent,
                     src_currency = 'usdt',
                     dst_currency = 'rls'
                 ))
@@ -1312,7 +1309,7 @@ class Account:
                 last_fetch_time = time.time()
 
                 portfolio_balance_rial = wallets_df['rial_balance'].sum()
-                portfolio_balance_usd  = round((portfolio_balance_rial / usd_price_rate), 2)
+                portfolio_balance_usd  = round((portfolio_balance_rial / float(usd_price_rate)), 2)
 
                 yield portfolio_balance_rial, portfolio_balance_usd
     # ____________________________________________________________________________ . . .
@@ -1375,15 +1372,15 @@ if __name__ == '__main__':
 
     async def live_fetch_market_price_test():
         market = Market(APIService())
-        result = await anext(market.live_fetch_market_price(httpx.AsyncClient(), 'usdt', 'rls'))
+        result = await anext(market.live_fetch_market_price('usdt', 'rls'))
         print(result)
-    # asyncio.run(live_fetch_market_price_test())
+    asyncio.run(live_fetch_market_price_test())
 
     async def live_fetch_order_book_test():
         market = Market(APIService())
         asks, bids, midprice = await anext(market.live_fetch_order_book(httpx.AsyncClient(), 'usdt', 'irt'))
         print('asks_df:\n', asks, '\n\nbids_df:\n', bids, '\n\nmid_price:\n', midprice)
-    asyncio.run(live_fetch_order_book_test())
+    # asyncio.run(live_fetch_order_book_test())
 
 
     async def fetch_orders_test():
