@@ -54,17 +54,18 @@ class EventHandler:
             listener (Callable | Coroutine): The listener function or coroutine.
             event (str): The event channel name.
         """
-        if event not in self._listeners:
-            logging.info(f'Detaching "{listener.__name__}" from event channel "{event}": It wasnt'\
-                         'been attached yet!')
-        
-        else:
+        try:
             self._listeners[event].remove(listener)
 
             if not self._listeners[event]:
                 del self._listeners[event]
 
-            logging.info(f'Listener \'{listener.__name__}\' detached from event channel \'{event}\'.')
+            logging.info(f'Listener "{listener.__name__}" detached from event channel "{event}".')
+        except ValueError:
+            logging.info(f'Detaching "{listener.__name__}" from event channel "{event}": It was '\
+                         f'not been attached to it!')
+        except Exception as err:
+            logging.error(f'Inside EventHandler.detach() method: {err}')
     # ____________________________________________________________________________ . . .
 
 
