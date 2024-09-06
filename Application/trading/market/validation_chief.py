@@ -13,8 +13,6 @@ from Application.trading.market.validator import execute_validator_functions    
 data = DataProcessor()
 jarchi = EventHandler()
 
-jarchi.register_event(Event.MARKET_IS_VALID, [])
-
 
 
 # =================================================================================================

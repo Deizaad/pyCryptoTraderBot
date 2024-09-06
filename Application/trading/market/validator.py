@@ -13,6 +13,7 @@ from Application.utils.simplified_event_handler import EventHandler # noqa: E402
 
 jarchi = EventHandler()
 
+jarchi.register_event(Event.MARKET_IS_VALID, [])
 
 
 
