@@ -6,14 +6,16 @@ sys.path.append(path) if path else None
 
 from Application.utils.load_json import load    # noqa: E402
 
-config = load(r'Application/configs/config.json')
-setting_token = 'TEST_TOKEN' if config['setting'] == "TEST" else 'MAIN_TOKEN'
 
 
 
 # =================================================================================================
 class User:
-    TOKEN = dotenv_values('secrets.env').get(setting_token, '')
+    TOKEN = dotenv_values('secrets.env').get(
+        'TEST_TOKEN' \
+        if load(r'Application/configs/config.json')['setting'] == "TEST" \
+        else 'MAIN_TOKEN', ''
+    )
 
     class Fee:
         MAKER: float = 0.1

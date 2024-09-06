@@ -8,16 +8,14 @@ from Application.utils.load_json import load    # noqa: E402
 
 # __all__ = ["API_KEY", "CURRENT_TIME", "BASE_URL", "TESTNET"]
 
-config = load(r'Application/configs/config.json')
-setting_url = 'https://testnetapi.nobitex.ir' \
-              if config['setting'] == "TEST" \
-              else 'https://api.nobitex.ir'
 
 
 
 # =================================================================================================
 class Nobitex:
-    URL = setting_url
+    URL = 'https://testnetapi.nobitex.ir' \
+          if load(r'Application/configs/config.json')['setting'] == "TEST" \
+          else 'https://api.nobitex.ir'
 
     class Endpoint:
         MARKET_STATS: str = '/market/stats'
