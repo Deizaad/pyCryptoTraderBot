@@ -39,7 +39,7 @@ class EventHandler:
         """
         if event not in self._event_supplies:
             raise ValueError(f'Event "{event}" is not registered. Register the event before '\
-                             'attaching listeners')
+                             'attaching listeners to it.')
         
         self._listeners[event].append(listener)
         logging.info(f'Listener \'{listener.__name__}\' attached to event channel \'{event}\'.')
@@ -77,8 +77,9 @@ class EventHandler:
             event (str): The event channel name.
             event_supplies (List[str]): The list of supply parameters for event channel.
         """
-        self._event_supplies[event] = event_supplies
-        logging.info(f'Event "{event}" has been registered with "{event_supplies}" as supplies.')
+        if self._event_supplies.get(event, ['it_prevents_unregistered_events']) != event_supplies:
+            self._event_supplies[event] = event_supplies
+            logging.info(f'Event "{event}" got registered with "{event_supplies}" as supplies.')
     # ____________________________________________________________________________ . . .
 
     
