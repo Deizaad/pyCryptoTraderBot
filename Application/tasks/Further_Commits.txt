@@ -1,9 +1,8 @@
 _____________DONE: _____________
 
 
-. commit stable tag.
+. 
 
-. noun: stage Further_Commits.txt.
 
 _____________TODO: _____________
 * fix update_trades() function that prints duplicate trades data
@@ -183,3 +182,5 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 * fix the botlogger.py to read the log level from config.json file.
 
 * Include Funding rate fee in position sizing.
+
+* delete the profile_config.py and move it's objects to config.json
