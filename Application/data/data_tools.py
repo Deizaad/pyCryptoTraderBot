@@ -41,7 +41,7 @@ def has_signal(signals_df: pd.DataFrame, column) -> str | None:
 # ________________________________________________________________________________ . . .
 
 
-def extract_strategy_field_value(field : str) -> Any:
+def extract_strategy_field_value(field : str, config_path: str | None = None) -> Any:
     """
     Extracts the value of a strategy field.
 
@@ -51,7 +51,9 @@ def extract_strategy_field_value(field : str) -> Any:
     Returns:
         extracted_value (Any):
     """
-    value = load(r'Application/configs/strategy.json').get(field, None)
+    path = config_path if config_path else r'Application/configs/strategy.json'
+
+    value = load(path).get(field, None)
 
     if not value:
         raise ValueError(f"Can not find value of '{field}' field 'strategy.json' config file, "\
