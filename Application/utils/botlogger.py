@@ -1,8 +1,10 @@
 import os
 import pytz
+import logging
 from datetime import date, datetime
 from persiantools.jdatetime import JalaliDate    # type: ignore
-import logging
+
+
 
 def initialize_logger():
     file_name = str(datetime.now(pytz.timezone('Asia/Tehran')).strftime("%H-00")) + '.log'
@@ -20,12 +22,12 @@ def initialize_logger():
         if err.errno == 17:
             print(f'Attempt to create Logs directory {path}: It already exsist!')
         else:
-            print(f'Attempt to create Logs directory: error accured: {err}')
+            print(f'Attempt to create Logs directory {path}: error accured: {err}')
 
     logging.basicConfig(
         filename = path+file_name,
         filemode='w',
-        format = "%(levelname)s from \"%(funcName)s\" in \"%(filename)s\" at %(asctime)s:\n    %(message)s\n",
+        format = "%(levelname)s from \"%(funcName)s\" in \"%(filename)s\" at %(asctime)s:\n    %(message)s\n\n",
         level=logging.INFO
     )
 
