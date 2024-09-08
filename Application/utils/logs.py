@@ -3,11 +3,9 @@ import sys
 import pytz
 import json
 import logging
-import logging.config
-from datetime import date
-from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import dotenv_values
+from datetime import date, datetime
 from typing import Mapping, Any, Literal
 from persiantools.jdatetime import JalaliDate    # type: ignore
 from logging.handlers import TimedRotatingFileHandler
@@ -17,6 +15,11 @@ sys.path.append(path) if path else None
 
 from Application.data.data_tools import extract_strategy_field_value # noqa: E402
 
+
+
+
+# Extract log level from config file
+# =================================================================================================
 levels_map = {'DEBUG'    : logging.DEBUG,
               'INFO'     : logging.INFO,
               'WARNING'  : logging.WARNING,
@@ -26,7 +29,13 @@ levels_map = {'DEBUG'    : logging.DEBUG,
 LOG_LEVEL = levels_map[
     extract_strategy_field_value(field='log_level', config_path=r'Application/configs/config.json')
 ]
+# =================================================================================================
 
+
+
+
+# Formatters
+# =================================================================================================
 class WithTimeZone(logging.Formatter):
     def __init__(self,
                  fmt      : str | None                                 = None,
@@ -68,13 +77,19 @@ class WithTimeZone(logging.Formatter):
         # Call the original format method to handle the rest
         return super().format(record)
 
-formatter = WithTimeZone(
+texted_with_time_zone = WithTimeZone(
     fmt='{levelname} from "{funcName}" in "{filename}" at {asctime}:\n    {message}\n\n',
     datefmt='%Y-%m-%d %H:%M:%S GMT%z',
     style='{',
     timezone='Asia/Tehran'
 )
+# =================================================================================================
 
+
+
+
+# Handlers
+# =================================================================================================
 def set_file_name():
     file_name = str(datetime.now(pytz.timezone('Asia/Tehran')).strftime("%H-00")) + '.log'
 
@@ -95,17 +110,45 @@ def set_file_name():
 
     full_name = path+file_name
     return full_name
+# ________________________________________________________________________________ . . .
 
 
+# TIMED FILE (.log) HANDLER
 timed_file_handler = TimedRotatingFileHandler(filename    = set_file_name(),
                                               when        = 'H',
                                               interval    = 1,
                                               backupCount = 24)
 
 timed_file_handler.setLevel(LOG_LEVEL)
-timed_file_handler.setFormatter(fmt=formatter)
+timed_file_handler.setFormatter(fmt=texted_with_time_zone)
+# ________________________________________________________________________________ . . .
 
 
+# TIMED .json HANDLER
+# timed_json_handler = logging.handlers.QueueHandler()
+# ________________________________________________________________________________ . . .
+
+
+# THREADED HANDLER
+# threaded_handler = logging.handlers.QueueHandler()
+# ________________________________________________________________________________ . . .
+
+
+# STDOUT HANDLER
+# stdout = logging.StreamHandler()
+# ________________________________________________________________________________ . . .
+
+
+# STDERR HANDLER
+# ________________________________________________________________________________ . . .
+
+
+# =================================================================================================
+
+
+
+
+# =================================================================================================
 def initialize_logger(logger_name: str) -> logging.Logger:
     """
     
@@ -114,11 +157,8 @@ def initialize_logger(logger_name: str) -> logging.Logger:
     logger.addHandler(hdlr=timed_file_handler)
 
     return logger
+# =================================================================================================
 
-
-
-# stdout_handler = logging.handlers
-# strderr_handler = logging.handlers
 
 
 
