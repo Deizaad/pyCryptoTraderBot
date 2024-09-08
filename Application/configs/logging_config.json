@@ -1,0 +1,67 @@
+{
+    "version": 1,
+
+    "disable_exicting_loggers": false,
+
+    "formatters": {
+        "detailed_with_time_zone": {
+            "format": ""
+        },
+        "json_with_time_zone": {
+            "()": "Application.utils.logs.JSONWithTimezoneFormatter",
+            "format": "{levelname} from \"{funcName}\" in \"{filename}\" at {asctime}:\n    {message}\n\n",
+            "datefmt": "%Y-%m-%d %H:%M:%S GMT%z",
+            "style": "{",
+            "defaults": {
+                "app_name": "MyApp"
+            },
+            "timezone": "Asia/Tehran",
+            "output_json": true,
+            "json_fields": {
+                "severity": "levelname",
+                "msg": "getMessage",
+                "timestamp": "asctime",
+                "source_file": "filename",
+                "line_number": "lineno",
+                "logger": "name",
+                "thread_id": "threadName"
+            }
+        }
+    },
+
+    "handlers": {
+        "stderr": {
+            "class": "logging.StreamHandler",
+            "level": "WARNING",
+            "formatter": "",
+            "stream": "ext://sys.stderr"
+        },
+        "stdout": {
+            "class": "logging.StreamHandler",
+            "level": "",
+            "formatter": "",
+            "stream": "ext://sys.stdout"
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "detailed",
+            "filename": "",
+            "maxBytes": 0,
+            "backupCount": 0
+        }
+    },
+
+    "loggers": {
+        "BOT_LOGGER": {
+            "level": "INFO",
+            "handlers": ["stdout"],
+            "propagate": true
+        }
+    },
+
+    "root": {
+        "level" : "INFO",
+        "handlers": ["stdout"]
+    }
+}
