@@ -51,11 +51,11 @@ class DataProcessor:
         self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df'])
         self.jarchi.register_event(Event.NEW_TRADING_SIGNAL, ['setup_name',
                                                               'kline_df',
-                                                              'indicators_df'])
+                                                              'indicator_df'])
         
         self.jarchi.register_event(Event.LATE_TRADING_SIGNAL, ['setup_name',
                                                               'kline_df',
-                                                              'indicators_df'])
+                                                              'indicator_df'])
 
         self.jarchi.register_event(Event.OPEN_POSITIONS_EXIST, ['positions_df'])
         self.jarchi.register_event(Event.NEW_VALIDATION_INDICATOR_DATA, ['kline_df',
@@ -65,7 +65,7 @@ class DataProcessor:
         self.jarchi.register_event(Event.NEW_INDICATORS_DATA, ['kline_df', 'indicator_df'])
     # ____________________________________________________________________________ . . .
 
-    def _initialize_data(self):
+    def _initialize_data(self) -> None:
         self.kline_df                 : pd.DataFrame        = pd.DataFrame()
         self.signal_df                : pd.DataFrame        = pd.DataFrame()
         self.market_price             : float               = 0.0
@@ -271,7 +271,6 @@ class DataProcessor:
 
     async def _live_fetch_market_price(self):
         async for data in self.market.live_fetch_market_price(
-            http_agent   = httpx.AsyncClient(),
             src_currency = strategy.TRADING_PAIR['src_currency'],
             dst_currency = strategy.TRADING_PAIR['dst_currency']
         ):
@@ -431,7 +430,7 @@ class DataProcessor:
                     
                     await self.jarchi.emit(Event.NEW_TRADING_SIGNAL,
                                            kline_df      = self.kline_df,
-                                           indicators_df = self.indicator_df,
+                                           indicator_df  = self.indicator_df,
                                            setup_name    = column)
 
                 elif has_signal(self.signal_df, column) == 'late_signal':
@@ -440,7 +439,7 @@ class DataProcessor:
                     
                     await self.jarchi.emit(Event.LATE_TRADING_SIGNAL,
                                            kline_df      = self.kline_df,
-                                           indicators_df = self.indicator_df,
+                                           indicator_df  = self.indicator_df,
                                            setup_name    = column)
                 
 
@@ -478,7 +477,7 @@ class DataProcessor:
         in the "next_trade_df".
 
         Parameters:
-            trade_side (str): Direction of trade is eather "buy" | "sell".
+            trade_side (str): _Direction of trade is eather "buy" | "sell"._
         """
         init_sl_price = declare_static_sl_price(trade_side    = trade_side,
                                                 indicators_df = self.indicator_df)
@@ -505,7 +504,7 @@ class DataProcessor:
 
         self.positions_df = await anext(self.trade.fetch_open_positions(
             client       = httpx.AsyncClient(),
-            token        = User.MAIN_TOKEN,    # type: ignore
+            token        = User.TOKEN,    # type: ignore
             req_interval = Nobitex.Endpoint.POSITIONS_MI,
             max_rate     = Nobitex.Endpoint.POSITIONS_RL,
             rate_period  = Nobitex.Endpoint.POSITIONS_RP
@@ -525,7 +524,7 @@ class DataProcessor:
         """
         async for new_positions in self.trade.fetch_open_positions(
             client       = httpx.AsyncClient(),
-            token        = User.MAIN_TOKEN,    # type: ignore
+            token        = User.TOKEN,    # type: ignore
             req_interval = Nobitex.Endpoint.POSITIONS_MI,
             max_rate     = Nobitex.Endpoint.POSITIONS_RL,
             rate_period  = Nobitex.Endpoint.POSITIONS_RP
