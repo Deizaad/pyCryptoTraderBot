@@ -169,3 +169,8 @@ cython_debug/
 .codeSamples/
 
 .Temp/
+
+
+# Log Files
+*.log
+*.jsonl
