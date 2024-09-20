@@ -8,7 +8,7 @@ import logging.config
 from zoneinfo import ZoneInfo
 from dotenv import dotenv_values
 from datetime import date, datetime
-from persiantools.jdatetime import JalaliDate                        # type: ignore
+from persiantools.jdatetime import JalaliDate, JalaliDateTime                        # type: ignore
 from typing import Mapping, Any, Literal, override
 from logging.handlers import TimedRotatingFileHandler
 
@@ -64,7 +64,7 @@ class WithTimeZone(logging.Formatter):
         """
         Override formatTime to use the provided timezone.
         """
-        dt = datetime.fromtimestamp(record.created, self.timezone)
+        dt = JalaliDateTime.fromtimestamp(record.created, self.timezone)
         if datefmt:
             return dt.strftime(datefmt)
         else:
@@ -81,7 +81,7 @@ class WithTimeZone(logging.Formatter):
         return super().format(record)
 
 texted_with_time_zone = WithTimeZone(
-    fmt='{levelname} from "{funcName}" in "{filename}" at {asctime}:\n    {message}\n\n',
+    fmt='{levelname} from "{funcName}" in "{filename}" at "{asctime}":\n    {message}\n\n',
     datefmt='%Y-%m-%d %H:%M:%S GMT%z',
     style='{',
     timezone='Asia/Tehran'
@@ -168,13 +168,13 @@ class JSONFormatter(logging.Formatter):
 
 class JSONWithTimezoneFormatter(logging.Formatter):
     def __init__(self,
-                 fmt: str | None = None,
-                 datefmt: str | None = None,
-                 style: Literal['{', '%', '$'] = '%',
-                 defaults: Mapping[str, Any] | None = None,
-                 timezone: str | None = None,
-                 output_json: bool = False,
-                 json_fields: Mapping[str, str] | None = None):
+                 fmt         : str | None = None,
+                 datefmt     : str | None = None,
+                 style       : Literal['{', '%', '$'] = '%',
+                 defaults    : Mapping[str, Any] | None = None,
+                 timezone    : str | None = None,
+                 output_json : bool = False,
+                 json_fields : Mapping[str, str] | None = None):
         """
         Initialize the JSONWithTimezoneFormatter.
 
@@ -192,15 +192,15 @@ class JSONWithTimezoneFormatter(logging.Formatter):
         self.defaults = defaults or {}
         self.output_json = output_json
         self.json_fields = json_fields or {
-            'level': 'levelname',
-            'message': 'getMessage',
-            'time': 'asctime',
-            'logger_name': 'name',
-            'filename': 'pathname',
-            'line': 'lineno',
-            'function': 'funcName',
-            'process': 'process',
-            'thread': 'threadName'
+            'level'       : 'levelname',
+            'message'     : 'getMessage',
+            'time'        : 'asctime',
+            'logger_name' : 'name',
+            'filename'    : 'pathname',
+            'line'        : 'lineno',
+            'function'    : 'funcName',
+            'process'     : 'process',
+            'thread'      : 'threadName'
         }
     # ____________________________________________________________________________ . . .
 
@@ -228,7 +228,9 @@ class JSONWithTimezoneFormatter(logging.Formatter):
         log_record = {}
 
         for key, attr in self.json_fields.items():
-            log_record[key] = getattr(record, attr)() if callable(getattr(record, attr, None)) else getattr(record, attr, None)
+            log_record[key] = getattr(record, attr)() \
+                              if callable(getattr(record, attr, None)) \
+                              else getattr(record, attr, None)
 
         # Handle any extra fields passed to the logger
         log_record.update(self._get_extra_fields(record))
@@ -249,7 +251,7 @@ class JSONWithTimezoneFormatter(logging.Formatter):
         if self.timezone:
             dt = datetime.fromtimestamp(record.created, self.timezone)
         else:
-            dt = datetime.utcfromtimestamp(record.created)
+            dt = datetime.fromtimestamp(record.created, ZoneInfo('UTC'))
 
         if datefmt:
             return dt.strftime(datefmt)
@@ -269,7 +271,8 @@ class JSONWithTimezoneFormatter(logging.Formatter):
 
     def _get_extra_fields(self, record):
         """
-        Capture any extra fields provided in the `extra` argument and ensure they are JSON serializable.
+        Capture any extra fields provided in the `extra` argument and ensure they are JSON 
+        serializable.
         """
         extra_fields = {}
         # Standard fields to ignore for extra attributes
@@ -299,17 +302,21 @@ class JSONWithTimezoneFormatter(logging.Formatter):
             return True
         except (TypeError, OverflowError):
             return False
+
+json_with_timezone_formatter = JSONWithTimezoneFormatter(fmt         = '',
+                                                         datefmt     = '%Y-%m-%d %H:%M:%S GMT%z',
+                                                         style       = '{',
+                                                         timezone    = 'Asia/Tehran',
+                                                         output_json = True)
 # ________________________________________________________________________________ . . .
         
 
 # =================================================================================================
 
 
-
-
-# Handlers
+# File Name Generators
 # =================================================================================================
-def set_file_name():
+def generate_double_dated_file_name():
     file_name = str(datetime.now(pytz.timezone('Asia/Tehran')).strftime("%H-00")) + '.log'
 
     folder_name = './Logs/'
@@ -325,15 +332,44 @@ def set_file_name():
         if err.errno == 17:
             print(f'Attempt to create Logs directory {path}: It already exsist!')
         else:
-            print(f'Attempt to create Logs directory {path}: error accured: {err}')
+            logging.error(f'Attempt to create Logs directory {path}: error accured: {err}')
 
     full_name = path+file_name
     return full_name
 # ________________________________________________________________________________ . . .
 
 
+def generate_double_dated_json_file_name():
+    file_name = str(datetime.now(pytz.timezone('Asia/Tehran')).strftime("%H-00")) + '.jsonl'
+
+    folder_name = './Logs/'
+    month_folder_name = str(date.today().strftime("%B_%Y-%m")) \
+                        + str(JalaliDate.today().strftime("(%B_%Y-%m)/"))
+
+    day_folder_name = str(date.today().strftime("%A_%B_%d")) \
+                        + str(JalaliDate.today().strftime("(%A_%d_%B)/"))
+    path = str(folder_name+month_folder_name+day_folder_name)
+    try:
+        os.makedirs(path)
+    except OSError as err:
+        if err.errno == 17:
+            print(f'Attempt to create Logs directory {path}: It already exsist!')
+        else:
+            logging.error(f'Attempt to create Logs directory {path}: error accured: {err}')
+
+    full_name = path+file_name
+    return full_name
+# ________________________________________________________________________________ . . .
+
+
+# =================================================================================================
+
+
+
+# Handlers
+# =================================================================================================
 # TIMED FILE (.log) HANDLER
-timed_file_handler = TimedRotatingFileHandler(filename    = set_file_name(),
+timed_file_handler = TimedRotatingFileHandler(filename    = generate_double_dated_file_name(),
                                               when        = 'H',
                                               interval    = 1,
                                               backupCount = 24)
@@ -344,7 +380,15 @@ timed_file_handler.setFormatter(fmt=texted_with_time_zone)
 
 
 # TIMED .json HANDLER
-# timed_json_handler = logging.handlers.QueueHandler()
+timed_json_file_handler = TimedRotatingFileHandler(
+    filename    = generate_double_dated_json_file_name(),
+    when        = 'H',
+    interval    = 1,
+    backupCount = 24
+)
+
+timed_json_file_handler.setLevel(LOG_LEVEL)
+timed_json_file_handler.setFormatter(fmt=json_with_timezone_formatter)
 # ________________________________________________________________________________ . . .
 
 
@@ -354,7 +398,10 @@ timed_file_handler.setFormatter(fmt=texted_with_time_zone)
 
 
 # STDOUT HANDLER
-# stdout = logging.StreamHandler()
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
+
+stdout_handler.setLevel(LOG_LEVEL)
+stdout_handler.setFormatter(fmt=texted_with_time_zone)
 # ________________________________________________________________________________ . . .
 
 
@@ -373,7 +420,9 @@ def initialize_logger(logger_name: str) -> logging.Logger:
     Initializes the logger.
     """
     logger = logging.getLogger(name=logger_name)
-    logger.addHandler(hdlr=timed_file_handler)
+
+    logger.addHandler(hdlr=stdout_handler)
+    logger.addHandler(hdlr=timed_json_file_handler)
 
     return logger
 # ________________________________________________________________________________ . . .
@@ -443,4 +492,11 @@ logging_config = {
         }
     }
 }
-print(json.dumps(load(r'Application/configs/logging_config.json'), indent=4))
+# print(json.dumps(load(r'Application/configs/logging_config.json'), indent=4))
+
+if __name__ == '__main__':
+    logger = initialize_logger(logger_name='TEST_LOGGER')
+
+    logger.debug(msg='This is a test debug log message')
+    logger.info(msg='This is a test info log message')
+    logger.warning(msg='This is a test warning log message')
