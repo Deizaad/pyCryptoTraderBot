@@ -8,9 +8,9 @@ import logging.config
 from zoneinfo import ZoneInfo
 from dotenv import dotenv_values
 from datetime import date, datetime
-from persiantools.jdatetime import JalaliDate, JalaliDateTime                        # type: ignore
 from typing import Mapping, Any, Literal, override
 from logging.handlers import TimedRotatingFileHandler
+from persiantools.jdatetime import JalaliDate, JalaliDateTime        # type: ignore
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
@@ -21,33 +21,48 @@ from Application.data.data_tools import extract_strategy_field_value # noqa: E40
 
 
 
+
 # Extract log level from config file
-# =================================================================================================
 levels_map = {'DEBUG'    : logging.DEBUG,
               'INFO'     : logging.INFO,
               'WARNING'  : logging.WARNING,
               'ERROR'    : logging.ERROR,
               'CRITICAL' : logging.CRITICAL}
+# ________________________________________________________________________________ . . .
 
-LOG_LEVEL = levels_map[
-    extract_strategy_field_value(field='log_level', config_path=r'Application/configs/config.json')
+
+STDOUT_LOG_LEVEL = levels_map[
+    extract_strategy_field_value(field       = 'stdout_log_level',
+                                 config_path = r'Application/configs/config.json')
 ]
+# ________________________________________________________________________________ . . .
+
+
+FILE_LOG_LEVEL = levels_map[
+    extract_strategy_field_value(field       = 'file_log_level',
+                                 config_path = r'Application/configs/config.json')
+]
+# ________________________________________________________________________________ . . .
+
+
+# Other log levels ...
 # =================================================================================================
+
 
 
 
 
 # Formatters
-# =================================================================================================
-class WithTimeZone(logging.Formatter):
+class PrettyFormatterWithTimeZone(logging.Formatter):
     def __init__(self,
-                 fmt      : str | None                                 = None,
-                 datefmt  : str | None                                 = None,
-                 style    : Literal['{'] | Literal['%'] | Literal['$'] = '%',
-                 defaults : Mapping[str, Any] | None                   = None,
-                 timezone : str | None                                 = None):
+                 fmt         : str | None = None,
+                 datefmt     : str | None = None,
+                 style       : Literal['{'] | Literal['%'] | Literal['$'] = '%',
+                 defaults    : Mapping[str, Any] | None = None,
+                 timezone    : str | None = None,
+                 Jalali_time : bool = False):
         """
-        Initialize the TimezoneFormatter.
+        Initialize the PrettyFormatterWithTimeZone.
 
         Parameters:
             fmt: Format string.
@@ -55,20 +70,28 @@ class WithTimeZone(logging.Formatter):
             style: Formatting style. ('%', '{', or '$').
             defaults: Default values to use in the format string.
             timezone: Timezone name (e.g., 'America/New_York').
+            Jalali_time (bool): Weather to use Jalali DateTime or not.
         """
         super().__init__(fmt, datefmt, style)
         self.timezone = ZoneInfo(timezone) if timezone else None
         self.defaults = defaults or {}
+        self.Jalali_time = Jalali_time
+    # ____________________________________________________________________________ . . .
 
     def formatTime(self, record, datefmt=None):
         """
         Override formatTime to use the provided timezone.
         """
-        dt = JalaliDateTime.fromtimestamp(record.created, self.timezone)
+        if self.Jalali_time:
+            dt = JalaliDateTime.fromtimestamp(record.created, self.timezone)
+        else:
+            dt = datetime.fromtimestamp(record.created, self.timezone)
+        
         if datefmt:
             return dt.strftime(datefmt)
         else:
             return dt.isoformat()
+    # ____________________________________________________________________________ . . .
 
     def format(self, record):
         """
@@ -79,14 +102,33 @@ class WithTimeZone(logging.Formatter):
 
         # Call the original format method to handle the rest
         return super().format(record)
+# ________________________________________________________________________________ . . .
 
-texted_with_time_zone = WithTimeZone(
-    fmt='{levelname} from "{funcName}" in "{filename}" at "{asctime}":\n    {message}\n\n',
-    datefmt='%Y-%m-%d %H:%M:%S GMT%z',
-    style='{',
-    timezone='Asia/Tehran'
+
+pretty_stdout_formatter_with_Jalali_time = PrettyFormatterWithTimeZone(
+    fmt   ='{levelname}_LOG captured by "{name}".  "{asctime}": \n\t'\
+           'Inside "{funcName}" of "{filename}" at :\n\tMessage:\t{message}\n\n',
+    style ='{',
+    datefmt     ='%Y-%m-%d %H:%M:%S GMT%z',
+    timezone    = 'Asia/Tehran',
+    Jalali_time = True
 )
 # ________________________________________________________________________________ . . .
+
+
+pretty_stderr_formatter_with_Jalali_time = PrettyFormatterWithTimeZone(
+    fmt='{levelname}_LOG captured by "{name}"!!!  "{asctime}":\n\tInside "{funcName}" '\
+        'of "{filename}" located in "{pathname}" on line {lineno} in "{funcName}" function '\
+        'with arguments {args}:\n\tProcess:\t"{processName}" - "{process}"\n\t'\
+        'Thread:\t\t"{threadName}" - "{thread}"\n\tTask:\t\t"{taskName}"'\
+        '\n\tMessage:\t{message}\n\texc_info:\t{exc_info}\n\tstack_info:\t{stack_info}\n\n',
+    style='{',
+    datefmt='%Y-%m-%d %H:%M:%S GMT%z',
+    timezone='Asia/Tehran',
+    Jalali_time=True
+)
+# ________________________________________________________________________________ . . .
+
 
 
 class JSONFormatter(logging.Formatter):
@@ -163,7 +205,7 @@ class JSONFormatter(logging.Formatter):
         Formats exception info as a string for JSON serialization.
         """
         return ''.join(traceback.format_exception(*exc_info))
-# ________________________________________________________________________________ . . .
+
 
 
 class JSONWithTimezoneFormatter(logging.Formatter):
@@ -205,7 +247,7 @@ class JSONWithTimezoneFormatter(logging.Formatter):
     # ____________________________________________________________________________ . . .
 
     @override
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         """
         Formats the log record. Outputs as JSON if output_json is True, otherwise follows standard 
         formatting.
@@ -221,7 +263,7 @@ class JSONWithTimezoneFormatter(logging.Formatter):
     # ____________________________________________________________________________ . . .
 
 
-    def _format_as_json(self, record):
+    def _format_as_json(self, record: logging.LogRecord):
         """
         Formats the log record as a JSON string with customizable key-value pairs.
         """
@@ -238,6 +280,9 @@ class JSONWithTimezoneFormatter(logging.Formatter):
         # Add exception info if it exists
         if record.exc_info:
             log_record['exception'] = self.formatException(record.exc_info)
+
+        if record.stack_info:
+            log_record['stack_info'] = self.formatException(record.stack_info)
 
         return json.dumps(log_record)
     # ____________________________________________________________________________ . . .
@@ -269,7 +314,7 @@ class JSONWithTimezoneFormatter(logging.Formatter):
     # ____________________________________________________________________________ . . .
 
 
-    def _get_extra_fields(self, record):
+    def _get_extra_fields(self, record: logging.LogRecord):
         """
         Capture any extra fields provided in the `extra` argument and ensure they are JSON 
         serializable.
@@ -284,10 +329,11 @@ class JSONWithTimezoneFormatter(logging.Formatter):
         ])
 
         for key, value in record.__dict__.items():
-            if key not in standard_fields and self._is_json_serializable(value):
-                extra_fields[key] = value
-            else:
-                extra_fields[key] = str(value)  # Serialize non-serializable fields as string
+            if key not in standard_fields:
+                if self._is_json_serializable(value):
+                    extra_fields[key] = value
+                else:
+                    extra_fields[key] = str(value)  # Serialize non-serializable fields as string
 
         return extra_fields
     # ____________________________________________________________________________ . . .
@@ -302,20 +348,39 @@ class JSONWithTimezoneFormatter(logging.Formatter):
             return True
         except (TypeError, OverflowError):
             return False
-
-json_with_timezone_formatter = JSONWithTimezoneFormatter(fmt         = '',
-                                                         datefmt     = '%Y-%m-%d %H:%M:%S GMT%z',
-                                                         style       = '{',
-                                                         timezone    = 'Asia/Tehran',
-                                                         output_json = True)
 # ________________________________________________________________________________ . . .
-        
 
+
+json_formatter_with_Jalali_time = JSONWithTimezoneFormatter(fmt        = '',
+                                                            datefmt    = '%Y-%m-%d %H:%M:%S GMT%z',
+                                                            style      = '{',
+                                                            timezone   = 'Asia/Tehran',
+                                                            output_json= True)
+# ________________________________________________________________________________ . . .
+
+
+# Other Formatters ...
 # =================================================================================================
+
+
+
+
+# Filters
+class FilterErrors(logging.Filter):
+    @override
+    def filter(self, record:logging.LogRecord) -> bool | logging.LogRecord:
+        return record.levelno <= logging.INFO
+# ________________________________________________________________________________ . . .
+
+
+# Other Filters ...
+# =================================================================================================
+
+
+
 
 
 # File Name Generators
-# =================================================================================================
 def generate_double_dated_file_name():
     file_name = str(datetime.now(pytz.timezone('Asia/Tehran')).strftime("%H-00")) + '.log'
 
@@ -362,7 +427,10 @@ def generate_double_dated_json_file_name():
 # ________________________________________________________________________________ . . .
 
 
+# Other Generators ...
 # =================================================================================================
+
+
 
 
 
@@ -374,8 +442,8 @@ timed_file_handler = TimedRotatingFileHandler(filename    = generate_double_date
                                               interval    = 1,
                                               backupCount = 24)
 
-timed_file_handler.setLevel(LOG_LEVEL)
-timed_file_handler.setFormatter(fmt=texted_with_time_zone)
+timed_file_handler.setLevel(FILE_LOG_LEVEL)
+timed_file_handler.setFormatter(fmt=pretty_stdout_formatter_with_Jalali_time)
 # ________________________________________________________________________________ . . .
 
 
@@ -387,8 +455,8 @@ timed_json_file_handler = TimedRotatingFileHandler(
     backupCount = 24
 )
 
-timed_json_file_handler.setLevel(LOG_LEVEL)
-timed_json_file_handler.setFormatter(fmt=json_with_timezone_formatter)
+timed_json_file_handler.setLevel(FILE_LOG_LEVEL)
+timed_json_file_handler.setFormatter(fmt=json_formatter_with_Jalali_time)
 # ________________________________________________________________________________ . . .
 
 
@@ -400,12 +468,17 @@ timed_json_file_handler.setFormatter(fmt=json_with_timezone_formatter)
 # STDOUT HANDLER
 stdout_handler = logging.StreamHandler(stream=sys.stdout)
 
-stdout_handler.setLevel(LOG_LEVEL)
-stdout_handler.setFormatter(fmt=texted_with_time_zone)
+stdout_handler.setLevel(STDOUT_LOG_LEVEL)
+stdout_handler.addFilter(filter=FilterErrors())
+stdout_handler.setFormatter(fmt=pretty_stdout_formatter_with_Jalali_time)
 # ________________________________________________________________________________ . . .
 
 
 # STDERR HANDLER
+stderr_handler = logging.StreamHandler(stream=sys.stderr)
+
+stderr_handler.setLevel(logging.WARNING)
+stderr_handler.setFormatter(fmt=pretty_stderr_formatter_with_Jalali_time)
 # ________________________________________________________________________________ . . .
 
 
@@ -415,13 +488,15 @@ stdout_handler.setFormatter(fmt=texted_with_time_zone)
 
 # Initializers
 # =================================================================================================
-def initialize_logger(logger_name: str) -> logging.Logger:
+def initialize_logger(logger_name: str, log_level: int) -> logging.Logger:
     """
     Initializes the logger.
     """
     logger = logging.getLogger(name=logger_name)
+    logger.setLevel(log_level)
 
     logger.addHandler(hdlr=stdout_handler)
+    logger.addHandler(hdlr=stderr_handler)
     logger.addHandler(hdlr=timed_json_file_handler)
 
     return logger
@@ -495,8 +570,9 @@ logging_config = {
 # print(json.dumps(load(r'Application/configs/logging_config.json'), indent=4))
 
 if __name__ == '__main__':
-    logger = initialize_logger(logger_name='TEST_LOGGER')
+    logger = initialize_logger(logger_name='TEST_LOGGER', log_level=logging.INFO)
 
     logger.debug(msg='This is a test debug log message')
     logger.info(msg='This is a test info log message')
     logger.warning(msg='This is a test warning log message')
+    logger.error(msg='This is a test error log message')

@@ -1,5 +1,9 @@
 {
-    "profile"  : "base_live",
-    "setting"  : "MAIN",
-    "log_level": "INFO"
+    "profile" : "base_live",
+    "setting" : "MAIN",
+
+    "stdout_log_level" : "DEBUG",
+    "file_log_level"   : "DEBUG",
+    "jarchi_log_level" : "INFO",
+    "bot_log_level"    : "INFO"
 }
