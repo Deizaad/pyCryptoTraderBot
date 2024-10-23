@@ -41,7 +41,7 @@ def has_signal(signals_df: pd.DataFrame, column) -> str | None:
 # ________________________________________________________________________________ . . .
 
 
-def extract_strategy_field_value(field : str, config_path: str | None = None) -> Any:
+def extract_field_value(field : str, config_path: str | None = None) -> Any:
     """
     Extracts the value of a strategy field.
 
@@ -425,5 +425,5 @@ if __name__ == '__main__':
 
 
     field = 'risk_per_trade'
-    value = extract_strategy_field_value(field)
+    value = extract_field_value(field)
     print(field, ': \t', value)

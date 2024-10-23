@@ -5,7 +5,7 @@ path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
 from Application.utils.load_json import load                                # noqa: E402
-from Application.data.data_tools import extract_strategy_field_value,\
+from Application.data.data_tools import extract_field_value,\
                                         extract_singular_strategy_setup,\
                                         extract_non_singular_strategy_setup # noqa: E402
 
@@ -15,18 +15,18 @@ strategy_config = load(r'Application/configs/strategy.json')
 # try @memoization or caching these constants...
 # =================================================================================================
 TRADING_PAIR: dict = {
-    'symbol'       : extract_strategy_field_value('trading_pair')['symbol'],
-    'src_currency' : extract_strategy_field_value('trading_pair')['src_currency'],
-    'dst_currency' : extract_strategy_field_value('trading_pair')['dst_currency']
+    'symbol'       : extract_field_value('trading_pair')['symbol'],
+    'src_currency' : extract_field_value('trading_pair')['src_currency'],
+    'dst_currency' : extract_field_value('trading_pair')['dst_currency']
 }
 # ________________________________________________________________________________ . . .
 
 
-TRADING_TIMEFRAME: str = extract_strategy_field_value('trading_timeframe')
+TRADING_TIMEFRAME: str = extract_field_value('trading_timeframe')
 # ________________________________________________________________________________ . . .
 
 
-COMPUTION_SIZE: int = extract_strategy_field_value('candles_compution_size')
+COMPUTION_SIZE: int = extract_field_value('candles_compution_size')
 # ________________________________________________________________________________ . . .
 
 
@@ -48,7 +48,7 @@ STATIC_SL_APPROACH: dict = extract_singular_strategy_setup(
 # ________________________________________________________________________________ . . .
 
 
-RISK_PER_TRADE: float = extract_strategy_field_value('risk_per_trade')
+RISK_PER_TRADE: float = extract_field_value('risk_per_trade')
 # ________________________________________________________________________________ . . .
 
 
