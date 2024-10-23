@@ -1,7 +1,7 @@
 _____________DONE: _____________
 
 
-. 
+. Renamed the extract_strategy_field_value() function in data_tools.py. also applies to strategy_fields.py
 
 
 _____________TODO: _____________
@@ -184,3 +184,5 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 * Include Funding rate fee in position sizing.
 
 * delete the profile_config.py and move it's objects to config.json
+
+* Configure the 'logs.py' in order to read to logs suffix fron config file and configure file handler and formatters in advanced.

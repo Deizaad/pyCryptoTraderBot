@@ -1,9 +1,5 @@
 {
     "profile" : "base_live",
     "setting" : "MAIN",
-
-    "stdout_log_level" : "DEBUG",
-    "file_log_level"   : "DEBUG",
-    "jarchi_log_level" : "INFO",
-    "bot_log_level"    : "INFO"
+    "local_time_zone_name": "Asia/Tehran"
 }

@@ -2,148 +2,142 @@ import os
 import sys
 import pytz
 import json
+import queue
 import logging
 import traceback
 import logging.config
+import logging.handlers
 from zoneinfo import ZoneInfo
 from dotenv import dotenv_values
 from datetime import date, datetime
 from typing import Mapping, Any, Literal, override
 from logging.handlers import TimedRotatingFileHandler
-from persiantools.jdatetime import JalaliDate, JalaliDateTime        # type: ignore
+from persiantools.jdatetime import JalaliDate, JalaliDateTime  # type: ignore
 
-path = dotenv_values('project_path.env').get('PYTHONPATH')
+path = dotenv_values("project_path.env").get("PYTHONPATH")
 sys.path.append(path) if path else None
 
-from Application.utils.load_json import load                         # noqa: E402
-from Application.data.data_tools import extract_strategy_field_value # noqa: E402
+import Application.data.initial_data as init_data  # noqa: E402
+from Application.data.data_tools import extract_field_value  # noqa: E402
 
 
+# Extract log levels dynamically
+def get_log_level(
+    logger_or_handler: Literal["stdout", "file", "jarchi", "trader"],
+) -> int:
+    """
+    _summary_
+
+    Parameters:
+        logger_or_handler (Literal['stdout', 'file', 'jarchi', 'trader']): _description_.
+
+    Returns:
+        log_level (int): _description_.
+    """
+    levels_map = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
+
+    log_level = levels_map.get(
+        extract_field_value(
+            f"{logger_or_handler}_log_level", r"Application/configs/logs_config.json"
+        ),
+        logging.INFO,
+    )
+
+    return log_level
 
 
-
-# Extract log level from config file
-levels_map = {'DEBUG'    : logging.DEBUG,
-              'INFO'     : logging.INFO,
-              'WARNING'  : logging.WARNING,
-              'ERROR'    : logging.ERROR,
-              'CRITICAL' : logging.CRITICAL}
-# ________________________________________________________________________________ . . .
-
-
-STDOUT_LOG_LEVEL = levels_map[
-    extract_strategy_field_value(field       = 'stdout_log_level',
-                                 config_path = r'Application/configs/config.json')
-]
-# ________________________________________________________________________________ . . .
-
-
-FILE_LOG_LEVEL = levels_map[
-    extract_strategy_field_value(field       = 'file_log_level',
-                                 config_path = r'Application/configs/config.json')
-]
-# ________________________________________________________________________________ . . .
-
-
-# Other log levels ...
 # =================================================================================================
 
 
-
-
-
 # Formatters
-class PrettyFormatterWithTimeZone(logging.Formatter):
-    def __init__(self,
-                 fmt         : str | None = None,
-                 datefmt     : str | None = None,
-                 style       : Literal['{'] | Literal['%'] | Literal['$'] = '%',
-                 defaults    : Mapping[str, Any] | None = None,
-                 timezone    : str | None = None,
-                 Jalali_time : bool = False):
+class FormatterWithTimeZone(logging.Formatter):
+    def __init__(
+        self,
+        fmt: str | None = None,
+        datefmt: str | None = None,
+        style: Literal["{", "%", "$"] = "{",
+        defaults: Mapping[str, Any] | None = None,
+        timezone: str | None = None,
+        calendar_type: Literal["Gregorian", "Jalali"] = "Gregorian",
+    ):
         """
-        Initialize the PrettyFormatterWithTimeZone.
+        Inherited class from logging.Formatter class and Included time zone in it.
 
         Parameters:
-            fmt: Format string.
-            datefmt: Datetime format string.
-            style: Formatting style. ('%', '{', or '$').
-            defaults: Default values to use in the format string.
-            timezone: Timezone name (e.g., 'America/New_York').
-            Jalali_time (bool): Weather to use Jalali DateTime or not.
+            fmt (str): Format string.
+            datefmt (str): Datetime format string.
+            style (Literal['{', '%', '$']): Formatting style.
+            defaults Mapping[str, Any]: Default values to include to formatted string.
+            timezone (str): Timezone name (e.g., 'America/New_York').
+            calendar_type (Literal['Gregorian', 'Jalali']): __description__. Defaults to 'Gregorian'.
         """
         super().__init__(fmt, datefmt, style)
-        self.timezone = ZoneInfo(timezone) if timezone else None
+        self.timezone = ZoneInfo(timezone) if timezone else ZoneInfo("UTC")
         self.defaults = defaults or {}
-        self.Jalali_time = Jalali_time
+        self.calendar_type = calendar_type
+
     # ____________________________________________________________________________ . . .
 
-    def formatTime(self, record, datefmt=None):
+    @override
+    def format(self, record: logging.LogRecord):
         """
-        Override formatTime to use the provided timezone.
-        """
-        if self.Jalali_time:
-            dt = JalaliDateTime.fromtimestamp(record.created, self.timezone)
-        else:
-            dt = datetime.fromtimestamp(record.created, self.timezone)
-        
-        if datefmt:
-            return dt.strftime(datefmt)
-        else:
-            return dt.isoformat()
-    # ____________________________________________________________________________ . . .
-
-    def format(self, record):
-        """
-        Override format to insert default values in the format string.
+        Override of the 'format' method to insert default values in the format string.
         """
         # Add the defaults to the log record attributes
         record.__dict__.update(self.defaults)
 
         # Call the original format method to handle the rest
         return super().format(record)
-# ________________________________________________________________________________ . . .
+
+    # ____________________________________________________________________________ . . .
+
+    @override
+    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None):
+        """
+        Override of the 'formatTime' method to use the provided timezone.
+        """
+        dt = (
+            JalaliDateTime.fromtimestamp(record.created, self.timezone)
+            if self.calendar_type == "Jalali"
+            else datetime.fromtimestamp(record.created, self.timezone)
+        )
+
+        return dt.strftime(datefmt) if datefmt else dt.isoformat()
+# =================================================================================================
 
 
-pretty_stdout_formatter_with_Jalali_time = PrettyFormatterWithTimeZone(
-    fmt   ='{levelname}_LOG captured by "{name}".  "{asctime}": \n\t'\
-           'Inside "{funcName}" of "{filename}" at :\n\tMessage:\t{message}\n\n',
-    style ='{',
-    datefmt     ='%Y-%m-%d %H:%M:%S GMT%z',
-    timezone    = 'Asia/Tehran',
-    Jalali_time = True
-)
-# ________________________________________________________________________________ . . .
 
 
-pretty_stderr_formatter_with_Jalali_time = PrettyFormatterWithTimeZone(
-    fmt='{levelname}_LOG captured by "{name}"!!!  "{asctime}":\n\tInside "{funcName}" '\
-        'of "{filename}" located in "{pathname}" on line {lineno} in "{funcName}" function '\
-        'with arguments {args}:\n\tProcess:\t"{processName}" - "{process}"\n\t'\
-        'Thread:\t\t"{threadName}" - "{thread}"\n\tTask:\t\t"{taskName}"'\
-        '\n\tMessage:\t{message}\n\texc_info:\t{exc_info}\n\tstack_info:\t{stack_info}\n\n',
-    style='{',
-    datefmt='%Y-%m-%d %H:%M:%S GMT%z',
-    timezone='Asia/Tehran',
-    Jalali_time=True
-)
-# ________________________________________________________________________________ . . .
 
 
 
 class JSONFormatter(logging.Formatter):
-    def format(self, record):
+    @override
+    def format(self, record: logging.LogRecord):
+        """
+        Override of the 'format' mathod.
+        """
         # Create a dictionary from the log record's attributes
         log_record = {
-            'level': record.levelname,
-            'message': record.getMessage(),
-            'time': self.formatTime(record),
-            'logger_name': record.name,
-            'filename': record.pathname,
-            'line': record.lineno,
-            'function': record.funcName,
-            'process': record.process,
-            'thread': record.threadName,
+            "level": record.levelname,
+            "time": self.formatTime(record),
+            "time-stamp": record.created,
+            "logger_name": record.name,
+            "message": record.getMessage(),
+            "path": record.pathname,
+            "filename": record.filename,
+            "module": record.module,
+            "line": record.lineno,
+            "function": record.funcName,
+            "async_task": record.taskName,
+            "thread": {"name": record.threadName, "id": record.thread},
+            "process": {"name": record.processName, "id": record.process},
         }
 
         # Handle any extra fields passed to the logger
@@ -151,11 +145,11 @@ class JSONFormatter(logging.Formatter):
 
         # Add exception info if it exists
         if record.exc_info:
-            log_record['exception'] = self.formatException(record.exc_info)
-        
+            log_record["exception"] = self.formatException(record.exc_info)
+
         return json.dumps(log_record)
+
     # ____________________________________________________________________________ . . .
-    
 
     def _get_extra_fields(self, record):
         """
@@ -163,22 +157,45 @@ class JSONFormatter(logging.Formatter):
         """
         extra_fields = {}
         # Ignore fields that are part of the standard LogRecord attributes
-        standard_fields = set([
-            'name', 'msg', 'args', 'levelname', 'levelno', 'pathname', 'filename',
-            'module', 'exc_info', 'exc_text', 'stack_info', 'lineno', 'funcName',
-            'created', 'msecs', 'relativeCreated', 'thread', 'threadName', 'process',
-            'processName', 'message', 'asctime'
-        ])
+        standard_fields = set(
+            [
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "process",
+                "processName",
+                "message",
+                "asctime",
+                "taskName",
+            ]
+        )
 
         for key, value in record.__dict__.items():
             if key not in standard_fields and self._is_json_serializable(value):
                 extra_fields[key] = value
             else:
-                extra_fields[key] = str(value)  # Serialize non-serializable fields as string
+                extra_fields[key] = str(
+                    value
+                )  # Serialize non-serializable fields as string
 
         return extra_fields
+
     # ____________________________________________________________________________ . . .
-    
 
     def _is_json_serializable(self, value):
         """
@@ -189,67 +206,89 @@ class JSONFormatter(logging.Formatter):
             return True
         except (TypeError, OverflowError):
             return False
+
     # ____________________________________________________________________________ . . .
-        
-    
+
+    @override
     def formatTime(self, record, datefmt=None):
         """
         Customizes the time format to ISO 8601.
         """
-        return datetime.utcfromtimestamp(record.created).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-    # ____________________________________________________________________________ . . .
+        return datetime.fromtimestamp(record.created, ZoneInfo("UTC")).strftime(
+            extract_field_value(
+                field="date_fmt", config_path=r"Application/configs/logs_config.json"
+            )
+        )
 
+    # ____________________________________________________________________________ . . .
 
     def formatException(self, exc_info):
         """
         Formats exception info as a string for JSON serialization.
         """
-        return ''.join(traceback.format_exception(*exc_info))
+        return "".join(traceback.format_exception(*exc_info))
+# =================================================================================================
+
+
+
+
 
 
 
 class JSONWithTimezoneFormatter(logging.Formatter):
-    def __init__(self,
-                 fmt         : str | None = None,
-                 datefmt     : str | None = None,
-                 style       : Literal['{', '%', '$'] = '%',
-                 defaults    : Mapping[str, Any] | None = None,
-                 timezone    : str | None = None,
-                 output_json : bool = False,
-                 json_fields : Mapping[str, str] | None = None):
+    def __init__(
+        self,
+        fmt: str | None = None,
+        datefmt: str | None = None,
+        style: Literal["{", "%", "$"] = "%",
+        defaults: Mapping[str, Any] | None = None,
+        timezone: str | None = None,
+        output_json: bool = False,
+        json_fields: Mapping[str, str] | None = None,
+        calendar_type: Literal["Gregorian", "Jalali"] = "Gregorian",
+    ):
         """
-        Initialize the JSONWithTimezoneFormatter.
+        Inherited from logging.Formatter class to format logs as json and included time zone handling.
 
         Parameters:
-            fmt: Format string (used if output_json is False).
-            datefmt: Datetime format string.
-            style: Formatting style. ('%', '{', or '$').
-            defaults: Default values to use in the format string.
-            timezone: Timezone name (e.g., 'America/New_York').
-            output_json: Whether to format the log record as JSON.
-            json_fields: Custom key-value pairs for JSON log record.
+            fmt (str): Format string (used if output_json is False).
+            datefmt (str): Datetime format string.
+            style (Literal['%', '{', or '$']): Formatting style.
+            defaults (Mapping[str, Any]): Default values to use in the format string.
+            timezone (str): Timezone name (e.g., 'America/New_York').
+            output_json (bool): Whether to format the log record as JSON.
+            json_fields (Mapping[str, Any]): Custom key-value pairs for JSON log record.
+            calendar_type (Literal['Gregorian', 'Jalali']): Weather to use Jalali DateTime or not.
         """
         super().__init__(fmt, datefmt, style)
-        self.timezone = ZoneInfo(timezone) if timezone else None
+        self.timezone = ZoneInfo(timezone) if timezone else ZoneInfo("UTC")
         self.defaults = defaults or {}
         self.output_json = output_json
+        self.calendar_type = calendar_type
         self.json_fields = json_fields or {
-            'level'       : 'levelname',
-            'message'     : 'getMessage',
-            'time'        : 'asctime',
-            'logger_name' : 'name',
-            'filename'    : 'pathname',
-            'line'        : 'lineno',
-            'function'    : 'funcName',
-            'process'     : 'process',
-            'thread'      : 'threadName'
+            "level": "levelname",
+            "time": "asctime",
+            "time_stamp": "created",
+            "logger": "name",
+            "message": "message",
+            "path": "pathname",
+            "file": "filename",
+            "module": "module",
+            "line": "lineno",
+            "function": "funcName",
+            "async_task": "taskName",
+            "thread_name": "threadName",
+            "thread_id": "thread",
+            "process_name": "processName",
+            "process_id": "process"
         }
+
     # ____________________________________________________________________________ . . .
 
     @override
     def format(self, record: logging.LogRecord) -> str:
         """
-        Formats the log record. Outputs as JSON if output_json is True, otherwise follows standard 
+        Formats the log record. Outputs as JSON if output_json is True, otherwise follows standard
         formatting.
         """
         # Add default values to the log record attributes
@@ -260,8 +299,8 @@ class JSONWithTimezoneFormatter(logging.Formatter):
         else:
             # Standard format
             return super().format(record)
-    # ____________________________________________________________________________ . . .
 
+    # ____________________________________________________________________________ . . .
 
     def _format_as_json(self, record: logging.LogRecord):
         """
@@ -270,74 +309,108 @@ class JSONWithTimezoneFormatter(logging.Formatter):
         log_record = {}
 
         for key, attr in self.json_fields.items():
-            log_record[key] = getattr(record, attr)() \
-                              if callable(getattr(record, attr, None)) \
-                              else getattr(record, attr, None)
+            log_record[key] = (
+                getattr(record, attr)() \
+                if callable(getattr(record, attr, None)) \
+                else getattr(record, attr, None)
+            )
 
         # Handle any extra fields passed to the logger
         log_record.update(self._get_extra_fields(record))
 
         # Add exception info if it exists
         if record.exc_info:
-            log_record['exception'] = self.formatException(record.exc_info)
+            log_record["exception"] = self.formatException(record.exc_info)
 
         if record.stack_info:
-            log_record['stack_info'] = self.formatException(record.stack_info)
+            log_record["stack_info"] = self.formatException(record.stack_info)
 
         return json.dumps(log_record)
+
     # ____________________________________________________________________________ . . .
 
-
+    @override
     def formatTime(self, record, datefmt=None):
         """
         Customizes the time format to ISO 8601 in JSON mode and uses timezones when available.
         """
         # Use timezone if specified
-        if self.timezone:
-            dt = datetime.fromtimestamp(record.created, self.timezone)
+        if self.calendar_type == "Jalali":
+            dt = JalaliDateTime.fromtimestamp(record.created, self.timezone)
         else:
-            dt = datetime.fromtimestamp(record.created, ZoneInfo('UTC'))
+            dt = datetime.fromtimestamp(record.created, self.timezone)
 
         if datefmt:
             return dt.strftime(datefmt)
         else:
             # ISO 8601 format for JSON
-            return dt.isoformat() if self.output_json else dt.strftime('%Y-%m-%d %H:%M:%S GMT%z')
-    # ____________________________________________________________________________ . . .
+            return (
+                dt.isoformat() \
+                if self.output_json \
+                else dt.strftime(
+                    extract_field_value(
+                        field="date_fmt",
+                        config_path=r"Application/configs/logs_config.json",
+                    )
+                )
+            )
 
+    # ____________________________________________________________________________ . . .
 
     def formatException(self, exc_info):
         """
         Formats exception info as a string for JSON serialization.
         """
-        return ''.join(traceback.format_exception(*exc_info))
-    # ____________________________________________________________________________ . . .
+        return "".join(traceback.format_exception(*exc_info))
 
+    # ____________________________________________________________________________ . . .
 
     def _get_extra_fields(self, record: logging.LogRecord):
         """
-        Capture any extra fields provided in the `extra` argument and ensure they are JSON 
+        Capture any extra fields provided in the `extra` argument and ensure they are JSON
         serializable.
         """
         extra_fields = {}
         # Standard fields to ignore for extra attributes
-        standard_fields = set([
-            'name', 'msg', 'args', 'levelname', 'levelno', 'pathname', 'filename',
-            'module', 'exc_info', 'exc_text', 'stack_info', 'lineno', 'funcName',
-            'created', 'msecs', 'relativeCreated', 'thread', 'threadName', 'process',
-            'processName', 'message', 'asctime'
-        ])
+        standard_fields = set(
+            [
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "process",
+                "processName",
+                "message",
+                "asctime",
+                "taskName",
+            ]
+        )
 
         for key, value in record.__dict__.items():
-            if key not in standard_fields:
-                if self._is_json_serializable(value):
-                    extra_fields[key] = value
-                else:
-                    extra_fields[key] = str(value)  # Serialize non-serializable fields as string
+            if key not in standard_fields and self._is_json_serializable(value):
+                extra_fields[key] = value
+            else:
+                extra_fields[key] = str(
+                    value
+                )  # Serialize non-serializable fields as string
 
         return extra_fields
-    # ____________________________________________________________________________ . . .
 
+    # ____________________________________________________________________________ . . .
 
     def _is_json_serializable(self, value):
         """
@@ -348,19 +421,10 @@ class JSONWithTimezoneFormatter(logging.Formatter):
             return True
         except (TypeError, OverflowError):
             return False
-# ________________________________________________________________________________ . . .
-
-
-json_formatter_with_Jalali_time = JSONWithTimezoneFormatter(fmt        = '',
-                                                            datefmt    = '%Y-%m-%d %H:%M:%S GMT%z',
-                                                            style      = '{',
-                                                            timezone   = 'Asia/Tehran',
-                                                            output_json= True)
-# ________________________________________________________________________________ . . .
-
-
-# Other Formatters ...
 # =================================================================================================
+
+
+
 
 
 
@@ -368,10 +432,9 @@ json_formatter_with_Jalali_time = JSONWithTimezoneFormatter(fmt        = '',
 # Filters
 class FilterErrors(logging.Filter):
     @override
-    def filter(self, record:logging.LogRecord) -> bool | logging.LogRecord:
+    def filter(self, record: logging.LogRecord) -> bool | logging.LogRecord:
         return record.levelno <= logging.INFO
 # ________________________________________________________________________________ . . .
-
 
 # Other Filters ...
 # =================================================================================================
@@ -380,52 +443,51 @@ class FilterErrors(logging.Filter):
 
 
 
+
+
 # File Name Generators
-def generate_double_dated_file_name():
-    file_name = str(datetime.now(pytz.timezone('Asia/Tehran')).strftime("%H-00")) + '.log'
+def month_day_hour_file_name_generator(
+    parent_logs_path: str,
+    time_zone_name: str = "UTC",
+    file_suffix: str = "log",
+    folder_naming_approach: Literal[
+        "Gregorian_Dated",
+        "Jalali_Dated",
+        "Double_Dated"] = "Gregorian_Dated"
+    ) -> str:
+    """
+    Generates the full name of log file (including path). Creates a folder with month name,
+    inside it a folder with day name, and inside it names the log files with the current hour.
 
-    folder_name = './Logs/'
-    month_folder_name = str(date.today().strftime("%B_%Y-%m")) \
-                        + str(JalaliDate.today().strftime("(%B_%Y-%m)/"))
+    Parameters:
+        parent_logs_path (str): Full path of parent folder to store log files.
+        time_zone_name (str, optional): Time Zone name.
+        file_suffix (str, optional): Suffix of log file. Defaults to 'log'.
+        folder_naming_approach (Literal['Gregorian_Dated', 'Jalali_Dated', 'Double_Dated'], optional): Which approach to use to name 'month' and 'day' folders. Defaults to 'Gregorian_Dated'.
 
-    day_folder_name = str(date.today().strftime("%A_%B_%d")) \
-                        + str(JalaliDate.today().strftime("(%A_%d_%B)/"))
-    path = str(folder_name+month_folder_name+day_folder_name)
-    try:
-        os.makedirs(path)
-    except OSError as err:
-        if err.errno == 17:
-            print(f'Attempt to create Logs directory {path}: It already exsist!')
-        else:
-            logging.error(f'Attempt to create Logs directory {path}: error accured: {err}')
+    Returns:
+        full_log_file_name (str): A string with full name of log file including it's path.
+    """
+    current_time_hour = datetime.now(pytz.timezone(time_zone_name)).strftime("%H-00")
+    file_name = f"{current_time_hour}.{file_suffix}"
 
-    full_name = path+file_name
-    return full_name
+    Gregorian_month_name = date.today().strftime("%B_%Y-%m")
+    Gregorian_day_name = date.today().strftime("%A_%B_%d")
+    Jalali_month_name = JalaliDate.today().strftime("%B_%Y-%m")
+    Jalali_day_name = JalaliDate.today().strftime("%A_%d_%B")
+
+    sub_folders_name_map = {
+        "Gregorian_Dated": f"{Gregorian_month_name}/{Gregorian_day_name}/",
+        "Jalali_Dated": f"{Jalali_month_name}/{Jalali_day_name}/",
+        "Double_Dated": f"{Gregorian_month_name}({Jalali_month_name})/" \
+                        f"{Gregorian_day_name}({Jalali_day_name})/",
+    }
+
+    path = f"{parent_logs_path}{sub_folders_name_map[folder_naming_approach]}"
+    os.makedirs(path, exist_ok=True)
+
+    return path + file_name
 # ________________________________________________________________________________ . . .
-
-
-def generate_double_dated_json_file_name():
-    file_name = str(datetime.now(pytz.timezone('Asia/Tehran')).strftime("%H-00")) + '.jsonl'
-
-    folder_name = './Logs/'
-    month_folder_name = str(date.today().strftime("%B_%Y-%m")) \
-                        + str(JalaliDate.today().strftime("(%B_%Y-%m)/"))
-
-    day_folder_name = str(date.today().strftime("%A_%B_%d")) \
-                        + str(JalaliDate.today().strftime("(%A_%d_%B)/"))
-    path = str(folder_name+month_folder_name+day_folder_name)
-    try:
-        os.makedirs(path)
-    except OSError as err:
-        if err.errno == 17:
-            print(f'Attempt to create Logs directory {path}: It already exsist!')
-        else:
-            logging.error(f'Attempt to create Logs directory {path}: error accured: {err}')
-
-    full_name = path+file_name
-    return full_name
-# ________________________________________________________________________________ . . .
-
 
 # Other Generators ...
 # =================================================================================================
@@ -434,59 +496,229 @@ def generate_double_dated_json_file_name():
 
 
 
+
+
 # Handlers
+def timed_file_handler(
+    logs_path: str,
+    file_suffix: Literal["log", "jsonl"],
+    when: str,
+    rotating_interval: int,
+    backup_count: int,
+    date_fmt: str,
+    time_zone: str,
+    logs_date_type: Literal["Gregorian", "Jalali"],
+    json_fields: Mapping[str, str] | None = None,
+    log_level: int = get_log_level("file"),
+    naming_approach: Literal[
+        "Gregorian_Dated",
+        "Jalali_Dated",
+        "Double_Dated"] = "Gregorian_Dated"
+    ) -> logging.Handler:
+    """
+    _summary_
+
+    Args:
+        logs_path (str): _description_.
+        file_suffix (Literal['log', 'jsonl']): _description_.
+        when (str): Rotating time to create next file.
+        rotating_interval (int): Rotating time interval to create next file.
+        backup_count (int): Number of files to keep before overwriting the first file.
+        date_fmt (str): _description_.
+        time_zone (str): _description_.
+        logs_date_type (Literal["Gregorian", "Jalali"]): _description_.
+        json_fields (Mapping[str, str], optional): _description_.
+        log_level (int, optional): _description_. Defaults to get_log_level('file').
+        naming_approach (Literal['Gregorian_Dated', 'Jalali_Dated', 'Double_Dated'], optional): Defaults to 'Gregorian_Dated'.
+
+    Returns:
+        file_handler (logging.TimedRotatingFileHandler): _description_.
+    """
+    file_handler = TimedRotatingFileHandler(
+        filename    = month_day_hour_file_name_generator(
+            parent_logs_path       = logs_path,
+            time_zone_name         = init_data.LOCAL_TIME_ZONE_NAME,
+            file_suffix            = file_suffix,
+            folder_naming_approach = naming_approach),
+        when        = when,
+        interval    = rotating_interval,
+        backupCount = backup_count)
+
+    file_handler.setLevel(log_level)
+
+    if file_suffix == "jsonl":
+        file_handler.setFormatter(
+            fmt=JSONWithTimezoneFormatter(
+                datefmt       = date_fmt,
+                timezone      = time_zone,
+                output_json   = True,
+                json_fields   = json_fields,
+                calendar_type = logs_date_type)
+        )
+    else:
+        file_handler.setFormatter(
+            fmt = FormatterWithTimeZone(
+                fmt           = extract_field_value(
+                    field       = 'stderr_fmt',
+                    config_path = r'Application/configs/logs_config.json'),
+                datefmt       = date_fmt,
+                style         = "{",
+                timezone      = time_zone,
+                calendar_type = logs_date_type,
+            )
+        )
+
+    return file_handler
+# ________________________________________________________________________________ . . .
+
+
+def stdout_handler(log_level: int,
+                   calendar_type: Literal["Jalali", "Gregorian"],
+                   filter_errors: bool = True) -> logging.Handler:
+    """
+    _summary_.
+
+    Parameters:
+        log_level (int): _description_.
+        calendar_type (Literal['Jalali', 'Gregorian']): _description_.
+        filter_errors (bool, optional): _description_.
+
+    Returns:
+        handler (logging.Handler): _description_.
+    """
+    stdout_handler = logging.StreamHandler(stream=sys.stdout)
+
+    stdout_handler.setLevel(log_level)
+    stdout_handler.setFormatter(
+        fmt=FormatterWithTimeZone(
+            fmt           = extract_field_value(
+                field       = "stdout_fmt",
+                config_path = r"Application/configs/logs_config.json"),
+            datefmt       = extract_field_value(
+                field       = "date_fmt",
+                config_path = r"Application/configs/logs_config.json"),
+            style         = "{",
+            timezone      = init_data.LOCAL_TIME_ZONE_NAME,
+            calendar_type = calendar_type,
+        )
+    )
+
+    if filter_errors:
+        stdout_handler.addFilter(filter=FilterErrors())
+
+    return stdout_handler
+# ________________________________________________________________________________ . . .
+
+
+def stderr_handler(calendar_type: Literal["Jalali", "Gregorian"]) -> logging.Handler:
+    """_summary_
+
+    Args:
+        calendar_type (Literal['Jalali', 'Gregorian']): _description_.
+
+    Returns:
+        handler (logging.Handler): _description_.
+    """
+    stderr_handler = logging.StreamHandler(stream=sys.stderr)
+
+    stderr_handler.setLevel(logging.WARNING)
+    stderr_handler.setFormatter(
+        fmt=FormatterWithTimeZone(
+            fmt           = extract_field_value(
+                field       = "stderr_fmt",
+                config_path = r"Application/configs/logs_config.json"),
+            datefmt       = extract_field_value(
+                field       = "date_fmt",
+                config_path = r"Application/configs/logs_config.json"),
+            style         = "{",
+            timezone      = init_data.LOCAL_TIME_ZONE_NAME,
+            calendar_type = calendar_type,
+        )
+    )
+
+    return stderr_handler
+# ________________________________________________________________________________ . . .
+
+
+def queue_workers() -> (tuple[logging.handlers.QueueHandler, logging.handlers.QueueListener]):
+    """
+    _summary_
+
+    Returns:
+        _type_: _description_
+    """
+    logs_queue: queue.Queue = queue.Queue()
+    queue_handler = logging.handlers.QueueHandler(logs_queue)
+    queue_listener = logging.handlers.QueueListener(
+        logs_queue,
+
+
+        stderr_handler(calendar_type=extract_field_value(
+            field       = 'stream_handlers_calendar_type',
+            config_path = r'Application/configs/logs_config.json')),
+
+        stdout_handler(
+            log_level     = get_log_level("stdout"),
+            filter_errors = True,
+            calendar_type = extract_field_value(
+                field       = 'stream_handlers_calendar_type',
+                config_path = r'Application/configs/logs_config.json')),
+
+        timed_file_handler(
+            logs_path         = extract_field_value(
+                field       = "logs_root_path",
+                config_path = r'Application/configs/logs_config.json'),
+
+            file_suffix       = extract_field_value(
+                field       = "log_suffix",
+                config_path = r'Application/configs/logs_config.json'),
+
+            when              = extract_field_value(
+                field       = "rotating_file_handler_unit",
+                config_path = r'Application/configs/logs_config.json'),
+
+            rotating_interval = extract_field_value(
+                field       = "rotating_file_handler_interval",
+                config_path = r'Application/configs/logs_config.json'),
+
+            backup_count      = extract_field_value(
+                field       = "files_backup_count",
+                config_path = r'Application/configs/logs_config.json'),
+
+            date_fmt          = extract_field_value(
+                field       = "date_fmt",
+                config_path = r'Application/configs/logs_config.json'),
+
+            time_zone         = init_data.LOCAL_TIME_ZONE_NAME,
+
+            logs_date_type    = extract_field_value(
+                field       = "file_handlers_calendar_type",
+                config_path = r"Application/configs/logs_config.json"),
+
+            json_fields       =extract_field_value(
+                field       = "json_fields",
+                config_path = r'Application/configs/logs_config.json'),
+
+            log_level         = get_log_level("file"),
+
+            naming_approach   = extract_field_value(
+                field       = "file_naming_approach",
+                config_path = r'Application/configs/logs_config.json')),
+
+
+        respect_handler_level=True,
+    )
+
+    return queue_handler, queue_listener
+
+
+queue_listener: logging.handlers.QueueListener | None = None
+# ________________________________________________________________________________ . . .
+
+# Other Handlers ...
 # =================================================================================================
-# TIMED FILE (.log) HANDLER
-timed_file_handler = TimedRotatingFileHandler(filename    = generate_double_dated_file_name(),
-                                              when        = 'H',
-                                              interval    = 1,
-                                              backupCount = 24)
-
-timed_file_handler.setLevel(FILE_LOG_LEVEL)
-timed_file_handler.setFormatter(fmt=pretty_stdout_formatter_with_Jalali_time)
-# ________________________________________________________________________________ . . .
 
 
-# TIMED .json HANDLER
-timed_json_file_handler = TimedRotatingFileHandler(
-    filename    = generate_double_dated_json_file_name(),
-    when        = 'H',
-    interval    = 1,
-    backupCount = 24
-)
-
-timed_json_file_handler.setLevel(FILE_LOG_LEVEL)
-timed_json_file_handler.setFormatter(fmt=json_formatter_with_Jalali_time)
-# ________________________________________________________________________________ . . .
-
-
-# THREADED HANDLER
-# threaded_handler = logging.handlers.QueueHandler()
-# ________________________________________________________________________________ . . .
-
-
-# STDOUT HANDLER
-stdout_handler = logging.StreamHandler(stream=sys.stdout)
-
-stdout_handler.setLevel(STDOUT_LOG_LEVEL)
-stdout_handler.addFilter(filter=FilterErrors())
-stdout_handler.setFormatter(fmt=pretty_stdout_formatter_with_Jalali_time)
-# ________________________________________________________________________________ . . .
-
-
-# STDERR HANDLER
-stderr_handler = logging.StreamHandler(stream=sys.stderr)
-
-stderr_handler.setLevel(logging.WARNING)
-stderr_handler.setFormatter(fmt=pretty_stderr_formatter_with_Jalali_time)
-# ________________________________________________________________________________ . . .
-
-
-# =================================================================================================
-
-
-
-# Initializers
 # =================================================================================================
 def initialize_logger(logger_name: str, log_level: int) -> logging.Logger:
     """
@@ -494,85 +726,53 @@ def initialize_logger(logger_name: str, log_level: int) -> logging.Logger:
     """
     logger = logging.getLogger(name=logger_name)
     logger.setLevel(log_level)
+    global queue_listener
+    queue_handler, queue_listener = queue_workers()
+    logger.addHandler(hdlr=queue_handler)
 
-    logger.addHandler(hdlr=stdout_handler)
-    logger.addHandler(hdlr=stderr_handler)
-    logger.addHandler(hdlr=timed_json_file_handler)
+    queue_listener.start()
 
+    logger.info(f'Initialized the "{logger.name}" logger.')
     return logger
+
+
 # ________________________________________________________________________________ . . .
 
 
-def initialize_logger_from_config(logger_name: str) -> logging.Logger:
-    """
-    Initializes the logger from logging_config.json file.
-    """
-    logging.config.dictConfig(load(r'Application/configs/logging_config.json'))
-    logger = logging.getLogger(name=logger_name)
-    logger.addHandler(hdlr=timed_file_handler)
+def finish_logs():
+    """Finishes handling queued logs by stopping the QueueListener."""
+    global queue_listener
+    if queue_listener:
+        queue_listener.stop()
+    else:
+        raise
 
-    return logger
+
 # ________________________________________________________________________________ . . .
+
+
+def get_logger(logger_name: str, log_level: int):
+    logger = logging.getLogger(logger_name)
+    if not logger.handlers:
+        logger = initialize_logger(logger_name=logger_name, log_level=log_level)
+    return logger
 
 
 # =================================================================================================
 
 
+if __name__ == "__main__":
+    try:
+        logger = get_logger(logger_name="TEST_LOGGER", log_level=logging.INFO)
 
+        logger.debug(msg="This is a test debug log message")
+        logger.info(msg="This is a test info log message")
+        logger.warning(msg="This is a test warning log message")
+        logger.error(
+            msg="This is a test error log message", exc_info=True, stack_info=True
+        )
 
-
-
-
-
-logging_config = {
-    "version": 1,
-
-    "disable_exicting_loggers": False,
-
-    "formatters": {
-        "detailed_with_time_zone": {
-            "format": ""
-        }
-    },
-
-    "handlers": {
-        "stderr": {
-            "class": "logging.StreamHandler",
-            "level": "WARNING",
-            "formatter": "",
-            "stream": "ext://sys.stderr"
-        },
-        "stdout": {
-            "class": "logging.StreamHandler",
-            "level": "",
-            "formatter": "",
-            "stream": "ext://sys.stdout"
-        },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "level": "INFO",
-            "formatter": "detailed",
-            "filename": "",
-            "maxBytes": 0,
-            "backupCount": 0
-        }
-    },
-
-    "loggers": {
-        "root": {
-            "level" : "",
-            "handlers": [
-                "stdout"
-            ]
-        }
-    }
-}
-# print(json.dumps(load(r'Application/configs/logging_config.json'), indent=4))
-
-if __name__ == '__main__':
-    logger = initialize_logger(logger_name='TEST_LOGGER', log_level=logging.INFO)
-
-    logger.debug(msg='This is a test debug log message')
-    logger.info(msg='This is a test info log message')
-    logger.warning(msg='This is a test warning log message')
-    logger.error(msg='This is a test error log message')
+    except Exception as err:
+        logger.error("Error In main process: ", str(err))
+    finally:
+        finish_logs()
