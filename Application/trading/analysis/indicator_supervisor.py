@@ -1,6 +1,12 @@
+import sys
 import asyncio
-import logging
 import pandas as pd
+from dotenv import dotenv_values
+
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
+
+from Application.trading import trade_logs # noqa: E402
 
 
 # =================================================================================================
@@ -29,7 +35,7 @@ async def compute_validation_indicators(validation_system: list, kline_df: pd.Da
                                              kline_df   = kline_df)
             )
 
-            logging.info(f'Indicator {indicator_config["name"]} has been added to validation '\
+            trade_logs.info(f'Indicator {indicator_config["name"]} has been added to validation '\
                          'indicators.')
 
     # Executing coroutine objects
@@ -39,10 +45,10 @@ async def compute_validation_indicators(validation_system: list, kline_df: pd.Da
         else:
             results = []
     except asyncio.CancelledError:
-            logging.error("An indicator compution task got canceled in "\
+            trade_logs.error("An indicator compution task got canceled in "\
                           "'compute_validation_indicators()' function.")
     except Exception as err:
-        logging.error(f'Inside "compute_validation_indicators()": {err}')
+        trade_logs.error(f'Inside "compute_validation_indicators()": {err}')
 
     # Extract and merging indicator dataframes together
     indicators_df = pd.DataFrame(index=kline_df.index)
@@ -80,7 +86,7 @@ async def compute_indicators(trading_system: list, kline_df: pd.DataFrame):
                                              kline_df   = kline_df)
             )
 
-            logging.info(f'Indicator "{indicator_config["name"]}" has been added to Indicators.')
+            trade_logs.info(f'Indicator "{indicator_config["name"]}" has been added to Indicators.')
 
     try:
         if coroutines_set:
@@ -88,10 +94,10 @@ async def compute_indicators(trading_system: list, kline_df: pd.DataFrame):
         else:
             results = []
     except asyncio.CancelledError:
-            logging.error("An indicator compution task got canceled in "\
+            trade_logs.error("An indicator compution task got canceled in "\
                           "'compute_indicators()' function.")
     except Exception as err:
-        logging.error(f'Inside "compute_indicators()": {err}')
+        trade_logs.error(f'Inside "compute_indicators()": {err}')
 
     indicators_df = pd.DataFrame(index=kline_df.index)
     if results:
@@ -126,7 +132,7 @@ async def compute_indicators(trading_system: list, kline_df: pd.DataFrame):
 #             for item in value:
 #                 if item not in self.indicators_set:
 #                     self.indicators_set.add(item)
-#                     logging.info(f'Indicator {item} has been added to indicators_set.')
+#                     trade_logs.info(f'Indicator {item} has been added to indicators_set.')
 #     # ____________________________________________________________________________ . . .
 
 
@@ -144,7 +150,7 @@ async def compute_indicators(trading_system: list, kline_df: pd.DataFrame):
 #         try:
 #             results = await asyncio.gather(*tasks)
 #         except asyncio.CancelledError:
-#             logging.error("A task was cancelled during cook_indicators.")
+#             trade_logs.error("A task was cancelled during cook_indicators.")
 #             raise
 
 #         indicators_df = pd.DataFrame(index=kline_df.index)

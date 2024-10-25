@@ -1,14 +1,14 @@
 import sys
-import logging
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.utils.event_channels import Event    # noqa: E402
-from Application.data.data_processor import DataProcessor  # noqa: E402
-from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
-from Application.trading.market.validator import execute_validator_functions    # noqa: E402
+from Application.trading import trade_logs                                   # noqa: E402
+from Application.utils.event_channels import Event                           # noqa: E402
+from Application.data.data_processor import DataProcessor                    # noqa: E402
+from Application.utils.simplified_event_handler import EventHandler          # noqa: E402
+from Application.trading.market.validator import execute_validator_functions # noqa: E402
 
 data = DataProcessor()
 jarchi = EventHandler()
@@ -31,7 +31,7 @@ async def start_market_validation():
         jarchi.attach(_stop_market_validation, Event.MARKET_IS_VALID)
 
     except Exception as err:
-        logging.error(f'Error occured while validating market: {err}')
+        trade_logs.error(f'Error occured while validating market: {err}')
 # ________________________________________________________________________________ . . .
 
 
@@ -45,6 +45,6 @@ async def _stop_market_validation():
     jarchi.detach(listener=data.computing_validation_indicators,
                     event=Event.NEW_KLINE_DATA)
     
-    logging.info('Further market validation processes stopped.')
+    trade_logs.info('Further market validation processes stopped.')
 # =================================================================================================
 

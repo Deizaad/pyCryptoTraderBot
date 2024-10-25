@@ -1,12 +1,12 @@
 import sys
 import asyncio
-import logging
 import pandas as pd
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
+from Application.trading import trade_logs                  # noqa: E402
 from Application.trading import strategy_fields as strategy # noqa: E402
 
 
@@ -24,15 +24,15 @@ async def generate_signals(trading_system : list,
                                              indicator_df = indicators_df,
                                              properties   = setup['properties']))
 
-        logging.info(f'Setup "{setup['name']}" has been added to signal setups.')
+        trade_logs.info(f'Setup "{setup['name']}" has been added to signal setups.')
 
     try:
         results = await asyncio.gather(*coroutines_set)
     except asyncio.CancelledError:
-            logging.error("An signal generation task got canceled in "\
+            trade_logs.error("An signal generation task got canceled in "\
                           "'signal_generator.generate_signals()' function.")
     except Exception as err:
-        logging.error(f'Inside "signal_generator.generate_signals()": {err}')
+        trade_logs.error(f'Inside "signal_generator.generate_signals()": {err}')
 
     signal_df = pd.DataFrame(index=kline_df.index)
     for result in results:

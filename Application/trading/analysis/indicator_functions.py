@@ -1,6 +1,12 @@
-import logging
+import sys
 import pandas as pd
 import pandas_ta as ta    # type: ignore
+from dotenv import dotenv_values
+
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
+
+from Application.trading import trade_logs # noqa: E402
 
 
 
@@ -25,10 +31,10 @@ async def pandas_supertrend(kline_df: pd.DataFrame, properties: dict) -> pd.Data
         if _df is None:
             raise ValueError("Supertrend calculation returned None")
     except ValueError as err:
-        logging.error(f'error while calculating \'pandas_supertrend\' indicator values: {err}')
+        trade_logs.error(f'error while calculating \'pandas_supertrend\' indicator values: {err}')
         return pd.DataFrame()
     except Exception as err:
-        logging.error(f'Error while calculating \'pandas_supertrend\' indicator values: {err}')
+        trade_logs.error(f'Error while calculating \'pandas_supertrend\' indicator values: {err}')
         return pd.DataFrame()
     
     _df = _df.iloc[:, 0:2]

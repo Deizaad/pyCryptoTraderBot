@@ -1,5 +1,11 @@
-import logging
+import sys
 import pandas as pd
+from dotenv import dotenv_values
+
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
+
+from Application.trading import trade_logs # noqa: E402
 
 
 
@@ -33,7 +39,7 @@ async def supertrend_setupfunc(
         print(signal_df)
         return signal_df
     except Exception as err:
-        logging.error(f"Error while generating signals in supertrend_setupfunc() func: {err}")
+        trade_logs.error(f"Error while generating signals in supertrend_setupfunc() func: {err}")
         return pd.DataFrame()
 # ________________________________________________________________________________ . . .
 
