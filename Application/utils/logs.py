@@ -8,28 +8,41 @@ import traceback
 import logging.config
 import logging.handlers
 from zoneinfo import ZoneInfo
-from dotenv import dotenv_values
 from datetime import date, datetime
 from typing import Mapping, Any, Literal, override
 from logging.handlers import TimedRotatingFileHandler
 from persiantools.jdatetime import JalaliDate, JalaliDateTime  # type: ignore
 
-path = dotenv_values("project_path.env").get("PYTHONPATH")
-sys.path.append(path) if path else None
 
-import Application.data.initial_data as init_data  # noqa: E402
-from Application.data.data_tools import extract_field_value  # noqa: E402
+with open(r'Application/configs/config.json', 'r') as config_file:
+    config = json.load(config_file)
+LOCAL_TIME_ZONE_NAME = config.get('local_time_zone_name', None)
+
+
+def extract_log_configs(field : str) -> Any:
+    path = r'Application/configs/logs_config.json'
+
+    with open(path, 'r') as file:
+                json_dict = json.load(file)
+
+    value = json_dict.get(field, None)
+
+    if not value:
+        raise ValueError(f"Can not find value of '{field}' field 'strategy.json' config file, "\
+                         "it has not been quantified with a value, or perhaps you misspelled it.")
+    
+    return value
 
 
 # Extract log levels dynamically
 def get_log_level(
-    logger_or_handler: Literal["stdout", "file", "jarchi", "trader"],
+    logger_or_handler: Literal["stdout", "file", "jarchi", "trader", "bot", "TPL", 'NL'],
 ) -> int:
     """
     _summary_
 
     Parameters:
-        logger_or_handler (Literal['stdout', 'file', 'jarchi', 'trader']): _description_.
+        logger_or_handler (Literal['stdout', 'file', 'jarchi', 'trader', 'bot', 'TPL', 'NL']): _description_.
 
     Returns:
         log_level (int): _description_.
@@ -43,16 +56,15 @@ def get_log_level(
     }
 
     log_level = levels_map.get(
-        extract_field_value(
-            f"{logger_or_handler}_log_level", r"Application/configs/logs_config.json"
-        ),
+        extract_log_configs(f"{logger_or_handler}_log_level"),
         logging.INFO,
     )
 
     return log_level
-
-
 # =================================================================================================
+
+
+
 
 
 # Formatters
@@ -110,11 +122,6 @@ class FormatterWithTimeZone(logging.Formatter):
 
         return dt.strftime(datefmt) if datefmt else dt.isoformat()
 # =================================================================================================
-
-
-
-
-
 
 
 class JSONFormatter(logging.Formatter):
@@ -215,9 +222,7 @@ class JSONFormatter(logging.Formatter):
         Customizes the time format to ISO 8601.
         """
         return datetime.fromtimestamp(record.created, ZoneInfo("UTC")).strftime(
-            extract_field_value(
-                field="date_fmt", config_path=r"Application/configs/logs_config.json"
-            )
+            extract_log_configs(field="date_fmt")
         )
 
     # ____________________________________________________________________________ . . .
@@ -228,11 +233,6 @@ class JSONFormatter(logging.Formatter):
         """
         return "".join(traceback.format_exception(*exc_info))
 # =================================================================================================
-
-
-
-
-
 
 
 class JSONWithTimezoneFormatter(logging.Formatter):
@@ -347,12 +347,7 @@ class JSONWithTimezoneFormatter(logging.Formatter):
             return (
                 dt.isoformat() \
                 if self.output_json \
-                else dt.strftime(
-                    extract_field_value(
-                        field="date_fmt",
-                        config_path=r"Application/configs/logs_config.json",
-                    )
-                )
+                else dt.strftime(extract_log_configs(field="date_fmt"))
             )
 
     # ____________________________________________________________________________ . . .
@@ -427,8 +422,6 @@ class JSONWithTimezoneFormatter(logging.Formatter):
 
 
 
-
-
 # Filters
 class FilterErrors(logging.Filter):
     @override
@@ -438,8 +431,6 @@ class FilterErrors(logging.Filter):
 
 # Other Filters ...
 # =================================================================================================
-
-
 
 
 
@@ -496,8 +487,6 @@ def month_day_hour_file_name_generator(
 
 
 
-
-
 # Handlers
 def timed_file_handler(
     logs_path: str,
@@ -537,7 +526,7 @@ def timed_file_handler(
     file_handler = TimedRotatingFileHandler(
         filename    = month_day_hour_file_name_generator(
             parent_logs_path       = logs_path,
-            time_zone_name         = init_data.LOCAL_TIME_ZONE_NAME,
+            time_zone_name         = LOCAL_TIME_ZONE_NAME,
             file_suffix            = file_suffix,
             folder_naming_approach = naming_approach),
         when        = when,
@@ -558,9 +547,7 @@ def timed_file_handler(
     else:
         file_handler.setFormatter(
             fmt = FormatterWithTimeZone(
-                fmt           = extract_field_value(
-                    field       = 'stderr_fmt',
-                    config_path = r'Application/configs/logs_config.json'),
+                fmt           = extract_log_configs(field='stderr_fmt'),
                 datefmt       = date_fmt,
                 style         = "{",
                 timezone      = time_zone,
@@ -591,14 +578,10 @@ def stdout_handler(log_level: int,
     stdout_handler.setLevel(log_level)
     stdout_handler.setFormatter(
         fmt=FormatterWithTimeZone(
-            fmt           = extract_field_value(
-                field       = "stdout_fmt",
-                config_path = r"Application/configs/logs_config.json"),
-            datefmt       = extract_field_value(
-                field       = "date_fmt",
-                config_path = r"Application/configs/logs_config.json"),
+            fmt           = extract_log_configs(field="stdout_fmt"),
+            datefmt       = extract_log_configs(field="date_fmt"),
             style         = "{",
-            timezone      = init_data.LOCAL_TIME_ZONE_NAME,
+            timezone      = LOCAL_TIME_ZONE_NAME,
             calendar_type = calendar_type,
         )
     )
@@ -624,14 +607,10 @@ def stderr_handler(calendar_type: Literal["Jalali", "Gregorian"]) -> logging.Han
     stderr_handler.setLevel(logging.WARNING)
     stderr_handler.setFormatter(
         fmt=FormatterWithTimeZone(
-            fmt           = extract_field_value(
-                field       = "stderr_fmt",
-                config_path = r"Application/configs/logs_config.json"),
-            datefmt       = extract_field_value(
-                field       = "date_fmt",
-                config_path = r"Application/configs/logs_config.json"),
+            fmt           = extract_log_configs(field="stderr_fmt"),
+            datefmt       = extract_log_configs(field="date_fmt"),
             style         = "{",
-            timezone      = init_data.LOCAL_TIME_ZONE_NAME,
+            timezone      = LOCAL_TIME_ZONE_NAME,
             calendar_type = calendar_type,
         )
     )
@@ -652,59 +631,25 @@ def queue_workers() -> (tuple[logging.handlers.QueueHandler, logging.handlers.Qu
     queue_listener = logging.handlers.QueueListener(
         logs_queue,
 
-
-        stderr_handler(calendar_type=extract_field_value(
-            field       = 'stream_handlers_calendar_type',
-            config_path = r'Application/configs/logs_config.json')),
+        stderr_handler(calendar_type=extract_log_configs(field='stream_handlers_calendar_type')),
 
         stdout_handler(
             log_level     = get_log_level("stdout"),
             filter_errors = True,
-            calendar_type = extract_field_value(
-                field       = 'stream_handlers_calendar_type',
-                config_path = r'Application/configs/logs_config.json')),
+            calendar_type = extract_log_configs(field='stream_handlers_calendar_type')),
 
         timed_file_handler(
-            logs_path         = extract_field_value(
-                field       = "logs_root_path",
-                config_path = r'Application/configs/logs_config.json'),
-
-            file_suffix       = extract_field_value(
-                field       = "log_suffix",
-                config_path = r'Application/configs/logs_config.json'),
-
-            when              = extract_field_value(
-                field       = "rotating_file_handler_unit",
-                config_path = r'Application/configs/logs_config.json'),
-
-            rotating_interval = extract_field_value(
-                field       = "rotating_file_handler_interval",
-                config_path = r'Application/configs/logs_config.json'),
-
-            backup_count      = extract_field_value(
-                field       = "files_backup_count",
-                config_path = r'Application/configs/logs_config.json'),
-
-            date_fmt          = extract_field_value(
-                field       = "date_fmt",
-                config_path = r'Application/configs/logs_config.json'),
-
-            time_zone         = init_data.LOCAL_TIME_ZONE_NAME,
-
-            logs_date_type    = extract_field_value(
-                field       = "file_handlers_calendar_type",
-                config_path = r"Application/configs/logs_config.json"),
-
-            json_fields       =extract_field_value(
-                field       = "json_fields",
-                config_path = r'Application/configs/logs_config.json'),
-
+            logs_path         = extract_log_configs(field="logs_root_path"),
+            file_suffix       = extract_log_configs(field="log_suffix"),
+            when              = extract_log_configs(field="rotating_file_handler_unit"),
+            rotating_interval = extract_log_configs(field="rotating_file_handler_interval"),
+            backup_count      = extract_log_configs(field="files_backup_count",),
+            date_fmt          = extract_log_configs(field="date_fmt"),
+            time_zone         = LOCAL_TIME_ZONE_NAME,
+            logs_date_type    = extract_log_configs(field="file_handlers_calendar_type"),
+            json_fields       =extract_log_configs(field="json_fields"),
             log_level         = get_log_level("file"),
-
-            naming_approach   = extract_field_value(
-                field       = "file_naming_approach",
-                config_path = r'Application/configs/logs_config.json')),
-
+            naming_approach   = extract_log_configs(field="file_naming_approach")),
 
         respect_handler_level=True,
     )
@@ -717,6 +662,9 @@ queue_listener: logging.handlers.QueueListener | None = None
 
 # Other Handlers ...
 # =================================================================================================
+
+
+
 
 
 # =================================================================================================
@@ -734,8 +682,6 @@ def initialize_logger(logger_name: str, log_level: int) -> logging.Logger:
 
     logger.info(f'Initialized the "{logger.name}" logger.')
     return logger
-
-
 # ________________________________________________________________________________ . . .
 
 
@@ -746,19 +692,21 @@ def finish_logs():
         queue_listener.stop()
     else:
         raise
-
-
 # ________________________________________________________________________________ . . .
 
 
-def get_logger(logger_name: str, log_level: int):
+def get_logger(logger_name: str, log_level: int | None = None):
     logger = logging.getLogger(logger_name)
     if not logger.handlers:
-        logger = initialize_logger(logger_name=logger_name, log_level=log_level)
+        if log_level:
+            logger = initialize_logger(logger_name=logger_name, log_level=log_level)
+        else:
+            raise
     return logger
-
-
 # =================================================================================================
+
+
+
 
 
 if __name__ == "__main__":

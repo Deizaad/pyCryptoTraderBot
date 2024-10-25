@@ -1,8 +1,17 @@
+import sys
 import asyncio
 import inspect
-import logging
+from dotenv import dotenv_values
 from collections import defaultdict
 from typing import Callable, Coroutine, Dict, List, Any, Tuple
+
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
+
+from Application.utils.logs import get_logger, get_log_level # noqa: E402
+
+# Initializing the logger
+jarchi_logs = get_logger(logger_name='jarchi_logs', log_level=get_log_level('jarchi'))
 
 # Introducing Listeners type
 Listener = Callable[..., Coroutine[Any, Any, Any]] | Callable[..., Any]
@@ -42,7 +51,7 @@ class EventHandler:
                              'attaching listeners to it.')
         
         self._listeners[event].append(listener)
-        logging.info(f'Listener \'{listener.__name__}\' attached to event channel \'{event}\'.')
+        jarchi_logs.info(f'Listener \'{listener.__name__}\' attached to event channel \'{event}\'.')
     # ____________________________________________________________________________ . . .
     
     
@@ -60,12 +69,12 @@ class EventHandler:
             if not self._listeners[event]:
                 del self._listeners[event]
 
-            logging.info(f'Listener "{listener.__name__}" detached from event channel "{event}".')
+            jarchi_logs.info(f'Listener "{listener.__name__}" detached from event channel "{event}".')
         except ValueError:
-            logging.info(f'Detaching "{listener.__name__}" from event channel "{event}": It was '\
+            jarchi_logs.info(f'Detaching "{listener.__name__}" from event channel "{event}": It was '\
                          f'not been attached to it!')
         except Exception as err:
-            logging.error(f'Inside EventHandler.detach() method: {err}')
+            jarchi_logs.error(f'Inside EventHandler.detach() method: {err}')
     # ____________________________________________________________________________ . . .
 
 
@@ -79,7 +88,7 @@ class EventHandler:
         """
         if self._event_supplies.get(event, ['it_prevents_unregistered_events']) != event_supplies:
             self._event_supplies[event] = event_supplies
-            logging.info(f'Event "{event}" got registered with "{event_supplies}" as supplies.')
+            jarchi_logs.info(f'Event "{event}" got registered with "{event_supplies}" as supplies.')
     # ____________________________________________________________________________ . . .
 
     

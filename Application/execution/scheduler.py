@@ -1,14 +1,15 @@
 import sys
-import logging
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
 from Application.utils.load_json import load                           # noqa: E402
+from Application.utils.logs import get_logger                          # noqa: E402
 from Application.utils.event_channels import Event                     # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler    # noqa: E402
 
+bot_logs = get_logger(logger_name='bot_logs')
 jarchi = EventHandler()
 
 jarchi.register_event(Event.END_ACTIVITY, [])
@@ -24,7 +25,7 @@ async def watch_transitions():
     activity_setup = strategy_cfg['active_times']
 
     if activity_setup == 247:
-        logging.info(f'Broadcasting "{Event.START_ACTIVITY}" event from'\
+        bot_logs.info(f'Broadcasting "{Event.START_ACTIVITY}" event from'\
                      ' scheduler.watch_transitions() function')
 
         await jarchi.emit(Event.START_ACTIVITY)

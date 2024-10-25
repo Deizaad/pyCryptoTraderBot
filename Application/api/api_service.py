@@ -1,6 +1,18 @@
+import sys
 import httpx
 import asyncio
+import logging
+from dotenv import dotenv_values
 
+path = dotenv_values('project_path.env').get('PYTHONPATH')
+sys.path.append(path) if path else None
+
+from Application.utils.logs import get_logger, get_log_level # noqa: E402
+
+
+# Initializing the logger
+# TPL_logs stands for Trading Platforms Linkage Logs
+TPL_logs : logging.Logger = get_logger(logger_name='TPL_logs', log_level=get_log_level('TPL'))
 
 
 # =================================================================================================
@@ -34,15 +46,15 @@ class APIService:
                 # if response.status_code == 200:
                 return response.json()
                 # else:
-                #     logger.error(f"API request failed: {response.status_code} {response.text}")
+                #     TPL_logs.error(f"API request failed: {response.status_code} {response.text}")
             except httpx.HTTPError as err:
                 print(err)
-                # logger.error(f"HTTP request error: {err}")
+                TPL_logs.error(f"HTTP request error: {err}")
                 if attempt < tries - 1:
                     await asyncio.sleep(tries_interval)
             except Exception as err:
                 print(err)
-                # logger.error(f"Unexpected error: {err}")
+                TPL_logs.error(f"Unexpected error: {err}")
                 if attempt < tries - 1:
                     await asyncio.sleep(tries_interval)
         # raise Exception("API request failed after retries")

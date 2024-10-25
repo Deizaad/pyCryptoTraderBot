@@ -1,6 +1,5 @@
 import sys
 import pytz
-import logging
 import importlib
 import pandas as pd
 from typing import Any
@@ -12,8 +11,10 @@ path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
 from Application.utils.load_json import load                        # noqa: E402
+from Application.utils.logs import get_logger                       # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler # noqa: E402
 
+bot_logs = get_logger(logger_name='bot_logs')
 jarchi = EventHandler()
 
 
@@ -159,10 +160,10 @@ def extract_singular_strategy_setup(setup_name            : str,
         return extracted_setup
 
     except AttributeError as err:
-        logging.error(f"Module '{funcs_module}' has no function named '{name}'. {err} ")
+        bot_logs.error(f"Module '{funcs_module}' has no function named '{name}'. {err} ")
         return {}
     except ModuleNotFoundError as err:
-        logging.error(f"There is no module with path '{setup_functions_module_path}', perhaps you"
+        bot_logs.error(f"There is no module with path '{setup_functions_module_path}', perhaps you"
                       f"misspelled it? {err}")
         return {}
 # ________________________________________________________________________________ . . .

@@ -1,7 +1,6 @@
 import sys
 import httpx
 import asyncio
-import logging
 import pandas as pd
 from dotenv import dotenv_values
 
@@ -9,6 +8,7 @@ path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
 from Application.data.user import User                                                      # noqa: E402
+from Application.utils.logs import get_logger                                               # noqa: E402
 from Application.data.exchange import Nobitex                                               # noqa: E402
 from Application.api import nobitex_api as NB_API                                           # noqa: E402
 from Application.utils.event_channels import Event                                          # noqa: E402
@@ -27,6 +27,8 @@ from Application.trading.analysis.indicator_supervisor import compute_indicators
                                                               compute_validation_indicators # noqa: E402
 from Application.trading.position_sizing.position_sizer import compute_position_margin_size # noqa: E402
 
+
+bot_logs = get_logger(logger_name='bot_logs')
 
 
 
@@ -82,7 +84,7 @@ class DataProcessor:
                                                                      pd.DataFrame(),
                                                                      0.0)
         
-        logging.info('"DataProcessor" has initialized data values.')
+        bot_logs.info('"DataProcessor" has initialized data values.')
     # ____________________________________________________________________________ . . .
 
     async def initiate(self):
@@ -113,7 +115,7 @@ class DataProcessor:
             await asyncio.gather( kline_task)#, indicator_task, signal_task)# include positions_task to first
 
         except Exception as err:
-            logging.error(f'Error while initiating data: {err}')
+            bot_logs.error(f'Error while initiating data: {err}')
     # ____________________________________________________________________________ . . .
 
     async def live(self):
@@ -123,7 +125,7 @@ class DataProcessor:
 
             await asyncio.gather( kline_coroutine)# include positions_coroutine to first
         except Exception as err:
-            logging.error(f'Error in live data processing: {err}')
+            bot_logs.error(f'Error in live data processing: {err}')
     # ____________________________________________________________________________ . . .
 
 
@@ -158,10 +160,10 @@ class DataProcessor:
         """
         This method initiates the kline DataFrame by populating it to the desired size.
         """
-        logging.info('Initiating kline_df in DataProcessor._initiate_kline.')
+        bot_logs.info('Initiating kline_df in DataProcessor._initiate_kline.')
         
         # Requesting first initial_fetch to current time
-        logging.info('Sending First initial_fetch request for Kline data ...')
+        bot_logs.info('Sending First initial_fetch request for Kline data ...')
         data = await market.initiate_kline(symbol,
                                            resolution,
                                            required_candles,
@@ -181,7 +183,7 @@ class DataProcessor:
 
 
         # Requesting subsequent initial_fetches to populate the kline dataframe to desired size
-        logging.info('Sending subsequent initial_fetch requests for Kline data ...')
+        bot_logs.info('Sending subsequent initial_fetch requests for Kline data ...')
         try:
             is_first_subsequent_fetch = True
 
@@ -208,7 +210,7 @@ class DataProcessor:
                 # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
                 func_name=self._initiate_kline.__qualname__
                 event_channel=Event.NEW_KLINE_DATA
-                logging.info(
+                bot_logs.info(
                     f'Sending the \"{event_channel}\" event signal from \"{func_name}\" ...'
                 )
 
@@ -216,11 +218,11 @@ class DataProcessor:
                                  kline_df=self.kline_df)
 
         except Exception as err:
-            logging.error(f'Error in requesting subsequent initial_fetches: {err}')
+            bot_logs.error(f'Error in requesting subsequent initial_fetches: {err}')
     # ____________________________________________________________________________ . . .
 
     async def _live_kline(self):
-        logging.info('Sending live_fetch requests for Kline data ...')
+        bot_logs.info('Sending live_fetch requests for Kline data ...')
         try:
             async for data in self.market.update_kline(
                 current_data   = self.kline_df,
@@ -242,13 +244,13 @@ class DataProcessor:
                     # if is_consistent(self.kline_df, config.MarketData.OHLC.RESOLUTION):
                     func_name=self._live_kline.__qualname__
                     event_channel=Event.NEW_KLINE_DATA
-                    logging.info(f'Sending "{event_channel}" event from "{func_name}" ...')
+                    bot_logs.info(f'Sending "{event_channel}" event from "{func_name}" ...')
                     await self.jarchi.emit(Event.NEW_KLINE_DATA,
                                      kline_df=self.kline_df)
 
                     print(self.kline_df)
         except Exception as err:
-            logging.error(f'Error during live kline fetching: {err}')
+            bot_logs.error(f'Error during live kline fetching: {err}')
     # ____________________________________________________________________________ . . .
 
     def get_kline_df(self):
@@ -351,7 +353,7 @@ class DataProcessor:
             self.indicator_df = await compute_indicators(trading_system = strategy.ENTRY_SYSTEM,
                                                          kline_df       = self.kline_df)
             
-            logging.info(f'Broadcasting "{Event.NEW_INDICATORS_DATA}" event from '\
+            bot_logs.info(f'Broadcasting "{Event.NEW_INDICATORS_DATA}" event from '\
                          '"DataProcessor.computing_indicators()" method.')
             
             print(self.indicator_df)
@@ -360,7 +362,7 @@ class DataProcessor:
                                    indicator_df = self.indicator_df)
 
         except Exception as err:
-            logging.error(f'Inside "DataProcessor.computing_indicators()" method: {err}')
+            bot_logs.error(f'Inside "DataProcessor.computing_indicators()" method: {err}')
     # ____________________________________________________________________________ . . .
 
     def get_indicators_df(self):
@@ -388,7 +390,7 @@ class DataProcessor:
                 kline_df          = self.kline_df
             )
 
-            logging.info(f'Broadcasting "{Event.NEW_VALIDATION_INDICATOR_DATA}" event from '\
+            bot_logs.info(f'Broadcasting "{Event.NEW_VALIDATION_INDICATOR_DATA}" event from '\
                          '"DataProcessor.computing_validation_indicators()" method.')
 
             await self.jarchi.emit(Event.NEW_VALIDATION_INDICATOR_DATA,
@@ -397,7 +399,7 @@ class DataProcessor:
                                    validation_indicators_df = self.validation_indicators_df)
 
         except Exception as err:
-            logging.error('Inside "DataProcessor.computing_validation_indicators()" method: ', err)
+            bot_logs.error('Inside "DataProcessor.computing_validation_indicators()" method: ', err)
     # ____________________________________________________________________________ . . .
 
     def get_validation_indicators_df(self):
@@ -425,7 +427,7 @@ class DataProcessor:
             
             for column in self.signal_df:
                 if has_signal(self.signal_df, column) == 'new_signal':
-                    logging.info(f'Broadcasting "{Event.NEW_TRADING_SIGNAL}" event from'\
+                    bot_logs.info(f'Broadcasting "{Event.NEW_TRADING_SIGNAL}" event from'\
                                 '"DataProcessor.generating_signals()" method.')
                     
                     await self.jarchi.emit(Event.NEW_TRADING_SIGNAL,
@@ -434,7 +436,7 @@ class DataProcessor:
                                            setup_name    = column)
 
                 elif has_signal(self.signal_df, column) == 'late_signal':
-                    logging.info(f'Broadcasting "{Event.LATE_TRADING_SIGNAL}" event from'\
+                    bot_logs.info(f'Broadcasting "{Event.LATE_TRADING_SIGNAL}" event from'\
                                 '"DataProcessor.generating_signals()" method.')
                     
                     await self.jarchi.emit(Event.LATE_TRADING_SIGNAL,
@@ -444,7 +446,7 @@ class DataProcessor:
                 
 
         except Exception as err:
-            logging.error('Inside "DataProcessor.generating_signals()" method of DataProcessor: ',
+            bot_logs.error('Inside "DataProcessor.generating_signals()" method of DataProcessor: ',
                           err)
     # ____________________________________________________________________________ . . .
 
@@ -500,7 +502,7 @@ class DataProcessor:
         """
         Initiates positions DataFrame by populating it with all open positions.
         """
-        logging.info('Initiating "positions_df" ...')
+        bot_logs.info('Initiating "positions_df" ...')
 
         self.positions_df = await anext(self.trade.fetch_open_positions(
             client       = httpx.AsyncClient(),
@@ -512,7 +514,7 @@ class DataProcessor:
 
         # broadcast OPEN_POSITIONS_EXIST event in case there are any open positions
         if not self.positions_df.empty:
-            logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_EXIST}" event from '\
+            bot_logs.info(f'Broadcasting "{Event.OPEN_POSITIONS_EXIST}" event from '\
                          '"DataProcessor._initiate_positions()" method.')
             
             await self.jarchi.emit(event=Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
@@ -534,7 +536,7 @@ class DataProcessor:
             ):
                 self.positions_df = new_positions
 
-                logging.info(f'Broadcasting "{Event.OPEN_POSITIONS_EXIST}" event from'\
+                bot_logs.info(f'Broadcasting "{Event.OPEN_POSITIONS_EXIST}" event from'\
                              '"DataProcessor._live_positions()" method.')
 
                 await self.jarchi.emit(Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
@@ -556,4 +558,4 @@ if __name__ == "__main__":
         else:
             loop.run_until_complete(main())
     except RuntimeError as e:
-        logging.error(f"RuntimeError in main: {e}")
+        bot_logs.error(f"RuntimeError in main: {e}")

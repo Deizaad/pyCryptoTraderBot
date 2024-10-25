@@ -13,17 +13,25 @@ from persiantools.jdatetime import JalaliDateTime    # type: ignore
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.data.user import User                      # noqa: E402
-from Application.api.utils import wait_time                 # noqa: E402
-import Application.configs.admin_config as aconfig          # noqa: E402
-from Application.api.api_service import APIService          # noqa: E402
-from Application.data.exchange import Nobitex as nb         # noqa: E402
-# from Application.configs.config import MarketData as md   # noqa: E402
+from Application.data.user import User                       # noqa: E402
+from Application.api.utils import wait_time                  # noqa: E402
+import Application.configs.admin_config as aconfig           # noqa: E402
+from Application.api.api_service import APIService           # noqa: E402
+from Application.data.exchange import Nobitex as nb          # noqa: E402
+# from Application.configs.config import MarketData as md    # noqa: E402
 from Application.data.data_tools import parse_orders,\
                                         parse_positions,\
                                         parse_order_book,\
                                         Tehran_timestamp,\
-                                        parse_wallets_to_df # noqa: E402
+                                        parse_wallets_to_df  # noqa: E402
+from Application.utils.logs import get_logger, get_log_level # noqa: E402
+
+
+# Initializing the logger
+# NL_logs stands for Nobitex Linkage Logs
+NL_logs : logging.Logger = get_logger(logger_name='NL_logs', log_level=get_log_level('NL'))
+
+
 
 
 
@@ -362,7 +370,7 @@ class Market:
 
             return prior_timestamp
         except ValueError as err:
-            logging.error('Inside "_prior_timestamp()" method of "nobitex_api.Market" class: ',err)
+            NL_logs.error('Inside "_prior_timestamp()" method of "nobitex_api.Market" class: ',err)
             return 0
     # ____________________________________________________________________________ . . .
 
@@ -1017,10 +1025,10 @@ class Trade:
             return response
 
         except ValueError as err:
-            logging.error(f'Missing parameter for "cancel_pending_order()" method: {err}')
+            NL_logs.error(f'Missing parameter for "cancel_pending_order()" method: {err}')
             return {}
         except Exception as err:
-            logging.error(f'Inside "nobitex_api.Trade.cancel_pending_order()" method: {err}')
+            NL_logs.error(f'Inside "nobitex_api.Trade.cancel_pending_order()" method: {err}')
             return {}
     # ____________________________________________________________________________ . . .
 
@@ -1118,7 +1126,7 @@ class Trade:
 
             return response
         except ValueError as err:
-            logging.error(f'Inside "nobitex_api.Trade.close_position()" method: {err}')
+            NL_logs.error(f'Inside "nobitex_api.Trade.close_position()" method: {err}')
             return {}
     # ____________________________________________________________________________ . . .
 
@@ -1147,7 +1155,7 @@ class Trade:
 
         # Validate positions_df
         if positions_df.empty:
-            logging.info('There are no active positions to be closed!')
+            NL_logs.info('There are no active positions to be closed!')
             return 'succeeded'
 
         required_specs = {'id', 'liability', 'srcCurrency', 'dstCurrency'}
@@ -1175,7 +1183,7 @@ class Trade:
 
 
         # Prepare coroutines for closing positions
-        logging.info(f'There are "{positions_df.size}" positions to be closed: \n'\
+        NL_logs.info(f'There are "{positions_df.size}" positions to be closed: \n'\
                      f'{positions_df[['srcCurrency', 'dstCurrency', 'id']]}')
 
         coroutines = []
@@ -1205,7 +1213,7 @@ class Trade:
                 )
 
             except Exception as err:
-                logging.error('Failed to prepare coroutine for closing the position '\
+                NL_logs.error('Failed to prepare coroutine for closing the position '\
                               f'{position['id']}: {str(err)}')
 
 
@@ -1217,13 +1225,13 @@ class Trade:
         close_results: list = []
         for position, result in zip(positions_df.to_dict('records'), results):
             if isinstance(result, Exception) or result.get('status') == 'failed':  # type: ignore
-                logging.error(f'Failed to close position {position["id"]}: {str(result)}')
+                NL_logs.error(f'Failed to close position {position["id"]}: {str(result)}')
                 close_results.append({'id': position['id'],
                                       'status': 'failed',
                                       'error': str(result)})
 
             else:
-                logging.info(f'Successfully closed position "{position['id']}"')
+                NL_logs.info(f'Successfully closed position "{position['id']}"')
                 close_results.append({'id': position['id'],
                                       'status': 'success',
                                       'response': result})

@@ -4,7 +4,6 @@ data_processor module.
 """
 import os
 import sys
-import logging
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -13,8 +12,11 @@ path = os.getenv('PYTHONPATH')
 if path:
     sys.path.append(path)
 
-from Application.utils.exchange.nobitex import resolution_map  # noqa: E402
-from Application.data.data_tools import turn_Jalali_to_gregorian  # noqa: E402
+from Application.utils.logs import get_logger                    # noqa: E402
+from Application.utils.exchange.nobitex import resolution_map    # noqa: E402
+from Application.data.data_tools import turn_Jalali_to_gregorian # noqa: E402
+
+bot_logs = get_logger(logger_name='bot_logs')
 
 
 def is_consistent(dataframe: pd.DataFrame, resolution: str):
@@ -31,10 +33,10 @@ def is_consistent(dataframe: pd.DataFrame, resolution: str):
         cond3 = True
 
     if cond1 and cond2 and cond3:
-        logging.info('VALIDATOR:\n\tdataframe being "consistent": Validated')
+        bot_logs.info('VALIDATOR:\n\tdataframe being "consistent": Validated')
         return True
     else:
-        logging.info('VALIDATOR:\n\tdataframe being "consistent": Invalidated')
+        bot_logs.info('VALIDATOR:\n\tdataframe being "consistent": Invalidated')
         return False
 # ____________________________________________________________________________ . . .
 
@@ -44,10 +46,10 @@ def is_unique(series: pd.Series):
     Checks if a series has unique values.
     """
     if series.is_unique:
-        logging.info('VALIDATOR:\n\tdata being unique: Validated')
+        bot_logs.info('VALIDATOR:\n\tdata being unique: Validated')
         return True
     else:
-        logging.info('VALIDATOR:\n\tdata being unique: Inalidated')
+        bot_logs.info('VALIDATOR:\n\tdata being unique: Inalidated')
         return False
 # ____________________________________________________________________________ . . .
 
@@ -57,10 +59,10 @@ def is_sorted(series: pd.Series):
     Checks if a series has sorted values.
     """
     if series.is_monotonic_increasing:
-        logging.info('VALIDATOR:\n\tdata being sorted: Validated')
+        bot_logs.info('VALIDATOR:\n\tdata being sorted: Validated')
         return True
     else:
-        logging.info('VALIDATOR:\n\tdata being sorted: Invalidated')
+        bot_logs.info('VALIDATOR:\n\tdata being sorted: Invalidated')
         return False
 # ____________________________________________________________________________ . . .
 
@@ -81,9 +83,9 @@ def is_consequtive(series: pd.Series, resolution: str):
     cond2 = len(complete_date_range) == len(gregorian_index)
 
     if cond1 and cond2:
-        logging.info('VALIDATOR:\n\tdata being consequtive: Validated')
+        bot_logs.info('VALIDATOR:\n\tdata being consequtive: Validated')
         return True
     else:
-        logging.info('VALIDATOR:\n\tdata being consequtive: Invalidated')
+        bot_logs.info('VALIDATOR:\n\tdata being consequtive: Invalidated')
         return False
 # ____________________________________________________________________________ . . .
