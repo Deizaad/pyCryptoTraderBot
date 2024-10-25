@@ -1,9 +1,6 @@
 _____________DONE: _____________
 
 
-. Renamed the extract_strategy_field_value() function in data_tools.py. also applies to strategy_fields.py
-
-
 _____________TODO: _____________
 * fix update_trades() function that prints duplicate trades data
 
@@ -185,4 +182,16 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 
 * delete the profile_config.py and move it's objects to config.json
 
-* Configure the 'logs.py' in order to read to logs suffix fron config file and configure file handler and formatters in advanced.
+* Refactor the 'logs.py' in order to Combine all 3 defined Formatter classes together.
+
+* Configure the 'logs.py' in order to read to logs suffix from config file and configure file handler and formatters in advanced.
+
+* Implement a process for bot to first check connection with trading platform to handle related errors.
+
+* the shutdown() function in bot.py gets executed twice in case of keyboard interrupts or other interrupts, due to beion attached to the signals, configure it in the bot.py in a way so it get executed only once.
+
+* modify the get_log_level() function in logs.py so it will accept new loggers and checks for their level in config file without being relied on specific hard coded loggers.
+
+* refactor the get_logger() function in logs.py to make the log_level parameter optional in cases where we are getting a logger for subsequent times.
+
+* Refactor the get_logger() function in logs.py so it doesn't get the log_level in parameters at all
