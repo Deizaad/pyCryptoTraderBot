@@ -15,15 +15,12 @@ from Application.utils.logs import get_logger, finish_logs, get_log_level # noqa
 
 
 # Initializing the logger
-bot_logs: logging.Logger
+bot_logs: logging.Logger = get_logger(logger_name='bot_logs', log_level=get_log_level('bot'))
 # ________________________________________________________________________________ . . .
 
 
 async def main():
     try:
-        global bot_logs
-        bot_logs = get_logger(logger_name='bot_logs', log_level=get_log_level('bot'))
-
         prf_path = f'Application.execution.profiles.{Profile.MODE}'
         prf_module = importlib.import_module(prf_path)
 

@@ -195,3 +195,5 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 * refactor the get_logger() function in logs.py to make the log_level parameter optional in cases where we are getting a logger for subsequent times.
 
 * Refactor the get_logger() function in logs.py so it doesn't get the log_level in parameters at all
+
+* Make a new mechanism to check connection and user authorization on trading platform at bot start up and execute a heart-bit function periodically with platform.

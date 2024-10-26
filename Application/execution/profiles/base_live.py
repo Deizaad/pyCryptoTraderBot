@@ -23,6 +23,8 @@ async def run():
     """
     Runs the workflow of "base_live".
     """
+    # Run the Authorize_connection function
+
     _attach_to_events()
     await watch_transitions()
 
@@ -34,7 +36,10 @@ def _attach_to_events():
     """
     Attaches listeners to their corresponding event channels.
     """
-    # listeners of RECOVERY_MECHANISM_ACCOMPLISHED accomplished event channel
+    # Attach the heart_beat function to 'connection_authorized' event channel
+
+
+    # listeners of RECOVERY_MECHANISM_ACCOMPLISHED event channel
     jarchi.attach(start_signals_engine, Event.RECOVERY_MECHANISM_ACCOMPLISHED)
 
     # listeners of START_ACTIVITY event channel

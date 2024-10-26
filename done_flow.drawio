@@ -1,14 +1,14 @@
 <mxfile host="65bd71144e">
     <diagram id="bUYJuNmFrbV8m6pwbn9G" name="Page-1">
-        <mxGraphModel dx="2296" dy="546" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="3031" dy="1458" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
                 <mxCell id="5" value="bot.py" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="70" width="480" height="414" as="geometry"/>
+                    <mxGeometry x="-30" y="-60" width="680" height="474" as="geometry"/>
                 </mxCell>
                 <mxCell id="27" value="" style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;" parent="5" vertex="1">
-                    <mxGeometry x="130" y="50" width="220" height="296" as="geometry"/>
+                    <mxGeometry x="110" y="70" width="220" height="296" as="geometry"/>
                 </mxCell>
                 <mxCell id="28" value="func main():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" parent="27" vertex="1">
                     <mxGeometry x="5" width="120" height="30" as="geometry"/>
@@ -21,6 +21,24 @@
                 </mxCell>
                 <mxCell id="31" value="Execute the profile_module.run() function" style="rounded=1;whiteSpace=wrap;html=1;" parent="27" vertex="1">
                     <mxGeometry x="50" y="201" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="" style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;" vertex="1" parent="5">
+                    <mxGeometry x="350" y="70" width="220" height="296" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="func shutdown():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="63">
+                    <mxGeometry x="5" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="Initialize logger" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="63">
+                    <mxGeometry x="50" y="35" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="Read config.json and import the profile module" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="63">
+                    <mxGeometry x="50" y="118" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="Execute the profile_module.run() function" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="63">
+                    <mxGeometry x="50" y="201" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="69" value="Attach the 'shutdown()' function to interrupt-signal and terminate-signal" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="5">
+                    <mxGeometry x="280" y="400" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="6" value="Available profiles:" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="-245" y="490" width="1110" height="200" as="geometry"/>
@@ -51,11 +69,12 @@
                 </mxCell>
                 <mxCell id="15" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="31" target="6" edge="1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="310" y="364" as="sourcePoint"/>
+                        <mxPoint x="310" y="294" as="sourcePoint"/>
                         <Array as="points">
-                            <mxPoint x="310" y="390"/>
-                            <mxPoint x="310" y="390"/>
+                            <mxPoint x="190" y="450"/>
+                            <mxPoint x="310" y="450"/>
                         </Array>
+                        <mxPoint x="310" y="420" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="16" value="Application.execution.profiles.base_live.py" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -147,10 +166,10 @@
                 <mxCell id="60" value="func start_fetching_kline():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" parent="59" vertex="1">
                     <mxGeometry x="5" width="220" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="61" value="* Executes the self._live_fetch_portfolio_balance()  method." style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="58">
+                <mxCell id="61" value="* Executes the self._live_fetch_portfolio_balance()  method." style="shape=mxgraph.mockup.containers.marginRect;rectMarginTop=10;strokeColor=#666666;strokeWidth=1;dashed=0;rounded=1;arcSize=5;recursiveResize=0;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;whiteSpace=wrap;" parent="58" vertex="1">
                     <mxGeometry x="45" y="190" width="345" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="62" value="func start_fetching_portfolio_balance():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" vertex="1" parent="61">
+                <mxCell id="62" value="func start_fetching_portfolio_balance():" style="shape=rect;strokeColor=none;fillColor=#008cff;strokeWidth=1;dashed=0;rounded=1;arcSize=20;fontColor=#ffffff;fontSize=17;spacing=2;spacingTop=-2;align=left;autosize=1;spacingLeft=4;resizeWidth=0;resizeHeight=0;perimeter=none;" parent="61" vertex="1">
                     <mxGeometry x="5" width="320" height="30" as="geometry"/>
                 </mxCell>
             </root>

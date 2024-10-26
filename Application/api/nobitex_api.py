@@ -35,7 +35,6 @@ NL_logs : logging.Logger = get_logger(logger_name='NL_logs', log_level=get_log_l
 
 
 
-# =================================================================================================
 class Market:
     def __init__(self, api_service: APIService):
         self.service = api_service
@@ -393,7 +392,6 @@ class Market:
 
 
 
-# =================================================================================================
 class Trade:
     def __init__(self, api_service: APIService):
         self.service = api_service
@@ -1244,7 +1242,6 @@ class Trade:
 
 
 
-# =================================================================================================
 class Account:
     def __init__(self):
         self.market = Market(api_service=APIService())
@@ -1362,7 +1359,6 @@ class Account:
 
 
 
-# =================================================================================================
 class Transaction:
     async def withdarw(self):
         pass
