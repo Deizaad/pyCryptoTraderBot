@@ -31,6 +31,10 @@ class Trade:
             TIMEOUT=3.5
 
 class Account:
+    class Profile:
+        TRIES=5
+        TIMEOUT=4.0
+
     class Wallets:
         TRIES=5
         TIMEOUT=4.0

@@ -701,7 +701,7 @@ def get_logger(logger_name: str, log_level: int | None = None):
         if log_level:
             logger = initialize_logger(logger_name=logger_name, log_level=log_level)
         else:
-            raise
+            raise Exception
     return logger
 # =================================================================================================
 

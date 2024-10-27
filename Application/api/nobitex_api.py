@@ -1243,8 +1243,9 @@ class Trade:
 
 
 class Account:
-    def __init__(self):
-        self.market = Market(api_service=APIService())
+    def __init__(self, api_service: APIService):
+        self.service = api_service
+        self.market = Market(api_service=self.service)
     # ____________________________________________________________________________ . . .
 
 
@@ -1348,8 +1349,36 @@ class Account:
     # ____________________________________________________________________________ . . .
 
 
-    async def info(self):
-        pass
+    async def live_fetch_user_profile(self, token: str):
+        """
+        _summary_
+
+        Raises:
+            KeyError
+        """
+        last_fetch_time: float = 0.0
+        limiter = AsyncLimiter(max_rate=nb.Endpoint.PROFILE_RL, time_period=nb.Endpoint.PROFILE_RP)
+
+        async with httpx.AsyncClient() as http_agent:
+            while True:
+                await limiter.acquire()
+                wait = wait_time(nb.Endpoint.PROFILE_MI, time.time(), last_fetch_time)
+                await asyncio.sleep(wait) if (wait > 0) else None
+
+                data = await self.service.get(client         = http_agent,
+                                              url            = nb.URL,
+                                              endpoint       = nb.Endpoint.PROFILE,
+                                              timeout        = aconfig.Account.Profile.TIMEOUT,
+                                              tries_interval = nb.Endpoint.PROFILE_MI,
+                                              tries          = aconfig.Account.Profile.TRIES,
+                                              headers        = {'Authorization': 'Token ' + token})
+
+                last_fetch_time = time.time()
+                
+                if data == {'detail': 'توکن غیر مجاز'}:
+                    raise KeyError('User API Token is wrong!')
+
+                yield data
     # ____________________________________________________________________________ . . .
 
 
@@ -1378,13 +1407,14 @@ if __name__ == '__main__':
         market = Market(APIService())
         result = await anext(market.live_fetch_market_price('usdt', 'rls'))
         print(result)
-    asyncio.run(live_fetch_market_price_test())
+    # asyncio.run(live_fetch_market_price_test())
 
     async def live_fetch_order_book_test():
         market = Market(APIService())
         asks, bids, midprice = await anext(market.live_fetch_order_book(httpx.AsyncClient(), 'usdt', 'irt'))
         print('asks_df:\n', asks, '\n\nbids_df:\n', bids, '\n\nmid_price:\n', midprice)
     # asyncio.run(live_fetch_order_book_test())
+
 
 
     async def fetch_orders_test():
@@ -1413,8 +1443,15 @@ if __name__ == '__main__':
     # asyncio.run(fetch_positions_test())
 
 
+
+    async def live_fetch_user_profile_test():
+        account = Account(APIService())
+        response = await anext(account.live_fetch_user_profile(User.TOKEN))    # type: ignore
+        print(response)
+    asyncio.run(live_fetch_user_profile_test())
+
     async def fetch_wallets_test():
-        account = Account()
+        account = Account(APIService())
 
         response = await account.wallets(http_agent = httpx.AsyncClient(),
                                          token      = User.TOKEN,    # type: ignore
@@ -1423,16 +1460,14 @@ if __name__ == '__main__':
         print(response)
     # asyncio.run(fetch_wallets_test())
 
-
     async def live_fetch_portfolio_balance_test():
-        account = Account()
+        account = Account(APIService())
         rls, usd = await anext(account.live_fetch_portfolio_balance())
         print('rial_balance:\t', rls, '\nusd_balance:\t', usd)
     # asyncio.run(live_fetch_portfolio_balance_test())
 
-
     async def fetch_balance_test():
-        account = Account()
+        account = Account(APIService())
 
         response = await account.balance(http_agent = httpx.AsyncClient(),
                                         token      = User.TOKEN,    # type: ignore
@@ -1440,6 +1475,7 @@ if __name__ == '__main__':
 
         print(response)
     # asyncio.run(fetch_balance_test())
+
 
 
     async def cancel_all_orders_test():
@@ -1471,6 +1507,7 @@ if __name__ == '__main__':
         results = await trade.close_all_positions(User.TOKEN)    # type: ignore
         print(results)
     # asyncio.run(close_all_positions_test())
+
 
 
     async def place_spot_limit_order_test():
@@ -1554,6 +1591,7 @@ if __name__ == '__main__':
 
         print(response)
     # asyncio.run(place_spot_oco_order_test())
+
 
 
     async def place_futures_limit_order_test():

@@ -21,6 +21,11 @@ bot_logs: logging.Logger = get_logger(logger_name='bot_logs', log_level=get_log_
 
 async def main():
     try:
+        # *********************************** TEST CASES ******************************************
+        # from Application.api.nobitex_api import live_fetch_user_profile_test
+        # await live_fetch_user_profile_test()
+        # *****************************************************************************************
+
         prf_path = f'Application.execution.profiles.{Profile.MODE}'
         prf_module = importlib.import_module(prf_path)
 

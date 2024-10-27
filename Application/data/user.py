@@ -11,6 +11,8 @@ from Application.utils.load_json import load    # noqa: E402
 
 # =================================================================================================
 class User:
+    ID: int = 3232493
+
     TOKEN = dotenv_values('secrets.env').get(
         'TEST_TOKEN' \
         if load(r'Application/configs/config.json')['setting'] == "TEST" \
