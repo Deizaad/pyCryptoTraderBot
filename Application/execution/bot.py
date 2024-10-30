@@ -22,14 +22,14 @@ bot_logs: logging.Logger = get_logger(logger_name='bot_logs', log_level=get_log_
 async def main():
     try:
         # *********************************** TEST CASES ******************************************
-        # from Application.api.nobitex_api import live_fetch_user_profile_test
-        # await live_fetch_user_profile_test()
+        from Application.api.nobitex_api import live_fetch_user_profile_test
+        await live_fetch_user_profile_test()
         # *****************************************************************************************
 
-        prf_path = f'Application.execution.profiles.{Profile.MODE}'
-        prf_module = importlib.import_module(prf_path)
+        # prf_path = f'Application.execution.profiles.{Profile.MODE}'
+        # prf_module = importlib.import_module(prf_path)
 
-        await prf_module.run()
+        # await prf_module.run()
 
     except RuntimeError as err:
         bot_logs.error(f'RuntimeError occurred in "bot.main()" function: {err}')

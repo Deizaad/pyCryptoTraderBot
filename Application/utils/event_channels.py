@@ -17,5 +17,6 @@ class Event:
     LATE_TRADING_SIGNAL  = 'there are late trading signals available'
     NEW_INDICATORS_DATA  = 'new indicators data arrived'
     OPEN_POSITIONS_EXIST = 'there are open positions available'
+    SUCCESS_AUTHORIZATION           = 'Authorization to the trading platform granted successfully.'
     NEW_VALIDATION_INDICATOR_DATA   = 'there are new data available for validation indicators'
     RECOVERY_MECHANISM_ACCOMPLISHED = 'recovery mechanism is done successfully'

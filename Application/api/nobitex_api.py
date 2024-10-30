@@ -1365,7 +1365,7 @@ class Account:
                 wait = wait_time(nb.Endpoint.PROFILE_MI, time.time(), last_fetch_time)
                 await asyncio.sleep(wait) if (wait > 0) else None
 
-                data = await self.service.get(client         = http_agent,
+                response = await self.service.get(client         = http_agent,
                                               url            = nb.URL,
                                               endpoint       = nb.Endpoint.PROFILE,
                                               timeout        = aconfig.Account.Profile.TIMEOUT,
@@ -1374,11 +1374,7 @@ class Account:
                                               headers        = {'Authorization': 'Token ' + token})
 
                 last_fetch_time = time.time()
-                
-                if data == {'detail': 'توکن غیر مجاز'}:
-                    raise KeyError('User API Token is wrong!')
-
-                yield data
+                yield response
     # ____________________________________________________________________________ . . .
 
 
@@ -1398,6 +1394,12 @@ class Transaction:
         pass
 # =================================================================================================
 
+
+
+async def live_fetch_user_profile_test():
+    account = Account(APIService())
+    response = await anext(account.live_fetch_user_profile(User.TOKEN))    # type: ignore
+    print(response.json())
 
 
 

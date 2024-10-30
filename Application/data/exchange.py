@@ -19,8 +19,8 @@ class Nobitex:
 
     class Endpoint:
         PROFILE: str = '/users/profile'
-        PROFILE_MI: float = 2.0
-        PROFILE_RL: int = 30
+        PROFILE_MI: float = 1.0
+        PROFILE_RL: int = 60
         PROFILE_RP: int = 60
 
         MARKET_STATS: str = '/market/stats'

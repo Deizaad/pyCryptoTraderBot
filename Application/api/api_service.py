@@ -28,7 +28,7 @@ class APIService:
                        *,
                        params         : dict[str, str] | None = None, 
                        data           : dict[str, str] | None = None, 
-                       headers        : dict[str, str] | None = None) -> dict:
+                       headers        : dict[str, str] | None = None) -> httpx.Response:
         
         for attempt in range(tries):
             try:
@@ -39,27 +39,25 @@ class APIService:
                                                 headers = headers, 
                                                 timeout = timeout)
                 
-                # print(data)
-                # print(response.request)
-                # print(response)
+                print('request object:\t', response.request)
+                print('request data:\t', data)
+                print('response:\t', response)
+                return response
 
-                # if response.status_code == 200:
-                return response.json()
-                # else:
-                #     TPL_logs.error(f"API request failed: {response.status_code} {response.text}")
             except httpx.HTTPError as err:
                 print(err)
                 TPL_logs.error(f"HTTP request error: {err}")
                 if attempt < tries - 1:
                     await asyncio.sleep(tries_interval)
+
             except Exception as err:
                 print(err)
                 TPL_logs.error(f"Unexpected error: {err}")
                 if attempt < tries - 1:
                     await asyncio.sleep(tries_interval)
-        # raise Exception("API request failed after retries")
-        empty_data: dict = {}
-        return  empty_data
+
+        raise  httpx.NetworkError('Inside _request method of APIService class:'
+                                  '\n\tAPI request failed after retries')
     # ____________________________________________________________________________ . . .
 
 
@@ -73,7 +71,7 @@ class APIService:
                   *,
                   params         : dict[str, str] | None = None,
                   data           : dict[str, str] | None = None,
-                  headers        : dict[str, str] | None = None):
+                  headers        : dict[str, str] | None = None) -> httpx.Response:
         
         return await self._request(client         = client,
                                    method         = "GET",
@@ -97,7 +95,7 @@ class APIService:
                    tries          : int,
                    *,
                    data           : dict[str, str] | None = None,
-                   headers        : dict[str, str] | None = None):
+                   headers        : dict[str, str] | None = None) -> httpx.Response:
         
         return await self._request(client         = client,
                                    method         = "POST",
@@ -119,11 +117,10 @@ class APIService:
                   tries_interval : float,
                   tries          : int,
                   *,
-                  data           : dict[str, str] | None = None):
+                  data           : dict[str, str] | None = None) -> httpx.Response:
         
         return await self._request(
-            client, "POST", url, endpoint, timeout, tries_interval, tries, data=data
-            )
+            client, "POST", url, endpoint, timeout, tries_interval, tries, data=data)
     # ____________________________________________________________________________ . . .
 
 
@@ -135,10 +132,8 @@ class APIService:
                      tries_interval : float,
                      tries          : int,
                      *,
-                     data           : dict[str, str] | None = None
-            ):
+                     data           : dict[str, str] | None = None) -> httpx.Response:
         
         return await self._request(
-            client, "POST", url, endpoint, timeout, tries_interval, tries, data=data
-            )
+            client, "POST", url, endpoint, timeout, tries_interval, tries, data=data)
 # =================================================================================================
