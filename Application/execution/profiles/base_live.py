@@ -1,5 +1,4 @@
 import sys
-import asyncio
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
@@ -46,4 +45,7 @@ def _attach_to_events():
     
     # Listeners of the 'SUCCESS_AUTHORIZATION' event channel
     jarchi.attach(heart_beat, Event.SUCCESS_AUTHORIZATION)
+
+    # Listeners of the 'FALSE_BEAT' event channel
+    
 # =================================================================================================

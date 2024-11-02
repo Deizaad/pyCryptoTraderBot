@@ -2,6 +2,7 @@ class Event:
     """
     This class contains constant attributes for Event channels that are used in the project.
     """
+    FALSE_BEAT     = 'false connection check with trading platform occured'
     END_ACTIVITY   = 'active time is ended'
     SUCCESS_FETCH  = 'successfully fetched data'
     START_ACTIVITY = 'active time is started'

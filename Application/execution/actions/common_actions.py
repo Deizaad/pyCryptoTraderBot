@@ -22,15 +22,19 @@ account = Account(APIService())
 
 def _register_internal_events():
     jarchi.register_event(event=Event.SUCCESS_AUTHORIZATION, event_supplies=[])
+    jarchi.register_event(event=Event.FALSE_BEAT, event_supplies=[])
 # ____________________________________________________________________________ . . .
 
 
-def heart_beat():
+async def heart_beat():
     """
     Constantly performs a connection pulse to check with trading platform.
     """
+    _register_internal_events()
+    
     async for new_response in account.live_fetch_user_profile(token=User.TOKEN): # type: ignore
-        
+        if new_response.status_code == 401:
+            await jarchi.emit(event=Event.FALSE_BEAT)
 # ____________________________________________________________________________ . . .
 
 
