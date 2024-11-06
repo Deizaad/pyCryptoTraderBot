@@ -10,7 +10,7 @@ from Application.execution.scheduler import watch_transitions                   
 from Application.trading.trade_engine import start_trade_engine                                   # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler                               # noqa: E402
 from Application.trading.trading_workflow import start_live_trading_flow                          # noqa: E402
-from Application.execution.actions.common_actions import authorize_connection, heart_beat         # noqa: E402
+# from Application.execution.actions.common_actions import authorize_connection, heart_beat         # noqa: E402
 from Application.trading.signals.signals_chief import start_signals_engine #, stop_signals_engine # noqa: E402
 
 data = DataProcessor()
@@ -25,7 +25,7 @@ async def run():
     """
     _attach_to_events()
 
-    await authorize_connection()
+    # await authorize_connection()
     await watch_transitions()
     start_live_trading_flow()
 # ________________________________________________________________________________ . . .
@@ -44,7 +44,7 @@ def _attach_to_events():
     jarchi.attach(start_trade_engine, Event.START_ACTIVITY)
     
     # Listeners of the 'SUCCESS_AUTHORIZATION' event channel
-    jarchi.attach(heart_beat, Event.SUCCESS_AUTHORIZATION)
+    # jarchi.attach(heart_beat, Event.SUCCESS_AUTHORIZATION)
 
     # Listeners of the 'FALSE_BEAT' event channel
     

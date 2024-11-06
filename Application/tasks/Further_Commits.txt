@@ -203,3 +203,5 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 * Move the Initializations of all of loggers to the 'Application.__init__.py'.
 
 * Analyze to decide what processes to move from the main threa. (heart_beat, ...)
+
+* Implement the hands free API token extraction functionality so it automatically extracts and safely stores the token.
