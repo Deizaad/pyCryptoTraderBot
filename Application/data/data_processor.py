@@ -47,7 +47,7 @@ class DataProcessor:
 
     def __init__(self) -> None:
         self.jarchi = EventHandler()
-        self.account = NB_API.Account()
+        self.account = NB_API.Account(APIService())
         self.market = NB_API.Market(APIService())
 
         self.jarchi.register_event(Event.NEW_KLINE_DATA, ['kline_df'])

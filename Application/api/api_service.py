@@ -42,6 +42,7 @@ class APIService:
                 print('request object:\t', response.request)
                 print('request data:\t', data)
                 print('response:\t', response)
+                print('response dict:\t', response.json())
                 return response
 
             except httpx.HTTPError as err:
