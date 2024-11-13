@@ -4,7 +4,7 @@ from dotenv import dotenv_values
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.trading import trade_logs                                   # noqa: E402
+from Application import trade_logs                                           # noqa: E402
 from Application.utils.event_channels import Event                           # noqa: E402
 from Application.data.data_processor import DataProcessor                    # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler          # noqa: E402

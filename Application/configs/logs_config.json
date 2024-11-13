@@ -1,6 +1,15 @@
 {
     "logs_root_path": "./Logs/",
 
+    "loggers":[
+        {
+            "trader": {
+                "active": true,
+                "log_level": "INFO"
+            }
+        }
+    ],
+
     "trader_log_level": "INFO",
     "jarchi_log_level": "INFO",
     "bot_log_level"   : "INFO",

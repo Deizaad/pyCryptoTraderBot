@@ -1,18 +1,15 @@
 import sys
 import httpx
 import asyncio
-import logging
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.utils.logs import get_logger, get_log_level # noqa: E402
+from Application import TPL_logs # noqa: E402
 
 
-# Initializing the logger
-# TPL_logs stands for Trading Platforms Linkage Logs
-TPL_logs : logging.Logger = get_logger(logger_name='TPL_logs', log_level=get_log_level('TPL'))
+
 
 
 # =================================================================================================
@@ -39,10 +36,11 @@ class APIService:
                                                 headers = headers, 
                                                 timeout = timeout)
                 
-                print('request object:\t', response.request)
-                print('request data:\t', data)
-                print('response:\t', response)
-                print('response dict:\t', response.json())
+                # print('request object:\t', response.request)
+                # print('request data:\t', data)
+                # print('response:\t', response)
+                # print('response dict:\t', response.json())
+                # print('\n\n')
                 return response
 
             except httpx.HTTPError as err:
