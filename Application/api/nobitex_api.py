@@ -79,7 +79,7 @@ class Market:
                 
                 last_fetch_time = time.time()
 
-                market_price = response['stats'][f'{src_currency}-{dst_currency}']['latest']
+                market_price = response.json()['stats'][f'{src_currency}-{dst_currency}']['latest']
                 yield market_price
     # ____________________________________________________________________________ . . .
 
@@ -154,7 +154,7 @@ class Market:
 
         payload = {key: value for key, value in payload.items() if is_valid(value)}
 
-        data = await self.service.get(client         = http_agent,
+        response = await self.service.get(client         = http_agent,
                                       url            = url,
                                       endpoint       = endpoint,
                                       timeout        = timeout,
@@ -162,7 +162,7 @@ class Market:
                                       tries          = tries,
                                       params         = payload)    # type: ignore
 
-        return data
+        return response.json()
     # ____________________________________________________________________________ . . .
 
 
@@ -326,7 +326,7 @@ class Market:
                 last_fetch_time = time.time()
 
                 order_book_asks_df, order_book_bids_df, midprice = parse_order_book(
-                    raw_order_book = response
+                    raw_order_book = response.json()
                 )
 
                 yield order_book_asks_df, order_book_bids_df, midprice
@@ -483,7 +483,7 @@ class Trade:
                                            data           = payload,
                                            headers        = headers)
 
-        return response
+        return response.json()
     # ____________________________________________________________________________ . . .
 
 
@@ -847,11 +847,11 @@ class Trade:
                 wait = wait_time(req_interval, time.time(), last_fetch_time)
                 await asyncio.sleep(wait) if (wait > 0) else None
 
-                data = await self.service.get(**params, client=client)
+                response = await self.service.get(**params, client=client)
 
                 last_fetch_time = time.time()
-                orders_df = parse_orders(data)
-                has_next: bool = data['hasNext']
+                orders_df = parse_orders(response.json())
+                has_next: bool = response.json()['hasNext']
                 payload['page']= str(2)
 
                 while has_next:
@@ -859,13 +859,13 @@ class Trade:
                     wait = wait_time(req_interval, time.time(), last_fetch_time)
                     await asyncio.sleep(wait) if (wait > 0) else None
 
-                    new_data = await self.service.get(**params, client=client)
+                    new_response = await self.service.get(**params, client=client)
 
                     last_fetch_time = time.time()
-                    has_next = new_data['hasNext']
+                    has_next = new_response.json()['hasNext']
                     payload['page'] = str(int(payload['page']) + 1)
 
-                    new_orders_df = parse_orders(new_data)
+                    new_orders_df = parse_orders(new_response.json())
                     orders_df = pd.concat([orders_df, new_orders_df])
                 
                 yield orders_df
@@ -904,7 +904,7 @@ class Trade:
 
         headers = {'Authorization': 'Token ' + token}
 
-        data = await self.service.get(client         = client,
+        response = await self.service.get(client         = client,
                                       url            = nb.URL,
                                       endpoint       = nb.Endpoint.POSITIONS,
                                       timeout        = aconfig.Trade.Fetch.Positions.TIMEOUT,
@@ -913,7 +913,7 @@ class Trade:
                                       data           = payload,
                                       headers        = headers)
 
-        return data
+        return response.json()
     # ____________________________________________________________________________ . . .
 
 
@@ -1011,7 +1011,7 @@ class Trade:
             else:
                 raise ValueError('One of "id" parameters ("id" or "client_id") is mandatory.')
 
-            response = self.service.post(client         = http_agent,
+            response = await self.service.post(client         = http_agent,
                                          url            = nb.URL,
                                          endpoint       = nb.Endpoint.UPDATE_STATUS,
                                          timeout        = aconfig.Trade.Place.CancelOrders.TIMEOUT,
@@ -1020,7 +1020,7 @@ class Trade:
                                          data           = payload,
                                          headers        = headers)
 
-            return response
+            return response.json()
 
         except ValueError as err:
             NL_logs.error(f'Missing parameter for "cancel_pending_order()" method: {err}')
@@ -1056,7 +1056,7 @@ class Trade:
             headers        = headers
         )
 
-        return 'succeeded' if response['status'] == 'ok' else 'failed'
+        return 'succeeded' if response.json()['status'] == 'ok' else 'failed'
     # ____________________________________________________________________________ . . .
 
 
@@ -1122,7 +1122,7 @@ class Trade:
                 headers        = headers
             )
 
-            return response
+            return response.json()
         except ValueError as err:
             NL_logs.error(f'Inside "nobitex_api.Trade.close_position()" method: {err}')
             return {}
@@ -1268,8 +1268,7 @@ class Account:
         payload: dict = {'type': 'margin'}
         headers: dict = {'Authorization': 'Token ' + token}
 
-        api = APIService()
-        data = await api.get(client         = http_agent,
+        response = await self.service.get(client         = http_agent,
                              url            = nb.URL,
                              endpoint       = nb.Endpoint.WALLETS,
                              timeout        = aconfig.Account.Wallets.TIMEOUT,
@@ -1278,7 +1277,7 @@ class Account:
                              data           = payload,
                              headers        = headers)
 
-        df = parse_wallets_to_df(raw_wallets=data, drop_void=drop_void)
+        df = parse_wallets_to_df(raw_wallets=response.json(), drop_void=drop_void)
 
         return df
     # ____________________________________________________________________________ . . .
@@ -1336,7 +1335,7 @@ class Account:
         headers: dict = {'Authorization': 'Token ' + token}
 
         api = APIService()
-        data = await api.post(client         = http_agent,
+        response = await api.post(client         = http_agent,
                               url            = nb.URL,
                               endpoint       = nb.Endpoint.BALANCE,
                               timeout        = aconfig.Account.Balance.TIMEOUT,
@@ -1345,7 +1344,7 @@ class Account:
                               data           = payload,
                               headers        = headers)
 
-        return data
+        return response.json()
     # ____________________________________________________________________________ . . .
 
 
@@ -1374,7 +1373,7 @@ class Account:
                                               headers        = {'Authorization': 'Token ' + token})
 
                 last_fetch_time = time.time()
-                yield response
+                yield response.json()
     # ____________________________________________________________________________ . . .
 
 
@@ -1395,11 +1394,6 @@ class Transaction:
 # =================================================================================================
 
 
-
-async def live_fetch_user_profile_test():
-    account = Account(APIService())
-    response = await anext(account.live_fetch_user_profile(User.TOKEN))    # type: ignore
-    print(response.json())
 
 
 
