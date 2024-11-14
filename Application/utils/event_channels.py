@@ -2,6 +2,7 @@ class Event:
     """
     This class contains constant attributes for Event channels that are used in the project.
     """
+    FALSE_BEAT     = 'false connection check with trading platform occured'
     END_ACTIVITY   = 'active time is ended'
     SUCCESS_FETCH  = 'successfully fetched data'
     START_ACTIVITY = 'active time is started'
@@ -17,5 +18,6 @@ class Event:
     LATE_TRADING_SIGNAL  = 'there are late trading signals available'
     NEW_INDICATORS_DATA  = 'new indicators data arrived'
     OPEN_POSITIONS_EXIST = 'there are open positions available'
+    SUCCESS_AUTHORIZATION           = 'Authorization to the trading platform granted successfully.'
     NEW_VALIDATION_INDICATOR_DATA   = 'there are new data available for validation indicators'
     RECOVERY_MECHANISM_ACCOMPLISHED = 'recovery mechanism is done successfully'
