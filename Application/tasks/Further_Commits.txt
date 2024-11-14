@@ -197,3 +197,13 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 * Refactor the get_logger() function in logs.py so it doesn't get the log_level in parameters at all
 
 * Make a new mechanism to check connection and user authorization on trading platform at bot start up and execute a heart-bit function periodically with platform.
+
+* Configure the 'logs.py' module in order to also handle the third party packages' logs.
+
+* Move the Initializations of all of loggers to the 'Application.__init__.py'.
+
+* Analyze to decide what processes to move from the main threa. (heart_beat, ...)
+
+* Implement the hands free API token extraction functionality so it automatically extracts and safely stores the token.
+
+* Add functionality to turn On/Off each Logger object from 'logs_config.json'
