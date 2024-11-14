@@ -1,7 +1,6 @@
 import sys
 import time
 import httpx
-import logging
 import asyncio
 import numpy as np
 import pandas as pd
@@ -13,23 +12,18 @@ from persiantools.jdatetime import JalaliDateTime # type: ignore
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.data.user import User                       # noqa: E402
-from Application.api.utils import wait_time                  # noqa: E402
-import Application.configs.admin_config as aconfig           # noqa: E402
-from Application.api.api_service import APIService           # noqa: E402
-from Application.data.exchange import Nobitex as nb          # noqa: E402
-# from Application.configs.config import MarketData as md    # noqa: E402
+from Application import NL_logs                             # noqa: E402
+from Application.data.user import User                      # noqa: E402
+from Application.api.utils import wait_time                 # noqa: E402
+import Application.configs.admin_config as aconfig          # noqa: E402
+from Application.api.api_service import APIService          # noqa: E402
+from Application.data.exchange import Nobitex as nb         # noqa: E402
+# from Application.configs.config import MarketData as md   # noqa: E402
 from Application.data.data_tools import parse_orders,\
                                         parse_positions,\
                                         parse_order_book,\
                                         Tehran_timestamp,\
-                                        parse_wallets_to_df  # noqa: E402
-from Application.utils.logs import get_logger, get_log_level # noqa: E402
-
-
-# Initializing the logger
-# NL_logs stands for Nobitex Linkage Logs
-NL_logs : logging.Logger = get_logger(logger_name='NL_logs', log_level=get_log_level('NL'))
+                                        parse_wallets_to_df # noqa: E402
 
 
 

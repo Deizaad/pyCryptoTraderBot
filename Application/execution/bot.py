@@ -1,22 +1,18 @@
 import sys
 import signal
 import asyncio
-import logging
 import importlib
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.configs.profile_config import Profile                    # noqa: E402
-# from Application.utils.botlogger import initialize_logger               # noqa: E402
-from Application.utils.logs import get_logger, finish_logs, get_log_level # noqa: E402
+from Application import bot_logs                       # noqa: E402
+from Application.utils.logs import finish_logs         # noqa: E402
+from Application.configs.profile_config import Profile # noqa: E402
 
 
 
-# Initializing the logger
-bot_logs: logging.Logger = get_logger(logger_name='bot_logs', log_level=get_log_level('bot'))
-# ________________________________________________________________________________ . . .
 
 
 async def main():
