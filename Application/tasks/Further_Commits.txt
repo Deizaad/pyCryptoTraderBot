@@ -207,3 +207,5 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 * Implement the hands free API token extraction functionality so it automatically extracts and safely stores the token.
 
 * Add functionality to turn On/Off each Logger object from 'logs_config.json'
+
+* Design the flow of (heart_beat, authorize_connection, login, extract_API_token) and integrate it into the base_live.py profile.
