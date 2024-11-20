@@ -20,6 +20,7 @@ pandas-ta = "^0.3.14b0"
 setuptools = "^70.1.1"
 backtesting = "^0.3.3"
 polars = "^1.14.0"
+pyarrow = "^18.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"

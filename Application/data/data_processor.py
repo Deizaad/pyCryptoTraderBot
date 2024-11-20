@@ -544,6 +544,11 @@ class DataProcessor:
 
 
 
+def extract_tick_data_into_parquet():
+    pass
+
+
+
 async def main():
     data = DataProcessor()
     # await data.initiate()

@@ -1,10 +1,11 @@
 import sys
+from  zoneinfo import ZoneInfo
 from dotenv import dotenv_values
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
 sys.path.append(path) if path else None
 
-from Application.utils.load_json import load    # noqa: E402
+from Application.utils.load_json import load # noqa: E402
 
 # __all__ = ["API_KEY", "CURRENT_TIME", "BASE_URL", "TESTNET"]
 
@@ -16,6 +17,8 @@ class Nobitex:
     URL = 'https://testnetapi.nobitex.ir' \
           if load(r'Application/configs/config.json')['setting'] == "TEST" \
           else 'https://api.nobitex.ir'
+    
+    Time_Zone = ZoneInfo(key='Asia/Tehran')
 
     class Endpoint:
         PROFILE: str = '/users/profile'
@@ -88,3 +91,15 @@ class Nobitex:
         PLACE_FUTURES_ORDER_RL: int = 100
         PLACE_FUTURES_ORDER_RP: int = 600
 # =================================================================================================
+
+
+
+
+
+
+
+
+_exchanges_map = {"Nobitex": Nobitex,
+                  } # Other exchange classes ...
+
+EXCHANGE = _exchanges_map[load(r'Application/configs/config.json')['exchange']]

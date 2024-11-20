@@ -2,8 +2,9 @@ import sys
 import pytz
 import importlib
 import pandas as pd
-from typing import Any
+from zoneinfo import ZoneInfo
 from datetime import datetime
+from typing import Any, Literal
 from dotenv import dotenv_values
 from persiantools.jdatetime import JalaliDateTime    # type: ignore
 
@@ -12,6 +13,8 @@ sys.path.append(path) if path else None
 
 from Application.utils.load_json import load                        # noqa: E402
 from Application.utils.logs import get_logger                       # noqa: E402
+from Application.data.exchange import EXCHANGE                      # noqa: E402
+from Application.data.initial_data import LOCAL_TIME_ZONE           # noqa: E402
 from Application.utils.simplified_event_handler import EventHandler # noqa: E402
 
 bot_logs = get_logger(logger_name='bot_logs')
@@ -169,20 +172,37 @@ def extract_singular_strategy_setup(setup_name            : str,
 # ________________________________________________________________________________ . . .
 
 
-def parse_kline_to_df(raw_kline: dict) -> pd.DataFrame:
+def parse_kline_to_df(
+        raw_kline: dict,
+        local_tz: ZoneInfo = LOCAL_TIME_ZONE,
+        exchange_tz: ZoneInfo = EXCHANGE.Time_Zone,
+        time_shape: Literal['Jalali_Date_time', 'Gregorian_Date_Time', 'Timestamp'] = 'Timestamp'
+    ) -> pd.DataFrame:
     """
     Converts raw kline data into pandas DataFrame shape.
-    """
-    tz = pytz.timezone('Asia/Tehran')
 
-    kline_df = pd.DataFrame({
-        'time'  : [JalaliDateTime.fromtimestamp(timestamp, tz) for timestamp in raw_kline['t']],
+    Args:
+        raw_kline (dict): _description_.
+        local_tz (ZoneInfo, optional): _description_. Defaults to LOCAL_TIME_ZONE.
+        exchange_tz (ZoneInfo, optional): _description_. Defaults to EXCHANGE.Time_Zone.
+        time_shape (Literal['Jalali_Date_time', 'Gregorian_Date_Time', 'Timestamp'], optional): _description_. Defaults to 'Timestamp'.
+
+    Returns:
+        pd.DataFrame: _description_
+    """
+    timing_map = {
+        'Timestamp':           [int(datetime.fromtimestamp(ts, exchange_tz).astimezone(local_tz).timestamp()) for ts in raw_kline['t']],
+        'Gregorian_Date_Time': [datetime.fromtimestamp(ts, exchange_tz).astimezone(local_tz) for ts in raw_kline['t']],
+        'Jalali_Date_time':    [JalaliDateTime.fromtimestamp(ts, exchange_tz).astimezone(local_tz) for ts in raw_kline['t']]
+    }
+
+    kline_df = pd.DataFrame(data={
+        'time'  : timing_map[time_shape],
         'open'  : raw_kline['o'],
         'high'  : raw_kline['h'],
         'low'   : raw_kline['l'],
         'close' : raw_kline['c'],
-        'volume': raw_kline['v']
-    }).set_index('time')
+        'volume': raw_kline['v'],}).set_index('time')
 
     return kline_df
 # ________________________________________________________________________________ . . .

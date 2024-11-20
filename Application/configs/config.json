@@ -1,5 +1,6 @@
 {
     "profile" : "base_live",
     "setting" : "MAIN",
+    "exchange": "Nobitex",
     "local_time_zone_name": "Asia/Tehran"
 }
