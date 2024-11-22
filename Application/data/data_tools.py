@@ -176,7 +176,7 @@ def parse_kline_to_df(
         raw_kline: dict,
         local_tz: ZoneInfo = LOCAL_TIME_ZONE,
         exchange_tz: ZoneInfo = EXCHANGE.Time_Zone,
-        time_shape: Literal['Jalali_Date_time', 'Gregorian_Date_Time', 'Timestamp'] = 'Timestamp'
+        time_shape: Literal['Jalali_Date_time', 'Gregorian_Date_Time', 'Timestamp'] = 'Jalali_Date_time'
     ) -> pd.DataFrame:
     """
     Converts raw kline data into pandas DataFrame shape.
@@ -185,7 +185,7 @@ def parse_kline_to_df(
         raw_kline (dict): _description_.
         local_tz (ZoneInfo, optional): _description_. Defaults to LOCAL_TIME_ZONE.
         exchange_tz (ZoneInfo, optional): _description_. Defaults to EXCHANGE.Time_Zone.
-        time_shape (Literal['Jalali_Date_time', 'Gregorian_Date_Time', 'Timestamp'], optional): _description_. Defaults to 'Timestamp'.
+        time_shape (Literal['Jalali_Date_time', 'Gregorian_Date_Time', 'Timestamp'], optional): _description_. Defaults to 'Jalali_Date_time'.
 
     Returns:
         pd.DataFrame: _description_
