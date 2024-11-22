@@ -1,11 +1,14 @@
 {
     "logs_root_path": "./Logs/",
 
-    "trader_log_level": "INFO",
+    "trade_log_level": "INFO",
     "jarchi_log_level": "INFO",
     "bot_log_level"   : "INFO",
     "TPL_log_level"   : "INFO",
     "NL_log_level"    : "INFO",
+
+    "capture_third_parties_as_root": true,
+    "root_log_level": "INFO",
 
     "stdout_log_level": "DEBUG",
     "file_log_level"  : "DEBUG",

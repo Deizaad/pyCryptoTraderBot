@@ -11,14 +11,11 @@ from Application.utils.logs import get_logger, get_log_level # noqa: E402
 
 
 # Initialization of Logger Objects
-bot_logs = get_logger(logger_name='bot_logs', log_level=get_log_level('bot'))
 
+bot_logs = get_logger(logger_name='bot')
 # 'TPL_logs' -> 'Trading Platform Linkage Logs'
-TPL_logs = get_logger(logger_name='TPL_logs', log_level=get_log_level('TPL'))
-
+TPL_logs = get_logger(logger_name='TPL')
 # 'NL_logs' -> 'Nobitex Linkage Logs'
-NL_logs  = get_logger(logger_name='NL_logs', log_level=get_log_level('NL'))
-
-trade_logs = get_logger(logger_name='trade_logs', log_level=get_log_level('trader'))
-
-jarchi_logs = get_logger(logger_name='jarchi_logs', log_level=get_log_level('jarchi'))
+NL_logs  = get_logger(logger_name='NL')
+trade_logs = get_logger(logger_name='trade')
+jarchi_logs = get_logger(logger_name='jarchi')

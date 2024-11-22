@@ -11,12 +11,15 @@ from zoneinfo import ZoneInfo
 from datetime import date, datetime
 from typing import Mapping, Any, Literal, override
 from logging.handlers import TimedRotatingFileHandler
-from persiantools.jdatetime import JalaliDate, JalaliDateTime  # type: ignore
+from persiantools.jdatetime import JalaliDate, JalaliDateTime # type: ignore
 
 
 with open(r'Application/configs/config.json', 'r') as config_file:
     config = json.load(config_file)
+
 LOCAL_TIME_ZONE_NAME = config.get('local_time_zone_name', None)
+CAPTURE_THIRD_PARTIES_AS_ROOT = config.get('capture_third_parties_as_root', True)
+# ________________________________________________________________________________ . . .
 
 
 def extract_log_configs(field : str) -> Any:
@@ -32,11 +35,12 @@ def extract_log_configs(field : str) -> Any:
                          "it has not been quantified with a value, or perhaps you misspelled it.")
     
     return value
+# ________________________________________________________________________________ . . .
 
 
 # Extract log levels dynamically
 def get_log_level(
-    logger_or_handler: Literal["stdout", "file", "jarchi", "trader", "bot", "TPL", 'NL'],
+    logger_or_handler: Literal["stdout", "file", "jarchi", "trader", "bot", "TPL", 'NL', 'root'],
 ) -> int:
     """
     _summary_
@@ -668,19 +672,50 @@ queue_listener: logging.handlers.QueueListener | None = None
 
 
 # =================================================================================================
-def initialize_logger(logger_name: str, log_level: int) -> logging.Logger:
+def initialize_logger(logger_name: str) -> logging.Logger:
     """
-    Initializes the logger.
+    Initializes the logger and optionally captures logs from third-party libraries.
+    
+    Args:
+        logger_name (str): Name of the logger.
+        log_level (int): Logging level.
+        capture_third_party (bool): Whether to capture logs from third-party libraries.
+    
+    Returns:
+        logging.Logger: Configured logger instance.
     """
     logger = logging.getLogger(name=logger_name)
-    logger.setLevel(log_level)
+    
+    # Check if the logger has handlers already to avoid duplication
+    if logger.hasHandlers():
+        logger.warning(f'Logger "{logger_name}" is already initialized. Reusing existing configuration.')
+        return logger
+
+    # Set logger level
+    logger.setLevel(get_log_level(logger_name))
+
+    # Create queue handler and listener
     global queue_listener
     queue_handler, queue_listener = queue_workers()
     logger.addHandler(hdlr=queue_handler)
 
+    # Start the queue listener
     queue_listener.start()
 
     logger.info(f'Initialized the "{logger.name}" logger.')
+    
+    if CAPTURE_THIRD_PARTIES_AS_ROOT:
+        # Configure the root logger to capture third-party logs
+        root_logger = logging.getLogger()
+        
+        # Avoid adding duplicate handlers to the root logger
+        if not root_logger.hasHandlers():
+            root_logger.setLevel(get_log_level('root'))
+            root_logger.addHandler(hdlr=queue_handler)
+            root_logger.info("Configured root logger to capture third-party logs.")
+        else:
+            root_logger.warning("Root logger already configured. Skipping additional handler configuration.")
+
     return logger
 # ________________________________________________________________________________ . . .
 
@@ -690,18 +725,16 @@ def finish_logs():
     global queue_listener
     if queue_listener:
         queue_listener.stop()
+        logging.getLogger().info("Queue listener stopped.")
     else:
-        raise
+        logging.getLogger().error("Queue listener is not active. Cannot stop.")
 # ________________________________________________________________________________ . . .
 
 
-def get_logger(logger_name: str, log_level: int | None = None):
+def get_logger(logger_name: str):
     logger = logging.getLogger(logger_name)
     if not logger.handlers:
-        if log_level:
-            logger = initialize_logger(logger_name=logger_name, log_level=log_level)
-        else:
-            raise Exception
+        logger = initialize_logger(logger_name=logger_name)
     return logger
 # =================================================================================================
 
