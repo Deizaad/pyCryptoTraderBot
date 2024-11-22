@@ -208,4 +208,8 @@ Inside recovery_mechanism() function: list.remove(x): x not in list}
 
 * Add functionality to turn On/Off each Logger object from 'logs_config.json'
 
-* Mocify the 'data_tools.parse_kline_to_df()' in order to store price, volume, and time values with appropriate numerical data-types to achieve efficiency, speed, and data consistency goals.
+* Design the flow of (heart_beat, authorize_connection, login, extract_API_token) and integrate it into the base_live.py profile.
+
+* Modify the 'data_tools.parse_kline_to_df()' in order to store price, volume, and time values with appropriate numerical data-types to achieve efficiency, speed, and data consistency goals.
+
+* There is an incompatibility in 'data_processor.py' with 'data_tools.parse_kline_to_df' which doesn't let the 'parse_kline_to_df' function to make dataframe indexes to be other than Jalali_Date_Time, Fix it.
