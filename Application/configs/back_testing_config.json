@@ -1,0 +1,18 @@
+{
+    "historical_sample": {
+        "trading_pair": {
+            "symbol": "USDTIRT",
+            "src_currency": "usdt",
+            "dst_currency": "rls"
+        },
+        "start": "1400-01-01 00:00:00",
+        "end":   "1402-12-29 23:59:59",
+        "timeframe": "5m",
+        "fetch_chunck_size": 500
+    },
+
+    "unseen_sample": {
+        "start": "1403-01-01 00:00:00",
+        "end":   "1403-08-30 23:59:59"
+    }
+}

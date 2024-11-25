@@ -9,7 +9,7 @@ sys.path.append(path) if path else None
 
 from Application.data.user import User                                                      # noqa: E402
 from Application.utils.logs import get_logger                                               # noqa: E402
-from Application.data.exchange import Nobitex                                               # noqa: E402
+from Application.data.exchange import EXCHANGE                                              # noqa: E402
 from Application.api import nobitex_api as NB_API                                           # noqa: E402
 from Application.utils.event_channels import Event                                          # noqa: E402
 import Application.configs.admin_config as Aconfig                                          # noqa: E402
@@ -99,7 +99,7 @@ class DataProcessor:
                 resolution       = strategy.TRADING_TIMEFRAME,
                 required_candles = strategy.COMPUTION_SIZE,
                 timeout          = Aconfig.Market.OHLC.TIMEOUT,
-                tries_interval   = Nobitex.Endpoint.OHLC_MI,
+                tries_interval   = EXCHANGE.Endpoint.OHLC_MI,
                 tries            = Aconfig.Market.OHLC.TRIES
             )
 
@@ -110,7 +110,7 @@ class DataProcessor:
             # signal_task = self._awake_signals(self.signal)
 
             self.trade = NB_API.Trade(APIService())
-            # positions_task = self._initiate_positions()
+            # positions_task = self._initiate_fetch_positions()
 
             await asyncio.gather( kline_task)#, indicator_task, signal_task)# include positions_task to first
 
@@ -142,7 +142,7 @@ class DataProcessor:
             resolution=strategy.TRADING_TIMEFRAME,
             required_candles=strategy.COMPUTION_SIZE,
             timeout=Aconfig.Market.OHLC.TIMEOUT,
-            tries_interval=Nobitex.Endpoint.OHLC_MI,
+            tries_interval=EXCHANGE.Endpoint.OHLC_MI,
             tries=Aconfig.Market.OHLC.TRIES
         )
 
@@ -161,7 +161,7 @@ class DataProcessor:
         This method initiates the kline DataFrame by populating it to the desired size.
         """
         bot_logs.info('Initiating kline_df in DataProcessor._initiate_kline.')
-        
+
         # Requesting first initial_fetch to current time
         bot_logs.info('Sending First initial_fetch request for Kline data ...')
         data = await market.initiate_kline(symbol,
@@ -194,9 +194,9 @@ class DataProcessor:
                                                         timeout,
                                                         tries_interval,
                                                         tries,
-                                                        max_interval = Nobitex.Endpoint.OHLC_MI,
-                                                        max_rate     = Nobitex.Endpoint.OHLC_RL,
-                                                        rate_period  = Nobitex.Endpoint.OHLC_RP):
+                                                        max_interval = EXCHANGE.Endpoint.OHLC_MI,
+                                                        max_rate     = EXCHANGE.Endpoint.OHLC_RL,
+                                                        rate_period  = EXCHANGE.Endpoint.OHLC_RP):
 
                 if is_first_subsequent_fetch:
                     data = parse_kline_to_df(new_data)
@@ -229,11 +229,11 @@ class DataProcessor:
                 symbol         = strategy.TRADING_PAIR['symbol'],
                 resolution     = strategy.TRADING_TIMEFRAME,
                 timeout        = Aconfig.Market.OHLC.TIMEOUT,
-                tries_interval = Nobitex.Endpoint.OHLC_MI,
+                tries_interval = EXCHANGE.Endpoint.OHLC_MI,
                 tries          = Aconfig.Market.OHLC.TRIES,
-                max_interval   = Nobitex.Endpoint.OHLC_MI,
-                max_rate       = Nobitex.Endpoint.OHLC_RL,
-                rate_period    = Nobitex.Endpoint.OHLC_RP
+                max_interval   = EXCHANGE.Endpoint.OHLC_MI,
+                max_rate       = EXCHANGE.Endpoint.OHLC_RL,
+                rate_period    = EXCHANGE.Endpoint.OHLC_RP
             ):
                 data = parse_kline_to_df(data)
                 if not data.equals(self.kline_df) and df_has_news(self.kline_df, data):
@@ -498,7 +498,7 @@ class DataProcessor:
 
 
 
-    async def _initiate_positions(self):
+    async def _initiate_fetch_positions(self):
         """
         Initiates positions DataFrame by populating it with all open positions.
         """
@@ -507,15 +507,15 @@ class DataProcessor:
         self.positions_df = await anext(self.trade.fetch_open_positions(
             client       = httpx.AsyncClient(),
             token        = User.TOKEN,    # type: ignore
-            req_interval = Nobitex.Endpoint.POSITIONS_MI,
-            max_rate     = Nobitex.Endpoint.POSITIONS_RL,
-            rate_period  = Nobitex.Endpoint.POSITIONS_RP
+            req_interval = EXCHANGE.Endpoint.POSITIONS_MI,
+            max_rate     = EXCHANGE.Endpoint.POSITIONS_RL,
+            rate_period  = EXCHANGE.Endpoint.POSITIONS_RP
         ))
 
         # broadcast OPEN_POSITIONS_EXIST event in case there are any open positions
         if not self.positions_df.empty:
             bot_logs.info(f'Broadcasting "{Event.OPEN_POSITIONS_EXIST}" event from '\
-                         '"DataProcessor._initiate_positions()" method.')
+                         '"DataProcessor._initiate_fetch_positions()" method.')
             
             await self.jarchi.emit(event=Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
     # ____________________________________________________________________________ . . .
@@ -527,9 +527,9 @@ class DataProcessor:
         async for new_positions in self.trade.fetch_open_positions(
             client       = httpx.AsyncClient(),
             token        = User.TOKEN,    # type: ignore
-            req_interval = Nobitex.Endpoint.POSITIONS_MI,
-            max_rate     = Nobitex.Endpoint.POSITIONS_RL,
-            rate_period  = Nobitex.Endpoint.POSITIONS_RP
+            req_interval = EXCHANGE.Endpoint.POSITIONS_MI,
+            max_rate     = EXCHANGE.Endpoint.POSITIONS_RL,
+            rate_period  = EXCHANGE.Endpoint.POSITIONS_RP
         ):
             if not new_positions.equals(self.positions_df) and df_has_news(
                 self.positions_df, new_positions
@@ -540,12 +540,19 @@ class DataProcessor:
                              '"DataProcessor._live_positions()" method.')
 
                 await self.jarchi.emit(Event.OPEN_POSITIONS_EXIST, positions_df=self.positions_df)
+    # ____________________________________________________________________________ . . .
+
+
+
+
+
+
+
+    def _store_historical_dataset_into_parquet(self):
+        pass
 # =================================================================================================
 
 
-
-def extract_tick_data_into_parquet():
-    pass
 
 
 

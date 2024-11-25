@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from dotenv import dotenv_values
 from aiolimiter import AsyncLimiter
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, Literal
 from persiantools.jdatetime import JalaliDateTime # type: ignore
 
 path = dotenv_values('project_path.env').get('PYTHONPATH')
@@ -15,15 +15,16 @@ sys.path.append(path) if path else None
 from Application import NL_logs                             # noqa: E402
 from Application.data.user import User                      # noqa: E402
 from Application.api.utils import wait_time                 # noqa: E402
+from Application.data.exchange import EXCHANGE              # noqa: E402
 import Application.configs.admin_config as aconfig          # noqa: E402
 from Application.api.api_service import APIService          # noqa: E402
-from Application.data.exchange import Nobitex as nb         # noqa: E402
 # from Application.configs.config import MarketData as md   # noqa: E402
 from Application.data.data_tools import parse_orders,\
                                         parse_positions,\
                                         parse_order_book,\
                                         Tehran_timestamp,\
                                         parse_wallets_to_df # noqa: E402
+import Application.strategy_testing.back_testing_config_fields as backtest_config           # noqa: E402
 
 
 
@@ -51,8 +52,8 @@ class Market:
             market_price (float | int): Market price for given trading pair.
         """
         last_fetch_time: float = 0.0
-        limiter = AsyncLimiter(max_rate    = nb.Endpoint.MARKET_STATS_RL,
-                               time_period = nb.Endpoint.MARKET_STATS_RP)
+        limiter = AsyncLimiter(max_rate    = EXCHANGE.Endpoint.MARKET_STATS_RL,
+                               time_period = EXCHANGE.Endpoint.MARKET_STATS_RP)
 
         payload = {'srcCurrency': src_currency,
                    'dstCurrency': dst_currency}
@@ -60,14 +61,14 @@ class Market:
         async with httpx.AsyncClient() as http_agent:
             while True:
                 await limiter.acquire()
-                wait = wait_time(nb.Endpoint.MARKET_STATS_MI, time.time(), last_fetch_time)
+                wait = wait_time(EXCHANGE.Endpoint.MARKET_STATS_MI, time.time(), last_fetch_time)
                 await asyncio.sleep(wait) if (wait > 0) else None
 
                 response = await self.service.get(client         = http_agent,
-                                                  url            = nb.URL,
-                                                  endpoint       = nb.Endpoint.MARKET_STATS,
+                                                  url            = EXCHANGE.URL,
+                                                  endpoint       = EXCHANGE.Endpoint.MARKET_STATS,
                                                   timeout        = aconfig.Market.OHLC.TIMEOUT,
-                                                  tries_interval = nb.Endpoint.MARKET_STATS_MI,
+                                                  tries_interval = EXCHANGE.Endpoint.MARKET_STATS_MI,
                                                   tries          = aconfig.Market.OHLC.TRIES,
                                                   params         = payload)
                 
@@ -87,8 +88,8 @@ class Market:
                     tries_interval : float,
                     tries          : int,
                     *,
-                    url            : str        = nb.URL, 
-                    endpoint       : str        = nb.Endpoint.OHLC,
+                    url            : str        = EXCHANGE.URL, 
+                    endpoint       : str        = EXCHANGE.Endpoint.OHLC,
                     page           : int | None = None,
                     countback      : int | None = None,
                     start          : int | None = None,) -> dict:
@@ -106,10 +107,10 @@ class Market:
             tries_interval (float): The time period to wait before retrying request in seconds.
             tries (int): Number of tries for request.
             start (str, optional): The start timestamp or 'oldest' for the oldest available data.
-            url (str, optional): The base URL for the request. Defaults to nb.URL.
-            endpoint (str, optional): The API endpoint. Defaults to nb.Endpoint.OHLC.
+            url (str, optional): The base URL for the request. Defaults to EXCHANGE.URL.
+            endpoint (str, optional): The API endpoint. Defaults to EXCHANGE.Endpoint.OHLC.
             max_rate (str, optional): The maximum rate limit for API calls. Defaults to 
-            nb.Endpoint.OHLC_RL.
+            EXCHANGE.Endpoint.OHLC_RL.
             time_period (str, optional): The time period in seconds over which the rate limit 
             applies. Defaults to 60.
 
@@ -278,6 +279,58 @@ class Market:
     # ____________________________________________________________________________ . . .
 
 
+    async def fetch_historical_kline(self, dataset_type: Literal['historical_sample',
+                                                                 'unseen_sample']):
+        """
+        Async generator to fetch historical kline
+
+        Args:
+            dataset_type (Literal['historical_sample', 'unseen_sample']): _description_.
+
+        Yields:
+            data_chunk (dict): _description_.
+        """
+        start = backtest_config.HISTORY_START if dataset_type == 'historical_sample' \
+                else backtest_config.UNSEEN_START
+        end   = backtest_config.HISTORY_END if dataset_type == 'historical_sample' \
+                else backtest_config.UNSEEN_END
+
+        last_fetch_time: float = 0.0
+        limiter = AsyncLimiter(max_rate    = EXCHANGE.Endpoint.OHLC_MI,
+                               time_period = EXCHANGE.Endpoint.OHLC_RP)
+
+        data: dict = {}
+        is_first_iteration = True
+
+        async with httpx.AsyncClient() as http_agent:
+            while True:
+                await limiter.acquire()
+                wait = wait_time(EXCHANGE.Endpoint.OHLC_MI, time.time(), last_fetch_time)
+                await asyncio.sleep(wait) if (wait > 0) else None
+
+                if is_first_iteration:
+                    end_timestamp = end
+                    is_first_iteration = False
+                else:
+                    end_timestamp = self._prior_timestamp(data, timeframe=backtest_config.TIMEFRAME)
+
+                data = await self.kline(
+                    http_agent       = http_agent,
+                    symbol           = backtest_config.SYMBOL,
+                    resolution       = backtest_config.TIMEFRAME,
+                    end              = end_timestamp,
+                    timeout          = aconfig.Market.OHLC.TIMEOUT,
+                    tries_interval   = EXCHANGE.Endpoint.OHLC_MI,
+                    tries            = aconfig.Market.OHLC.TRIES,
+                    countback        = backtest_config.FETCH_CHUNCK_SIZE
+                )
+
+                yield data
+                if self._prior_timestamp(data, timeframe=backtest_config.TIMEFRAME) <= start:
+                    break
+    # ____________________________________________________________________________ . . .
+
+
     async def live_fetch_order_book(self,
                                     http_agent: httpx.AsyncClient,
                                     src_currency: str,
@@ -297,23 +350,23 @@ class Market:
         - midprice (float):
         """
         last_fetch_time: float = 0.0
-        limiter = AsyncLimiter(max_rate    = nb.Endpoint.ORDER_BOOK_RL,
-                               time_period = nb.Endpoint.ORDER_BOOK_RP)
+        limiter = AsyncLimiter(max_rate    = EXCHANGE.Endpoint.ORDER_BOOK_RL,
+                               time_period = EXCHANGE.Endpoint.ORDER_BOOK_RP)
 
-        endpoint = nb.Endpoint.ORDER_BOOK +  f'{src_currency.upper() + dst_currency.upper()}'
+        endpoint = EXCHANGE.Endpoint.ORDER_BOOK +  f'{src_currency.upper() + dst_currency.upper()}'
 
         async with http_agent:
             while True:
                 await limiter.acquire()
-                wait = wait_time(nb.Endpoint.ORDER_BOOK_MI, time.time(), last_fetch_time)
+                wait = wait_time(EXCHANGE.Endpoint.ORDER_BOOK_MI, time.time(), last_fetch_time)
                 await asyncio.sleep(wait) if (wait > 0) else None
 
                 response = await self.service.get(
                     client         = http_agent,
-                    url            = nb.URL,
+                    url            = EXCHANGE.URL,
                     endpoint       = endpoint,
                     timeout        = aconfig.Market.OrderBook.TIMEOUT,
-                    tries_interval = nb.Endpoint.ORDER_BOOK_MI,
+                    tries_interval = EXCHANGE.Endpoint.ORDER_BOOK_MI,
                     tries          = aconfig.Market.OrderBook.TRIES
                 )
 
@@ -441,12 +494,12 @@ class Trade:
 
 
         if environment == 'spot':
-            endpoint       = nb.Endpoint.PLACE_SPOT_ORDER
-            tries_interval = nb.Endpoint.PLACE_SPOT_ORDER_MI
+            endpoint       = EXCHANGE.Endpoint.PLACE_SPOT_ORDER
+            tries_interval = EXCHANGE.Endpoint.PLACE_SPOT_ORDER_MI
 
         else: # environment == 'futures'
-            endpoint       = nb.Endpoint.PLACE_FUTURES_ORDER
-            tries_interval = nb.Endpoint.PLACE_FUTURES_ORDER_MI
+            endpoint       = EXCHANGE.Endpoint.PLACE_FUTURES_ORDER
+            tries_interval = EXCHANGE.Endpoint.PLACE_FUTURES_ORDER_MI
             payload['leverage'] = str(kwargs.get('leverage'))
 
 
@@ -469,7 +522,7 @@ class Trade:
 
 
         response = await self.service.post(client         = http_agent,
-                                           url            = nb.URL,
+                                           url            = EXCHANGE.URL,
                                            endpoint       = endpoint,
                                            timeout        = aconfig.Trade.Place.PlaceOrder.TIMEOUT,
                                            tries_interval = tries_interval,
@@ -826,10 +879,10 @@ class Trade:
             payload['dstCurrency'] = dst_currency
             payload['srcCurrency'] = src_currency
 
-        params: dict = {'url'            : nb.URL,
-                        'endpoint'       : nb.Endpoint.ORDERS,
+        params: dict = {'url'            : EXCHANGE.URL,
+                        'endpoint'       : EXCHANGE.Endpoint.ORDERS,
                         'timeout'        : aconfig.Trade.Fetch.Orders.TIMEOUT,
-                        'tries_interval' : nb.Endpoint.ORDERS_MI,
+                        'tries_interval' : EXCHANGE.Endpoint.ORDERS_MI,
                         'tries'          : aconfig.Trade.Fetch.Orders.TRIES,
                         'data'           : payload,
                         'headers'        : headers}
@@ -899,10 +952,10 @@ class Trade:
         headers = {'Authorization': 'Token ' + token}
 
         response = await self.service.get(client         = client,
-                                      url            = nb.URL,
-                                      endpoint       = nb.Endpoint.POSITIONS,
+                                      url            = EXCHANGE.URL,
+                                      endpoint       = EXCHANGE.Endpoint.POSITIONS,
                                       timeout        = aconfig.Trade.Fetch.Positions.TIMEOUT,
-                                      tries_interval = nb.Endpoint.POSITIONS_MI,
+                                      tries_interval = EXCHANGE.Endpoint.POSITIONS_MI,
                                       tries          = aconfig.Trade.Fetch.Positions.TRIES,
                                       data           = payload,
                                       headers        = headers)
@@ -1006,10 +1059,10 @@ class Trade:
                 raise ValueError('One of "id" parameters ("id" or "client_id") is mandatory.')
 
             response = await self.service.post(client         = http_agent,
-                                         url            = nb.URL,
-                                         endpoint       = nb.Endpoint.UPDATE_STATUS,
+                                         url            = EXCHANGE.URL,
+                                         endpoint       = EXCHANGE.Endpoint.UPDATE_STATUS,
                                          timeout        = aconfig.Trade.Place.CancelOrders.TIMEOUT,
-                                         tries_interval = nb.Endpoint.UPDATE_STATUS_MI,
+                                         tries_interval = EXCHANGE.Endpoint.UPDATE_STATUS_MI,
                                          tries          = aconfig.Trade.Place.CancelOrders.TRIES,
                                          data           = payload,
                                          headers        = headers)
@@ -1042,10 +1095,10 @@ class Trade:
 
         response = await self.service.post(
             client         = client,
-            url            = nb.URL,
-            endpoint       = nb.Endpoint.CANCEL_ORDERS,
+            url            = EXCHANGE.URL,
+            endpoint       = EXCHANGE.Endpoint.CANCEL_ORDERS,
             timeout        = aconfig.Trade.Place.CancelOrders.TIMEOUT,
-            tries_interval = nb.Endpoint.CANCEL_ORDERS_MI,
+            tries_interval = EXCHANGE.Endpoint.CANCEL_ORDERS_MI,
             tries          = aconfig.Trade.Place.CancelOrders.TRIES,
             headers        = headers
         )
@@ -1107,10 +1160,10 @@ class Trade:
 
             response = await self.service.post(
                 client         = http_agent,
-                url            = nb.URL,
+                url            = EXCHANGE.URL,
                 endpoint       = endpoint,
                 timeout        = aconfig.Trade.Place.ClosePosition.TIMEOUT,
-                tries_interval = nb.Endpoint.CLOSE_POSITION_MI,
+                tries_interval = EXCHANGE.Endpoint.CLOSE_POSITION_MI,
                 tries          = aconfig.Trade.Place.ClosePosition.TRIES,
                 data           = payload,
                 headers        = headers
@@ -1138,9 +1191,9 @@ class Trade:
             self.fetch_open_positions(
                 client       = httpx.AsyncClient(),
                 token        = token,
-                req_interval = nb.Endpoint.POSITIONS_MI,
-                max_rate     = nb.Endpoint.POSITIONS_RL,
-                rate_period  = nb.Endpoint.POSITIONS_RP
+                req_interval = EXCHANGE.Endpoint.POSITIONS_MI,
+                max_rate     = EXCHANGE.Endpoint.POSITIONS_RL,
+                rate_period  = EXCHANGE.Endpoint.POSITIONS_RP
             )
         )
 
@@ -1263,10 +1316,10 @@ class Account:
         headers: dict = {'Authorization': 'Token ' + token}
 
         response = await self.service.get(client         = http_agent,
-                             url            = nb.URL,
-                             endpoint       = nb.Endpoint.WALLETS,
+                             url            = EXCHANGE.URL,
+                             endpoint       = EXCHANGE.Endpoint.WALLETS,
                              timeout        = aconfig.Account.Wallets.TIMEOUT,
-                             tries_interval = nb.Endpoint.WALLETS_MI,
+                             tries_interval = EXCHANGE.Endpoint.WALLETS_MI,
                              tries          = aconfig.Account.Wallets.TRIES,
                              data           = payload,
                              headers        = headers)
@@ -1285,12 +1338,12 @@ class Account:
             portfolio_balance (float): The sum of user's wallet balances in Rial.
         """
         last_fetch_time: float = 0.0
-        limiter = AsyncLimiter(max_rate=nb.Endpoint.WALLETS_MI, time_period=nb.Endpoint.WALLETS_RP)
+        limiter = AsyncLimiter(max_rate=EXCHANGE.Endpoint.WALLETS_MI, time_period=EXCHANGE.Endpoint.WALLETS_RP)
 
         async with httpx.AsyncClient() as http_agent:
             while True:
                 await limiter.acquire()
-                wait = wait_time(nb.Endpoint.WALLETS_MI, time.time(), last_fetch_time)
+                wait = wait_time(EXCHANGE.Endpoint.WALLETS_MI, time.time(), last_fetch_time)
                 await asyncio.sleep(wait) if (wait > 0) else None
 
                 wallets_coroutine = self.wallets(http_agent = http_agent,
@@ -1330,10 +1383,10 @@ class Account:
 
         api = APIService()
         response = await api.post(client         = http_agent,
-                              url            = nb.URL,
-                              endpoint       = nb.Endpoint.BALANCE,
+                              url            = EXCHANGE.URL,
+                              endpoint       = EXCHANGE.Endpoint.BALANCE,
                               timeout        = aconfig.Account.Balance.TIMEOUT,
-                              tries_interval = nb.Endpoint.BALANCE_MI,
+                              tries_interval = EXCHANGE.Endpoint.BALANCE_MI,
                               tries          = aconfig.Account.Balance.TRIES,
                               data           = payload,
                               headers        = headers)
@@ -1350,19 +1403,19 @@ class Account:
             KeyError
         """
         last_fetch_time: float = 0.0
-        limiter = AsyncLimiter(max_rate=nb.Endpoint.PROFILE_RL, time_period=nb.Endpoint.PROFILE_RP)
+        limiter = AsyncLimiter(max_rate=EXCHANGE.Endpoint.PROFILE_RL, time_period=EXCHANGE.Endpoint.PROFILE_RP)
 
         async with httpx.AsyncClient() as http_agent:
             while True:
                 await limiter.acquire()
-                wait = wait_time(nb.Endpoint.PROFILE_MI, time.time(), last_fetch_time)
+                wait = wait_time(EXCHANGE.Endpoint.PROFILE_MI, time.time(), last_fetch_time)
                 await asyncio.sleep(wait) if (wait > 0) else None
 
                 response = await self.service.get(client         = http_agent,
-                                              url            = nb.URL,
-                                              endpoint       = nb.Endpoint.PROFILE,
+                                              url            = EXCHANGE.URL,
+                                              endpoint       = EXCHANGE.Endpoint.PROFILE,
                                               timeout        = aconfig.Account.Profile.TIMEOUT,
-                                              tries_interval = nb.Endpoint.PROFILE_MI,
+                                              tries_interval = EXCHANGE.Endpoint.PROFILE_MI,
                                               tries          = aconfig.Account.Profile.TRIES,
                                               headers        = {'Authorization': 'Token ' + token})
 
@@ -1413,9 +1466,9 @@ if __name__ == '__main__':
 
         data = await anext(trade.fetch_orders(client = httpx.AsyncClient(),
                                             token  = User.TOKEN,     # type: ignore
-                                            req_interval = nb.Endpoint.ORDERS_MI,
-                                            max_rate = nb.Endpoint.ORDERS_RL,
-                                            rate_period=nb.Endpoint.ORDERS_RP,
+                                            req_interval = EXCHANGE.Endpoint.ORDERS_MI,
+                                            max_rate = EXCHANGE.Endpoint.ORDERS_RL,
+                                            rate_period=EXCHANGE.Endpoint.ORDERS_RP,
                                             status = 'all'))
 
         print(data)
