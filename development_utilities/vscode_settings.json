@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.fontSize": 12,
+    "[python]": {
+        "editor.rulers": [99]
+    }
+}
