@@ -8,3 +8,4 @@ git config --local merge.tool vscode
 git config --local mergetool.vscode.cmd 'code --wait --merge $REMOTE $LOCAL $BASE $MERGED'
 git config --local diff.tool vscode
 git config --local difftool.vscode.cmd 'code --wait --diff $LOCAL $REMOTE'
+git config --local core.pager most
